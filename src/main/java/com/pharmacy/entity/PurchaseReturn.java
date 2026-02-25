@@ -1,0 +1,74 @@
+package com.pharmacy.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "purchase_returns")
+public class PurchaseReturn {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String returnNumber;
+
+    @Column(nullable = false)
+    private LocalDate returnDate;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal totalAmount;
+
+    @Column(length = 500)
+    private String reason;
+
+    @Column(nullable = false)
+    private Instant createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "pharmacy_id", nullable = false)
+    private Pharmacy pharmacy;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_id")
+    private PurchaseOrder purchaseOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "created_by_user_id", nullable = false)
+    private UserAccount createdBy;
+
+    @OneToMany(mappedBy = "purchaseReturn", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseReturnItem> items = new ArrayList<>();
+
+    @PrePersist
+    void onCreate() {
+        createdAt = Instant.now();
+        if (returnDate == null) {
+            returnDate = LocalDate.now();
+        }
+    }
+}

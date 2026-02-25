@@ -1,0 +1,35 @@
+package com.pharmacy.controller;
+
+import com.pharmacy.dto.CreateUserRequest;
+import com.pharmacy.dto.UserResponse;
+import com.pharmacy.security.AppUserPrincipal;
+import com.pharmacy.service.UserManagementService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserManagementService userManagementService;
+
+    @PostMapping
+    public UserResponse createUser(@AuthenticationPrincipal AppUserPrincipal principal,
+                                   @Valid @RequestBody CreateUserRequest request) {
+        return userManagementService.createUserUnderSamePharmacy(principal, request);
+    }
+
+    @GetMapping
+    public List<UserResponse> listUsers(@AuthenticationPrincipal AppUserPrincipal principal) {
+        return userManagementService.listPharmacyUsers(principal);
+    }
+}
