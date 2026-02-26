@@ -1,10 +1,6 @@
 package com.pharmacy.service;
 
-import com.pharmacy.dto.ExpiryAlertResponse;
-import com.pharmacy.dto.MedicineRequest;
-import com.pharmacy.dto.MedicineResponse;
-import com.pharmacy.dto.StockBatchRequest;
-import com.pharmacy.dto.StockBatchResponse;
+import com.pharmacy.dto.*;
 import com.pharmacy.entity.Medicine;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
@@ -22,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -69,11 +64,13 @@ public class InventoryService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public MedicineResponse addBatch(AppUserPrincipal principal, UUID medicineId, StockBatchRequest request) {
+    public MedicineResponse addBatch(AppUserPrincipal principal, Long medicineId, StockBatchRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Medicine medicine = medicineRepository.findByIdAndPharmacy(medicineId, pharmacy)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine not found"));
-        StockBatch batch = stockBatchRepository.findByMedicineAndBatchNumber(medicine, request.batchNumber().trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Medicine not found"));
+        StockBatch batch = stockBatchRepository
+                .findByMedicineAndBatchNumber(medicine, request.batchNumber().trim())
                 .orElseGet(() -> {
                     StockBatch b = new StockBatch();
                     b.setMedicine(medicine);
@@ -92,18 +89,23 @@ public class InventoryService {
         return toResponse(medicine);
     }
 
-    /** List all batches for a medicine (e.g. for detail page). */
-    public List<StockBatchResponse> listBatchesForMedicine(AppUserPrincipal principal, UUID medicineId) {
+    /**
+     * List all batches for a medicine (e.g. for detail page).
+     */
+    public List<StockBatchResponse> listBatchesForMedicine(AppUserPrincipal principal, Long medicineId) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Medicine medicine = medicineRepository.findByIdAndPharmacy(medicineId, pharmacy)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Medicine not found"));
         return stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine).stream()
                 .map(b -> new StockBatchResponse(b.getId(), b.getBatchNumber(), b.getExpiryDate(),
                         b.getQuantity(), b.getUnitCostPrice(), b.getReceivedAt()))
                 .toList();
     }
 
-    /** Batches expiring within the given days (for alerts / expiry report). */
+    /**
+     * Batches expiring within the given days (for alerts / expiry report).
+     */
     public List<ExpiryAlertResponse> getExpiryAlerts(AppUserPrincipal principal, int withinDays) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         LocalDate today = LocalDate.now();
@@ -140,7 +142,6 @@ public class InventoryService {
                 medicine.getPrice(),
                 earliestExpiry,
                 status,
-                batchResponses
-        );
+                batchResponses);
     }
 }

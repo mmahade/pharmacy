@@ -4,14 +4,7 @@ import com.pharmacy.dto.PurchaseOrderItemRequest;
 import com.pharmacy.dto.PurchaseOrderRequest;
 import com.pharmacy.dto.PurchaseOrderResponse;
 import com.pharmacy.dto.ReceivePurchaseOrderRequest;
-import com.pharmacy.entity.Medicine;
-import com.pharmacy.entity.Pharmacy;
-import com.pharmacy.entity.PurchaseOrder;
-import com.pharmacy.entity.PurchaseOrderItem;
-import com.pharmacy.entity.PurchaseOrderStatus;
-import com.pharmacy.entity.StockBatch;
-import com.pharmacy.entity.Supplier;
-import com.pharmacy.entity.UserAccount;
+import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PurchaseOrderRepository;
 import com.pharmacy.repository.StockBatchRepository;
@@ -28,7 +21,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +40,7 @@ public class PurchaseOrderService {
                 .toList();
     }
 
-    public PurchaseOrderResponse get(AppUserPrincipal principal, UUID id) {
+    public PurchaseOrderResponse get(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(id, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
@@ -75,7 +67,8 @@ public class PurchaseOrderService {
         BigDecimal total = BigDecimal.ZERO;
         for (PurchaseOrderItemRequest itemReq : request.items()) {
             Medicine medicine = medicineRepository.findByIdAndPharmacy(itemReq.medicineId(), pharmacy)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine not found: " + itemReq.medicineId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Medicine not found: " + itemReq.medicineId()));
             BigDecimal lineTotal = itemReq.unitCostPrice().multiply(BigDecimal.valueOf(itemReq.quantityOrdered()));
             total = total.add(lineTotal);
 
@@ -94,7 +87,7 @@ public class PurchaseOrderService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public PurchaseOrderResponse submit(AppUserPrincipal principal, UUID id) {
+    public PurchaseOrderResponse submit(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(id, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
@@ -106,31 +99,39 @@ public class PurchaseOrderService {
     }
 
     /**
-     * Receive (full or partial) goods against a purchase order. Increases inventory for each line.
+     * Receive (full or partial) goods against a purchase order. Increases inventory
+     * for each line.
      */
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public PurchaseOrderResponse receive(AppUserPrincipal principal, UUID purchaseOrderId, ReceivePurchaseOrderRequest request) {
+    public PurchaseOrderResponse receive(AppUserPrincipal principal, Long purchaseOrderId,
+                                         ReceivePurchaseOrderRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(purchaseOrderId, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
         if (po.getStatus() != PurchaseOrderStatus.ORDERED && po.getStatus() != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can only receive against ORDERED or PARTIALLY_RECEIVED orders");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Can only receive against ORDERED or PARTIALLY_RECEIVED orders");
         }
 
         for (ReceivePurchaseOrderRequest.ReceivePurchaseOrderLineRequest lineReq : request.lines()) {
             PurchaseOrderItem line = po.getItems().stream()
                     .filter(i -> i.getId().equals(lineReq.purchaseOrderItemId()))
                     .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PO line not found: " + lineReq.purchaseOrderItemId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "PO line not found: " + lineReq.purchaseOrderItemId()));
             int newReceived = line.getQuantityReceived() + lineReq.quantityReceived();
             if (newReceived > line.getQuantityOrdered()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Received quantity " + lineReq.quantityReceived() + " would exceed ordered " + line.getQuantityOrdered() + " for " + line.getMedicine().getName());
+                        "Received quantity " + lineReq.quantityReceived() + " would exceed ordered "
+                                + line.getQuantityOrdered() + " for " + line.getMedicine().getName());
             }
             line.setQuantityReceived(newReceived);
             String batchNum = lineReq.batchNumber() != null && !lineReq.batchNumber().isBlank()
-                    ? lineReq.batchNumber().trim() : ("B-" + line.getMedicine().getName().replaceAll("[^A-Za-z0-9]", "").substring(0, Math.min(10, line.getMedicine().getName().length())) + "-" + System.currentTimeMillis() % 100000);
+                    ? lineReq.batchNumber().trim()
+                    : ("B-" + line.getMedicine().getName().replaceAll("[^A-Za-z0-9]", "").substring(0,
+                    Math.min(10, line.getMedicine().getName().length())) + "-"
+                    + System.currentTimeMillis() % 100000);
             line.setBatchNumber(batchNum);
             Medicine medicine = line.getMedicine();
             StockBatch batch = stockBatchRepository.findByMedicineAndBatchNumber(medicine, batchNum)
@@ -138,13 +139,15 @@ public class PurchaseOrderService {
                         StockBatch b = new StockBatch();
                         b.setMedicine(medicine);
                         b.setBatchNumber(batchNum);
-                        b.setExpiryDate(lineReq.expiryDate() != null ? lineReq.expiryDate() : line.getPurchaseOrder().getOrderDate().plusYears(2));
+                        b.setExpiryDate(lineReq.expiryDate() != null ? lineReq.expiryDate()
+                                : line.getPurchaseOrder().getOrderDate().plusYears(2));
                         b.setQuantity(0);
                         b.setUnitCostPrice(line.getUnitCostPrice());
                         return b;
                     });
             batch.setQuantity(batch.getQuantity() + lineReq.quantityReceived());
-            if (line.getUnitCostPrice() != null) batch.setUnitCostPrice(line.getUnitCostPrice());
+            if (line.getUnitCostPrice() != null)
+                batch.setUnitCostPrice(line.getUnitCostPrice());
             stockBatchRepository.save(batch);
         }
 
@@ -156,7 +159,8 @@ public class PurchaseOrderService {
     private String nextOrderNumber(String pharmacyName) {
         String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4) code = code.substring(0, 4);
+        if (code.length() > 4)
+            code = code.substring(0, 4);
         return "PO-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
     }
 
@@ -170,8 +174,7 @@ public class PurchaseOrderService {
                         i.getQuantityReceived(),
                         i.getUnitCostPrice(),
                         i.getLineTotal(),
-                        i.getBatchNumber()
-                ))
+                        i.getBatchNumber()))
                 .toList();
         return new PurchaseOrderResponse(
                 po.getId(),
@@ -182,7 +185,6 @@ public class PurchaseOrderService {
                 po.getCreatedAt(),
                 po.getSupplier().getId(),
                 po.getSupplier().getName(),
-                items
-        );
+                items);
     }
 }

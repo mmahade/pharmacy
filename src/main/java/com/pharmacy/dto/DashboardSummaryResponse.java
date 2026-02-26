@@ -11,23 +11,22 @@ public record DashboardSummaryResponse(
         List<LowStockItem> lowStockItems,
         List<ExpiryAlertItem> expiringSoon,
         List<PrescriptionResponse> recentPrescriptions,
-        List<SaleResponse> recentSales
-) {
+        List<SaleResponse> recentSales) {
     public record LowStockItem(
             String medicineName,
             Integer stock,
-            Integer minStock
-    ) {
+            Integer minStock) {
     }
 
-    /** Batch expiring within the configured window (e.g. 30 days). */
+    /**
+     * Batch expiring within the configured window (e.g. 30 days).
+     */
     public record ExpiryAlertItem(
             String medicineName,
-            java.util.UUID medicineId,
+            Long medicineId,
             String batchNumber,
             java.time.LocalDate expiryDate,
             Integer quantity,
-            Integer daysUntilExpiry
-    ) {
+            Integer daysUntilExpiry) {
     }
 }

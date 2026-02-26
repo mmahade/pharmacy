@@ -6,11 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public record PurchaseOrderRequest(
-        @NotNull UUID supplierId,
+        @NotNull Long supplierId,
         LocalDate orderDate,
-        @NotEmpty(message = "At least one item required") List<@Valid PurchaseOrderItemRequest> items
-) {
+        @NotEmpty(message = "At least one item required") List<@Valid PurchaseOrderItemRequest> items) {
 }

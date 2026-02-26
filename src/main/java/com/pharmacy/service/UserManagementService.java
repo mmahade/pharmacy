@@ -66,7 +66,6 @@ public class UserManagementService {
                 user.getRole(),
                 user.getActive(),
                 user.getCreatedAt(),
-                user.getPharmacy().getId()
-        );
+                user.getPharmacy().getId());
     }
 }

@@ -10,17 +10,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Tag(name = "Suppliers", description = "Supplier directory management")
 @RestController
@@ -38,7 +30,7 @@ public class SupplierController {
 
     @Operation(summary = "Get supplier", description = "Returns the details of a single supplier.")
     @GetMapping("/{id}")
-    public SupplierResponse get(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable UUID id) {
+    public SupplierResponse get(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
         return supplierService.get(principal, id);
     }
 
@@ -53,7 +45,7 @@ public class SupplierController {
     @Operation(summary = "Update supplier", description = "Updates the contact details of an existing supplier.")
     @PutMapping("/{id}")
     public SupplierResponse update(@AuthenticationPrincipal AppUserPrincipal principal,
-                                   @PathVariable UUID id,
+                                   @PathVariable Long id,
                                    @Valid @RequestBody SupplierRequest request) {
         return supplierService.update(principal, id, request);
     }

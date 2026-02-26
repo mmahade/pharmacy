@@ -10,17 +10,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Tag(name = "Prescriptions", description = "Doctor prescription management and dispensing workflow")
 @RestController
@@ -38,7 +30,7 @@ public class PrescriptionController {
 
     @Operation(summary = "Get prescription", description = "Returns the full details of a single prescription.")
     @GetMapping("/{id}")
-    public PrescriptionResponse get(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable UUID id) {
+    public PrescriptionResponse get(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
         return prescriptionService.getPrescription(principal, id);
     }
 
@@ -46,13 +38,13 @@ public class PrescriptionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PrescriptionResponse create(@AuthenticationPrincipal AppUserPrincipal principal,
-            @Valid @RequestBody PrescriptionRequest request) {
+                                       @Valid @RequestBody PrescriptionRequest request) {
         return prescriptionService.createPrescription(principal, request);
     }
 
     @Operation(summary = "Complete prescription", description = "Marks a prescription as fully dispensed, deducting stock for each item.")
     @PutMapping("/{id}/complete")
-    public PrescriptionResponse complete(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable UUID id) {
+    public PrescriptionResponse complete(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
         return prescriptionService.completePrescription(principal, id);
     }
 }

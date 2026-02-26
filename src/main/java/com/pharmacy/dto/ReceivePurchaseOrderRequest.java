@@ -7,17 +7,16 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
-/** Per-line received quantities and batch info when receiving a PO. */
+/**
+ * Per-line received quantities and batch info when receiving a PO.
+ */
 public record ReceivePurchaseOrderRequest(
-        @NotEmpty(message = "At least one line receipt required")
-        List<@Valid ReceivePurchaseOrderLineRequest> lines
-) {
+        @NotEmpty(message = "At least one line receipt required") List<@Valid ReceivePurchaseOrderLineRequest> lines) {
     public record ReceivePurchaseOrderLineRequest(
-            @NotNull UUID purchaseOrderItemId,
+            @NotNull Long purchaseOrderItemId,
             @Min(1) int quantityReceived,
             String batchNumber,
-            LocalDate expiryDate
-    ) {}
+            LocalDate expiryDate) {
+    }
 }

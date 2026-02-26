@@ -1,14 +1,12 @@
 package com.pharmacy.dto;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public record SaleReturnItemResponse(
-        UUID id,
-        UUID saleItemId,
+        Long id,
+        Long saleItemId,
         String medicineName,
         Integer quantityReturned,
         BigDecimal unitPrice,
-        BigDecimal lineTotal
-) {
+        BigDecimal lineTotal) {
 }

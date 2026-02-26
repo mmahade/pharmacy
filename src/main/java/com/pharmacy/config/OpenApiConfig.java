@@ -36,7 +36,7 @@ public class OpenApiConfig {
                         .title("Pharmacy Management System API")
                         .description("""
                                 REST API for the Pharmacy Management System.
-
+                                
                                 **Authentication**: All secured endpoints require a JWT Bearer token.
                                 Obtain a token via `POST /api/auth/login`, then click the
                                 **Authorize** button above and enter: `<your-token>`.

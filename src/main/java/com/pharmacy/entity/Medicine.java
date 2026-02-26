@@ -8,11 +8,12 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Medicine product (master): name, category, selling price, min stock for alerts.
- * Actual inventory is held in {@link StockBatch} (same medicine can have multiple
+ * Medicine product (master): name, category, selling price, min stock for
+ * alerts.
+ * Actual inventory is held in {@link StockBatch} (same medicine can have
+ * multiple
  * batches with different expiry dates).
  */
 @Getter

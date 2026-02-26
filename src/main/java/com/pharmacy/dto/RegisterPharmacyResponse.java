@@ -1,11 +1,8 @@
 package com.pharmacy.dto;
 
-import java.util.UUID;
-
 public record RegisterPharmacyResponse(
-        UUID pharmacyId,
+        Long pharmacyId,
         String pharmacyName,
-        UUID adminUserId,
-        String adminEmail
-) {
+        Long adminUserId,
+        String adminEmail) {
 }

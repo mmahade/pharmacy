@@ -8,19 +8,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 public class AppUserPrincipal implements UserDetails {
 
-    private final UUID userId;
-    private final UUID pharmacyId;
+    private final Long userId;
+    private final Long pharmacyId;
     private final String email;
     private final String password;
     private final Role role;
     private final boolean active;
 
-    public AppUserPrincipal(UUID userId, UUID pharmacyId, String email, String password, Role role, boolean active) {
+    public AppUserPrincipal(Long userId, Long pharmacyId, String email, String password, Role role, boolean active) {
         this.userId = userId;
         this.pharmacyId = pharmacyId;
         this.email = email;

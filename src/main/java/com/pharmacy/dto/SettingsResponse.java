@@ -2,28 +2,23 @@ package com.pharmacy.dto;
 
 import com.pharmacy.entity.Role;
 
-import java.util.UUID;
-
 public record SettingsResponse(
         PharmacySettings pharmacy,
-        UserProfile user
-) {
+        UserProfile user) {
     public record PharmacySettings(
-            UUID pharmacyId,
+            Long pharmacyId,
             String name,
             String licenseNumber,
             String phoneNumber,
             String email,
-            String address
-    ) {
+            String address) {
     }
 
     public record UserProfile(
-            UUID userId,
+            Long userId,
             String fullName,
             String email,
             String phoneNumber,
-            Role role
-    ) {
+            Role role) {
     }
 }

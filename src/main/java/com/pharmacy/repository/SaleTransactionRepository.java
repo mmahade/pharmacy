@@ -8,13 +8,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, UUID> {
-    Optional<SaleTransaction> findByIdAndPharmacy(UUID id, Pharmacy pharmacy);
+public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, Long> {
+    Optional<SaleTransaction> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
+
     List<SaleTransaction> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
+
     List<SaleTransaction> findTop10ByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
+
     long countByPharmacy(Pharmacy pharmacy);
+
     long countByPharmacyAndSaleDateBetween(Pharmacy pharmacy, LocalDate startDate, LocalDate endDate);
 
     Optional<SaleTransaction> findTopByPharmacyAndSaleDateOrderByCreatedAtDesc(Pharmacy pharmacy, LocalDate saleDate);

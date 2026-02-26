@@ -3,13 +3,7 @@ package com.pharmacy.service;
 import com.pharmacy.dto.PurchaseReturnItemRequest;
 import com.pharmacy.dto.PurchaseReturnRequest;
 import com.pharmacy.dto.PurchaseReturnResponse;
-import com.pharmacy.entity.Medicine;
-import com.pharmacy.entity.Pharmacy;
-import com.pharmacy.entity.PurchaseReturn;
-import com.pharmacy.entity.PurchaseReturnItem;
-import com.pharmacy.entity.StockBatch;
-import com.pharmacy.entity.Supplier;
-import com.pharmacy.entity.UserAccount;
+import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PurchaseReturnRepository;
 import com.pharmacy.repository.StockBatchRepository;
@@ -26,7 +20,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +39,7 @@ public class PurchaseReturnService {
                 .toList();
     }
 
-    public PurchaseReturnResponse get(AppUserPrincipal principal, UUID id) {
+    public PurchaseReturnResponse get(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         PurchaseReturn pr = purchaseReturnRepository.findByIdAndPharmacy(id, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase return not found"));
@@ -73,12 +66,14 @@ public class PurchaseReturnService {
         BigDecimal total = BigDecimal.ZERO;
         for (PurchaseReturnItemRequest itemReq : request.items()) {
             Medicine medicine = medicineRepository.findByIdAndPharmacy(itemReq.medicineId(), pharmacy)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine not found: " + itemReq.medicineId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Medicine not found: " + itemReq.medicineId()));
             List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
             int available = batches.stream().mapToInt(StockBatch::getQuantity).sum();
             if (available < itemReq.quantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Insufficient stock for " + medicine.getName() + ": required " + itemReq.quantity() + ", available " + available);
+                        "Insufficient stock for " + medicine.getName() + ": required " + itemReq.quantity()
+                                + ", available " + available);
             }
             BigDecimal lineTotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
             total = total.add(lineTotal);
@@ -93,9 +88,11 @@ public class PurchaseReturnService {
 
             int remaining = itemReq.quantity();
             for (StockBatch batch : batches) {
-                if (remaining <= 0) break;
+                if (remaining <= 0)
+                    break;
                 int take = Math.min(remaining, batch.getQuantity());
-                if (take <= 0) continue;
+                if (take <= 0)
+                    continue;
                 batch.setQuantity(batch.getQuantity() - take);
                 stockBatchRepository.save(batch);
                 remaining -= take;
@@ -109,7 +106,8 @@ public class PurchaseReturnService {
     private String nextReturnNumber(String pharmacyName) {
         String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4) code = code.substring(0, 4);
+        if (code.length() > 4)
+            code = code.substring(0, 4);
         return "PR-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
     }
 
@@ -121,8 +119,7 @@ public class PurchaseReturnService {
                         i.getMedicine().getName(),
                         i.getQuantity(),
                         i.getUnitPrice(),
-                        i.getLineTotal()
-                ))
+                        i.getLineTotal()))
                 .toList();
         return new PurchaseReturnResponse(
                 pr.getId(),
@@ -134,7 +131,6 @@ public class PurchaseReturnService {
                 pr.getSupplier().getId(),
                 pr.getSupplier().getName(),
                 pr.getPurchaseOrder() != null ? pr.getPurchaseOrder().getId() : null,
-                items
-        );
+                items);
     }
 }

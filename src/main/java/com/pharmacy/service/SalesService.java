@@ -1,25 +1,7 @@
 package com.pharmacy.service;
 
-import com.pharmacy.dto.SaleItemRequest;
-import com.pharmacy.dto.SaleItemResponse;
-import com.pharmacy.dto.SalePaymentRequest;
-import com.pharmacy.dto.SalePaymentResponse;
-import com.pharmacy.dto.SaleRequest;
-import com.pharmacy.dto.SaleResponse;
-import com.pharmacy.dto.SaleReturnItemRequest;
-import com.pharmacy.dto.SaleReturnItemResponse;
-import com.pharmacy.dto.SaleReturnRequest;
-import com.pharmacy.dto.SaleReturnResponse;
-import com.pharmacy.entity.Medicine;
-import com.pharmacy.entity.Pharmacy;
-import com.pharmacy.entity.SaleItem;
-import com.pharmacy.entity.SaleItemAllocation;
-import com.pharmacy.entity.SalePayment;
-import com.pharmacy.entity.SaleReturn;
-import com.pharmacy.entity.SaleReturnItem;
-import com.pharmacy.entity.SaleTransaction;
-import com.pharmacy.entity.StockBatch;
-import com.pharmacy.entity.UserAccount;
+import com.pharmacy.dto.*;
+import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.SaleReturnRepository;
 import com.pharmacy.repository.SaleTransactionRepository;
@@ -37,7 +19,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +38,7 @@ public class SalesService {
                 .toList();
     }
 
-    public SaleResponse getSale(AppUserPrincipal principal, UUID id) {
+    public SaleResponse getSale(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         SaleTransaction sale = saleTransactionRepository.findByIdAndPharmacy(id, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale not found"));
@@ -91,7 +72,8 @@ public class SalesService {
             int available = batches.stream().mapToInt(StockBatch::getQuantity).sum();
             if (available < itemReq.quantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Insufficient stock for " + medicine.getName() + ": required " + itemReq.quantity() + ", available " + available);
+                        "Insufficient stock for " + medicine.getName() + ": required " + itemReq.quantity()
+                                + ", available " + available);
             }
 
             BigDecimal unitPrice = medicine.getPrice();
@@ -106,9 +88,11 @@ public class SalesService {
             line.setLineTotal(lineTotal);
             int remaining = itemReq.quantity();
             for (StockBatch batch : batches) {
-                if (remaining <= 0) break;
+                if (remaining <= 0)
+                    break;
                 int take = Math.min(remaining, batch.getQuantity());
-                if (take <= 0) continue;
+                if (take <= 0)
+                    continue;
                 batch.setQuantity(batch.getQuantity() - take);
                 stockBatchRepository.save(batch);
                 SaleItemAllocation alloc = new SaleItemAllocation();
@@ -125,8 +109,10 @@ public class SalesService {
         sale.setTotal(total);
         sale.setItemsSummary(String.join(", ", summaryParts));
 
-        BigDecimal initialPayment = request.initialPaymentAmount() != null && request.initialPaymentAmount().compareTo(BigDecimal.ZERO) > 0
-                ? request.initialPaymentAmount() : BigDecimal.ZERO;
+        BigDecimal initialPayment = request.initialPaymentAmount() != null
+                && request.initialPaymentAmount().compareTo(BigDecimal.ZERO) > 0
+                ? request.initialPaymentAmount()
+                : BigDecimal.ZERO;
         if (initialPayment.compareTo(total) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Initial payment cannot exceed total");
         }
@@ -135,7 +121,8 @@ public class SalesService {
             SalePayment payment = new SalePayment();
             payment.setSale(sale);
             payment.setAmount(initialPayment);
-            payment.setPaymentMethod(request.initialPaymentMethod() != null ? request.initialPaymentMethod() : request.paymentMethod());
+            payment.setPaymentMethod(
+                    request.initialPaymentMethod() != null ? request.initialPaymentMethod() : request.paymentMethod());
             payment.setReference(request.initialPaymentReference());
             sale.getPayments().add(payment);
         }
@@ -146,13 +133,14 @@ public class SalesService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST','STAFF')")
-    public SaleResponse addPayment(AppUserPrincipal principal, UUID saleId, SalePaymentRequest request) {
+    public SaleResponse addPayment(AppUserPrincipal principal, Long saleId, SalePaymentRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         SaleTransaction sale = saleTransactionRepository.findByIdAndPharmacy(saleId, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale not found"));
         BigDecimal balanceDue = sale.getTotal().subtract(sale.getAmountPaid());
         if (request.amount().compareTo(balanceDue) > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payment amount cannot exceed balance due " + balanceDue);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Payment amount cannot exceed balance due " + balanceDue);
         }
         SalePayment payment = new SalePayment();
         payment.setSale(sale);
@@ -167,7 +155,7 @@ public class SalesService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST','STAFF')")
-    public SaleReturnResponse createReturn(AppUserPrincipal principal, UUID saleId, SaleReturnRequest request) {
+    public SaleReturnResponse createReturn(AppUserPrincipal principal, Long saleId, SaleReturnRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         UserAccount currentUser = tenantAccessService.currentUser(principal);
         SaleTransaction sale = saleTransactionRepository.findByIdAndPharmacy(saleId, pharmacy)
@@ -185,7 +173,8 @@ public class SalesService {
             SaleItem saleItem = sale.getItems().stream()
                     .filter(i -> i.getId().equals(itemReq.saleItemId()))
                     .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale line not found: " + itemReq.saleItemId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Sale line not found: " + itemReq.saleItemId()));
             int alreadyReturned = sale.getReturns().stream()
                     .flatMap(r -> r.getItems().stream())
                     .filter(ri -> ri.getSaleItem().getId().equals(saleItem.getId()))
@@ -194,7 +183,8 @@ public class SalesService {
             int maxReturnable = saleItem.getQuantity() - alreadyReturned;
             if (itemReq.quantityReturned() > maxReturnable) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Cannot return " + itemReq.quantityReturned() + " of " + saleItem.getMedicine().getName() + "; max returnable is " + maxReturnable);
+                        "Cannot return " + itemReq.quantityReturned() + " of " + saleItem.getMedicine().getName()
+                                + "; max returnable is " + maxReturnable);
             }
             BigDecimal lineTotal = saleItem.getUnitPrice().multiply(BigDecimal.valueOf(itemReq.quantityReturned()));
             totalRefund = totalRefund.add(lineTotal);
@@ -209,8 +199,10 @@ public class SalesService {
 
             int toReturn = itemReq.quantityReturned();
             for (SaleItemAllocation alloc : saleItem.getAllocations()) {
-                if (toReturn <= 0) break;
-                if (alloc.getQuantity() <= 0) continue;
+                if (toReturn <= 0)
+                    break;
+                if (alloc.getQuantity() <= 0)
+                    continue;
                 int putBack = Math.min(toReturn, alloc.getQuantity());
                 StockBatch batch = alloc.getStockBatch();
                 batch.setQuantity(batch.getQuantity() + putBack);
@@ -231,14 +223,16 @@ public class SalesService {
     private String nextSaleNumber(String pharmacyName) {
         String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String pharmacyCode = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (pharmacyCode.length() > 4) pharmacyCode = pharmacyCode.substring(0, 4);
+        if (pharmacyCode.length() > 4)
+            pharmacyCode = pharmacyCode.substring(0, 4);
         return "S-" + pharmacyCode + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
     }
 
     private String nextReturnNumber(String pharmacyName) {
         String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4) code = code.substring(0, 4);
+        if (code.length() > 4)
+            code = code.substring(0, 4);
         return "SR-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
     }
 
@@ -249,11 +243,11 @@ public class SalesService {
                         si.getMedicine().getName(),
                         si.getQuantity(),
                         si.getUnitPrice(),
-                        si.getLineTotal()
-                ))
+                        si.getLineTotal()))
                 .toList();
         List<SalePaymentResponse> payments = sale.getPayments().stream()
-                .map(p -> new SalePaymentResponse(p.getId(), p.getAmount(), p.getPaymentMethod(), p.getPaidAt(), p.getReference()))
+                .map(p -> new SalePaymentResponse(p.getId(), p.getAmount(), p.getPaymentMethod(), p.getPaidAt(),
+                        p.getReference()))
                 .toList();
         List<SaleReturnResponse> returns = sale.getReturns().stream()
                 .map(this::toReturnResponse)
@@ -276,8 +270,7 @@ public class SalesService {
                 payments,
                 returns,
                 rx != null ? rx.getId() : null,
-                rx != null ? rx.getPrescriptionNumber() : null
-        );
+                rx != null ? rx.getPrescriptionNumber() : null);
     }
 
     private SaleReturnResponse toReturnResponse(SaleReturn r) {
@@ -288,8 +281,7 @@ public class SalesService {
                         i.getSaleItem().getMedicine().getName(),
                         i.getQuantityReturned(),
                         i.getUnitPrice(),
-                        i.getLineTotal()
-                ))
+                        i.getLineTotal()))
                 .toList();
         return new SaleReturnResponse(
                 r.getId(),
@@ -300,7 +292,6 @@ public class SalesService {
                 r.getCreatedAt(),
                 r.getSale().getId(),
                 r.getSale().getSaleNumber(),
-                items
-        );
+                items);
     }
 }

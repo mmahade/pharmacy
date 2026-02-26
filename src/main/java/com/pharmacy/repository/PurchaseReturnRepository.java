@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface PurchaseReturnRepository extends JpaRepository<PurchaseReturn, UUID> {
+public interface PurchaseReturnRepository extends JpaRepository<PurchaseReturn, Long> {
     List<PurchaseReturn> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
-    Optional<PurchaseReturn> findByIdAndPharmacy(UUID id, Pharmacy pharmacy);
+
+    Optional<PurchaseReturn> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
 }

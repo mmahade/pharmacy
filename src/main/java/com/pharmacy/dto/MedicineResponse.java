@@ -3,10 +3,9 @@ package com.pharmacy.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public record MedicineResponse(
-        UUID id,
+        Long id,
         String name,
         String category,
         String manufacturer,
@@ -15,6 +14,5 @@ public record MedicineResponse(
         BigDecimal price,
         LocalDate earliestExpiry,
         String status,
-        List<StockBatchResponse> batches
-) {
+        List<StockBatchResponse> batches) {
 }

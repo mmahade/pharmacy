@@ -8,8 +8,8 @@ import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PrescriptionRepository;
-import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.repository.SaleTransactionRepository;
+import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +40,10 @@ public class DashboardService {
         List<Medicine> allMeds = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
         List<DashboardSummaryResponse.LowStockItem> lowStock = allMeds.stream()
                 .map(m -> {
-                    int total = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(m).stream().mapToInt(b -> b.getQuantity()).sum();
-                    return new DashboardSummaryResponse.LowStockItem(m.getName(), total, m.getMinStock());
+                    int total = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(m).stream()
+                            .mapToInt(b -> b.getQuantity()).sum();
+                    return new DashboardSummaryResponse.LowStockItem(m.getName(), total,
+                            m.getMinStock());
                 })
                 .filter(l -> l.stock() <= l.minStock())
                 .limit(5)
@@ -61,7 +62,8 @@ public class DashboardService {
                         b.getBatchNumber(),
                         b.getExpiryDate(),
                         b.getQuantity(),
-                        (int) java.time.temporal.ChronoUnit.DAYS.between(today, b.getExpiryDate())))
+                        (int) java.time.temporal.ChronoUnit.DAYS.between(today,
+                                b.getExpiryDate())))
                 .toList();
 
         List<PrescriptionResponse> recentPrescriptions = prescriptionService.listPrescriptions(principal)
@@ -82,7 +84,6 @@ public class DashboardService {
                 lowStock,
                 expiringSoon,
                 recentPrescriptions,
-                recentSales
-        );
+                recentSales);
     }
 }

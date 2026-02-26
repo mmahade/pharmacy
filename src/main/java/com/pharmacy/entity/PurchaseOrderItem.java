@@ -1,18 +1,10 @@
 package com.pharmacy.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,8 +13,8 @@ import java.util.UUID;
 public class PurchaseOrderItem {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "purchase_order_id", nullable = false)
@@ -44,7 +36,9 @@ public class PurchaseOrderItem {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal lineTotal;
 
-    /** Optional batch number for received stock (e.g. when receiving). */
+    /**
+     * Optional batch number for received stock (e.g. when receiving).
+     */
     @Column
     private String batchNumber;
 }

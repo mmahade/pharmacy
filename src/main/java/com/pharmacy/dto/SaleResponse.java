@@ -5,10 +5,9 @@ import com.pharmacy.entity.PaymentMethod;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public record SaleResponse(
-        UUID id,
+        Long id,
         /** Invoice number (same as sale number). */
         String invoiceNumber,
         String saleNumber,
@@ -22,7 +21,6 @@ public record SaleResponse(
         LocalDate dueDate,
         List<SalePaymentResponse> payments,
         List<SaleReturnResponse> returns,
-        UUID prescriptionId,
-        String prescriptionNumber
-) {
+        Long prescriptionId,
+        String prescriptionNumber) {
 }

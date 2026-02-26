@@ -1,14 +1,12 @@
 package com.pharmacy.dto;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public record ExpiryAlertResponse(
         String medicineName,
-        UUID medicineId,
+        Long medicineId,
         String batchNumber,
         LocalDate expiryDate,
         Integer quantity,
-        Integer daysUntilExpiry
-) {
+        Integer daysUntilExpiry) {
 }

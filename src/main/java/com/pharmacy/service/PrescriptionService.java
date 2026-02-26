@@ -4,18 +4,7 @@ import com.pharmacy.dto.PrescriptionItemRequest;
 import com.pharmacy.dto.PrescriptionItemResponse;
 import com.pharmacy.dto.PrescriptionRequest;
 import com.pharmacy.dto.PrescriptionResponse;
-import com.pharmacy.entity.Medicine;
-import com.pharmacy.entity.Pharmacy;
-import com.pharmacy.entity.Prescription;
-import com.pharmacy.entity.PrescriptionItem;
-import com.pharmacy.entity.PrescriptionStatus;
-import com.pharmacy.entity.SaleItem;
-import com.pharmacy.entity.SaleItemAllocation;
-import com.pharmacy.entity.SalePayment;
-import com.pharmacy.entity.SaleTransaction;
-import com.pharmacy.entity.StockBatch;
-import com.pharmacy.entity.UserAccount;
-import com.pharmacy.entity.PaymentMethod;
+import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PrescriptionRepository;
 import com.pharmacy.repository.SaleTransactionRepository;
@@ -33,7 +22,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +41,7 @@ public class PrescriptionService {
                 .toList();
     }
 
-    public PrescriptionResponse getPrescription(AppUserPrincipal principal, UUID id) {
+    public PrescriptionResponse getPrescription(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Prescription prescription = prescriptionRepository.findByIdAndPharmacy(id, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found"));
@@ -72,13 +60,15 @@ public class PrescriptionService {
         prescription.setPrescriptionNumber(nextPrescriptionNumber(pharmacy.getName()));
         prescription.setPatientName(request.patientName().trim());
         prescription.setDoctorName(request.doctorName().trim());
-        prescription.setPrescriptionDate(request.prescriptionDate() == null ? LocalDate.now() : request.prescriptionDate());
+        prescription
+                .setPrescriptionDate(request.prescriptionDate() == null ? LocalDate.now() : request.prescriptionDate());
         prescription.setStatus(request.status());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (PrescriptionItemRequest itemReq : request.items()) {
             Medicine medicine = medicineRepository.findByIdAndPharmacy(itemReq.medicineId(), pharmacy)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine not found: " + itemReq.medicineId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Medicine not found: " + itemReq.medicineId()));
 
             BigDecimal unitPrice = medicine.getPrice();
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(itemReq.quantity()));
@@ -98,12 +88,14 @@ public class PrescriptionService {
     }
 
     /**
-     * Marks prescription as COMPLETED and deducts quantities from inventory (full lifecycle).
-     * Idempotent: if already COMPLETED, returns current state without deducting again.
+     * Marks prescription as COMPLETED and deducts quantities from inventory (full
+     * lifecycle).
+     * Idempotent: if already COMPLETED, returns current state without deducting
+     * again.
      */
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public PrescriptionResponse completePrescription(AppUserPrincipal principal, UUID prescriptionId) {
+    public PrescriptionResponse completePrescription(AppUserPrincipal principal, Long prescriptionId) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         UserAccount currentUser = tenantAccessService.currentUser(principal);
         Prescription prescription = prescriptionRepository.findByIdAndPharmacy(prescriptionId, pharmacy)
@@ -119,7 +111,8 @@ public class PrescriptionService {
                     .stream().mapToInt(StockBatch::getQuantity).sum();
             if (available < item.getQuantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Insufficient stock for " + medicine.getName() + ": required " + item.getQuantity() + ", available " + available);
+                        "Insufficient stock for " + medicine.getName() + ": required " + item.getQuantity()
+                                + ", available " + available);
             }
         }
         prescription.setStatus(PrescriptionStatus.COMPLETED);
@@ -146,9 +139,11 @@ public class PrescriptionService {
             si.setUnitPrice(pi.getUnitPrice());
             si.setLineTotal(pi.getLineTotal());
             for (StockBatch batch : batches) {
-                if (remaining <= 0) break;
+                if (remaining <= 0)
+                    break;
                 int take = Math.min(remaining, batch.getQuantity());
-                if (take <= 0) continue;
+                if (take <= 0)
+                    continue;
                 batch.setQuantity(batch.getQuantity() - take);
                 stockBatchRepository.save(batch);
                 SaleItemAllocation alloc = new SaleItemAllocation();
@@ -198,8 +193,7 @@ public class PrescriptionService {
                         pi.getQuantity(),
                         pi.getInstructions(),
                         pi.getUnitPrice(),
-                        pi.getLineTotal()
-                ))
+                        pi.getLineTotal()))
                 .toList();
         return new PrescriptionResponse(
                 prescription.getId(),
@@ -209,7 +203,6 @@ public class PrescriptionService {
                 prescription.getPrescriptionDate(),
                 prescription.getStatus(),
                 prescription.getTotalAmount(),
-                items
-        );
+                items);
     }
 }

@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +30,7 @@ public class SupplierService {
                 .toList();
     }
 
-    public SupplierResponse get(AppUserPrincipal principal, UUID id) {
+    public SupplierResponse get(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Supplier supplier = supplierRepository.findById(id)
                 .filter(s -> s.getPharmacy().getId().equals(pharmacy.getId()))
@@ -55,7 +54,7 @@ public class SupplierService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public SupplierResponse update(AppUserPrincipal principal, UUID id, SupplierRequest request) {
+    public SupplierResponse update(AppUserPrincipal principal, Long id, SupplierRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Supplier supplier = supplierRepository.findById(id)
                 .filter(s -> s.getPharmacy().getId().equals(pharmacy.getId()))
@@ -76,7 +75,6 @@ public class SupplierService {
                 s.getEmail(),
                 s.getPhone(),
                 s.getAddress(),
-                s.getCreatedAt()
-        );
+                s.getCreatedAt());
     }
 }

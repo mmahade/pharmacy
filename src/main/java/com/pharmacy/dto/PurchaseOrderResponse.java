@@ -6,17 +6,15 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public record PurchaseOrderResponse(
-        UUID id,
+        Long id,
         String orderNumber,
         LocalDate orderDate,
         PurchaseOrderStatus status,
         BigDecimal totalAmount,
         Instant createdAt,
-        UUID supplierId,
+        Long supplierId,
         String supplierName,
-        List<PurchaseOrderItemResponse> items
-) {
+        List<PurchaseOrderItemResponse> items) {
 }

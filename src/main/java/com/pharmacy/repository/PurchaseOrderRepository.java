@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, UUID> {
+public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
     List<PurchaseOrder> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
-    Optional<PurchaseOrder> findByIdAndPharmacy(UUID id, Pharmacy pharmacy);
+
+    Optional<PurchaseOrder> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
+
     List<PurchaseOrder> findByPharmacyAndStatusOrderByCreatedAtDesc(Pharmacy pharmacy, PurchaseOrderStatus status);
 }
