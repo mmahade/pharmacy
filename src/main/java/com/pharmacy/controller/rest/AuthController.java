@@ -1,4 +1,4 @@
-package com.pharmacy.controller;
+package com.pharmacy.controller.rest;
 
 import com.pharmacy.dto.AuthResponse;
 import com.pharmacy.dto.LoginRequest;

@@ -1,4 +1,4 @@
-package com.pharmacy.controller;
+package com.pharmacy.controller.rest;
 
 import com.pharmacy.dto.DashboardSummaryResponse;
 import com.pharmacy.security.AppUserPrincipal;
