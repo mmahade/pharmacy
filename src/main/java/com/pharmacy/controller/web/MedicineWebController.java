@@ -27,12 +27,26 @@ public class MedicineWebController {
         List<MedicineResponse> medicines;
         if (query != null && !query.isEmpty()) {
             medicines = inventoryService.searchMedicines(principal, query);
-            model.addAttribute("query", query);
+            model.addAttribute("searchQuery", query);
         } else {
             medicines = inventoryService.listMedicines(principal);
         }
 
         model.addAttribute("medicines", medicines);
+
+        // Add statistics
+        var stats = inventoryService.getInventoryStats(principal);
+        model.addAttribute("totalMedicines", stats.totalMedicines());
+        model.addAttribute("lowStockCount", stats.lowStockCount());
+        model.addAttribute("totalStockUnits", stats.totalStockUnits());
+        model.addAttribute("totalValue", stats.totalValue());
+
+        // Add alerts and detailed stock info
+        model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
+        model.addAttribute("lowStockMedicines", medicines.stream()
+                .filter(m -> "Low Stock".equals(m.status()))
+                .toList());
+
         return "medicines";
     }
 

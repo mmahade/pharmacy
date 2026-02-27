@@ -41,6 +41,18 @@ public class Medicine {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
+    @Column
+    private String genericName;
+
+    @Column
+    private String dosageForm;
+
+    @Column
+    private String strength;
+
+    @Column(length = 1000)
+    private String description;
+
     @Column(nullable = false)
     private Instant createdAt;
 

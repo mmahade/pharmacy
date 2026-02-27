@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <aside th:fragment="sidebar(activePage)" class="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-xl gradient-blue text-white font-bold text-xl shadow-lg">
+                    Rx
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg">MediCare</h1>
+                    <p class="text-xs text-gray-500">Pharmacy System</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4">
+            <div class="space-y-1">
+                <a href="/dashboard" th:classappend="${activePage == 'dashboard'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    Dashboard
+                </a>
+                <a href="/medicines" th:classappend="${activePage == 'medicines'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="pill" class="w-5 h-5"></i>
+                    Medicines
+                </a>
+                <a href="/prescriptions" th:classappend="${activePage == 'prescriptions'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    Prescriptions
+                </a>
+                <a href="/sales" th:classappend="${activePage == 'sales'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    Sales
+                </a>
+                <a href="/inventory" th:classappend="${activePage == 'inventory'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    Inventory
+                </a>
+                <a href="/customers" th:classappend="${activePage == 'customers'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    Customers
+                </a>
+                <a href="/reports" th:classappend="${activePage == 'reports'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    Reports
+                </a>
+                <a href="/alerts/expiry-alerts" th:classappend="${activePage == 'expiry-alerts'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="triangle-alert" class="w-5 h-5"></i>
+                    Expiry Alerts
+                </a>
+                <a href="/alerts/low-stock" th:classappend="${activePage == 'low-stock-alerts'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    Low Stock Alerts
+                </a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <a href="/settings" th:classappend="${activePage == 'settings'} ? 'active' : ''"
+                class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                Settings
+            </a>
+        </div>
+    </aside>
+</body>
+
+</html>

@@ -16,7 +16,7 @@ public class AlertsWebController {
 
     private final InventoryService inventoryService;
 
-    @GetMapping
+    @GetMapping({ "", "/expiry-alerts" })
     public String showAlerts(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
         var expiryAlerts = inventoryService.getExpiryAlerts(principal, 30);
         model.addAttribute("expiryAlerts", expiryAlerts);
@@ -26,6 +26,16 @@ public class AlertsWebController {
         model.addAttribute("lowStockCount", lowStockCount);
         model.addAttribute("medicines", medicines);
 
-        return "alerts";
+        return "expiry-alerts";
+    }
+
+    @GetMapping("/low-stock")
+    public String showLowStockAlerts(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
+        var medicines = inventoryService.listMedicines(principal);
+        var lowStockMedicines = medicines.stream()
+                .filter(m -> m.totalStock() <= m.minStock())
+                .toList();
+        model.addAttribute("lowStockMedicines", lowStockMedicines);
+        return "low-stock-alerts";
     }
 }

@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Inventory", description = "Medicine catalogue and stock batch management")
+@Tag(name = "Medicine", description = "Medicine catalogue and stock batch management")
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/api/medicine")
 @RequiredArgsConstructor
-public class InventoryController {
+public class MedicineController {
 
     private final InventoryService inventoryService;
 
