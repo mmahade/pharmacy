@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <title>Sales Transactions</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 space-y-6">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Sales Transactions</h2>
+                <p class="text-gray-500 text-sm">Track pharmacy sales, payments, and customer purchases.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 border border-blue-200 bg-blue-50 text-blue-700 rounded-xl font-semibold hover:bg-blue-100 transition-colors">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    Daily Report
+                </button>
+                <a href="/sales/new"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                    New Sale
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="receipt" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Today's Sales</p>
+                    <p class="text-lg font-extrabold text-gray-900" th:text="${#lists.size(sales)}">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Today's Revenue</p>
+                    <p class="text-lg font-extrabold text-gray-900">$2,450.00</p>
+                </div>
+            </div>
+            <div
+                class="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-4 border-l-4 border-l-amber-400">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pending Balance</p>
+                    <p class="text-lg font-extrabold text-gray-900">$840.50</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <i data-lucide="undo-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Returns (30d)</p>
+                    <p class="text-lg font-extrabold text-gray-900">12</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-100 italic">
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Transaction
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Customer /
+                                Patient</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
+                                Payment</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">
+                                Total Amount</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr th:each="sale : ${sales}" class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                                        <i data-lucide="hash" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900" th:text="${sale.saleNumber}">S-RX-2023-001
+                                        </p>
+                                        <p class="text-xs text-gray-500 font-medium"
+                                            th:text="${#temporals.format(sale.transactionDate, 'dd MMM yyyy, HH:mm')}">
+                                            24 Oct 2023, 14:30</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-gray-800" th:text="${sale.customerName}">Walk-in
+                                        Customer</span>
+                                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-tight"
+                                        th:if="${sale.prescriptionNumber != null}"
+                                        th:text="'RX: ' + ${sale.prescriptionNumber}">RX: PR-44502</span>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tight"
+                                        th:unless="${sale.prescriptionNumber != null}">Direct Sale</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <div class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1.5"
+                                        th:classappend="${sale.balanceDue <= 0} ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'">
+                                        <span
+                                            th:text="${sale.balanceDue <= 0} ? 'Fully Paid' : 'Partial: $' + ${sale.amountPaid}">Fully
+                                            Paid</span>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400 font-bold tracking-tighter"
+                                        th:text="${sale.paymentMethod}">CASH</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 text-right font-bold text-gray-900">
+                                <span th:text="'$' + ${#numbers.formatDecimal(sale.totalAmount, 1, 2)}">$120.00</span>
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        title="View Details">
+                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                    </button>
+                                    <button
+                                        class="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                                        title="Print Receipt">
+                                        <i data-lucide="printer" class="w-5 h-5"></i>
+                                    </button>
+                                    <button th:if="${sale.balanceDue > 0}"
+                                        class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                        title="Record Payment">
+                                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(sales)}">
+                            <td colspan="5" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center gap-4">
+                                    <div
+                                        class="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                                        <i data-lucide="shopping-cart" class="w-10 h-10"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-900">No sales transactions yet</p>
+                                        <p class="text-gray-500 text-sm">Start by creating a new sale record.</p>
+                                    </div>
+                                    <a th:href="@{/sales/new}"
+                                        class="mt-2 text-blue-600 font-bold hover:underline">Create First Sale</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

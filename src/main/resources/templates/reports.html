@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <title>Pharmacy Reports</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 space-y-6">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Analytics & Reports</h2>
+                <p class="text-gray-500 text-sm">Visualize pharmacy performance, sales trends, and stock movement.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold shadow-lg shadow-gray-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
+                    Download Annual Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-extrabold text-gray-900 underline decoration-blue-200 underline-offset-8">
+                        Revenue Growth</h3>
+                    <select
+                        class="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg border-none outline-none">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                    </select>
+                </div>
+                <div
+                    class="h-64 bg-gray-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-200">
+                    <div class="flex flex-col items-center gap-2 text-gray-400">
+                        <i data-lucide="bar-chart-2" class="w-10 h-10"></i>
+                        <p class="text-xs font-bold uppercase tracking-tighter">Real-time chart rendering...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-extrabold text-gray-900 underline decoration-purple-200 underline-offset-8">
+                        Category Distribution</h3>
+                    <button class="p-2 text-gray-400 hover:text-purple-600 transition-colors">
+                        <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div
+                    class="h-64 bg-gray-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-200">
+                    <div class="flex flex-col items-center gap-2 text-gray-400">
+                        <i data-lucide="pie-chart" class="w-10 h-10"></i>
+                        <p class="text-xs font-bold uppercase tracking-tighter">Inventory distribution data loading...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Insights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-blue-600 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-100">
+                <p class="text-xs font-bold text-blue-100 uppercase tracking-widest mb-2">Most Sold Item</p>
+                <h4 class="text-2xl font-black mb-1">Paracetamol 500</h4>
+                <div class="flex items-center gap-2 text-sm text-blue-100">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>12% spike this week</span>
+                </div>
+            </div>
+            <div class="bg-purple-600 p-6 rounded-[2rem] text-white shadow-xl shadow-purple-100">
+                <p class="text-xs font-bold text-purple-100 uppercase tracking-widest mb-2">Peak Sales Hour</p>
+                <h4 class="text-2xl font-black mb-1">14:00 - 16:00</h4>
+                <div class="flex items-center gap-2 text-sm text-purple-100">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span>Afternoon rush</span>
+                </div>
+            </div>
+            <div class="bg-emerald-600 p-6 rounded-[2rem] text-white shadow-xl shadow-emerald-100">
+                <p class="text-xs font-bold text-emerald-100 uppercase tracking-widest mb-2">Customer Retention</p>
+                <h4 class="text-2xl font-black mb-1">84.2%</h4>
+                <div class="flex items-center gap-2 text-sm text-emerald-100">
+                    <i data-lucide="award" class="w-4 h-4"></i>
+                    <span>Excellent loyalty</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <title>Suppliers Directory</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 space-y-6">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Supplier Directory</h2>
+                <p class="text-gray-500 text-sm">Manage medical distributors and supply partners.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
+                    <i data-lucide="file-down" class="w-4 h-4"></i>
+                    Export List
+                </button>
+                <a href="/suppliers/add"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    New Supplier
+                </a>
+            </div>
+        </div>
+
+        <!-- Supplier Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div th:each="supplier : ${suppliers}"
+                class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
+                <div
+                    class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+
+                <div class="relative flex items-start justify-between mb-6">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center text-purple-600 shadow-inner group-hover:from-purple-600 group-hover:to-indigo-700 group-hover:text-white transition-all duration-300">
+                        <i data-lucide="truck" class="w-7 h-7"></i>
+                    </div>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                            class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        </button>
+                        <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative space-y-1 mb-6">
+                    <h3 class="text-xl font-extrabold text-gray-900 group-hover:text-purple-700 transition-colors"
+                        th:text="${supplier.name}">PharmaDist Corp</h3>
+                    <p class="text-sm text-gray-500 font-medium" th:text="${supplier.contactPerson}">David Williams
+                        (Manager)</p>
+                </div>
+
+                <div class="relative space-y-3 pt-6 border-t border-gray-50">
+                    <div class="flex items-center gap-3 text-sm text-gray-600">
+                        <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-bold" th:text="${supplier.phone}">+1 234 567 890</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm text-gray-600">
+                        <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-medium truncate" th:text="${supplier.email}">orders@pharmadist.com</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-sm text-gray-600">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-medium text-xs leading-relaxed" th:text="${supplier.address}">123 Distribution
+                            Way, Medical Park, State 54321</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State in Grid -->
+            <div th:if="${#lists.isEmpty(suppliers)}"
+                class="md:col-span-2 lg:col-span-3 bg-white border-2 border-dashed border-gray-200 rounded-[2.5rem] p-20 text-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                        <i data-lucide="users-2" class="w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">No suppliers registered</h3>
+                        <p class="text-gray-500 text-sm">Add your distribution partners to manage procurement.</p>
+                    </div>
+                    <a th:href="@{/suppliers/add}"
+                        class="mt-4 px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all">Add
+                        Your First Supplier</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

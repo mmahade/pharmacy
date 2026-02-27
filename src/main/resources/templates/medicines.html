@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <title>Medicines Inventory</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 space-y-6">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Medicine Inventory</h2>
+                <p class="text-gray-500 text-sm">Manage your pharmacy's medicine catalogue and stock levels.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 border border-blue-200 bg-blue-50 text-blue-700 rounded-xl font-semibold hover:bg-blue-100 transition-colors">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export
+                </button>
+                <a href="/medicines/add"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    Add Medicine
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div class="lg:col-span-3">
+                <form th:action="@{/medicines}" method="get" class="relative group">
+                    <i data-lucide="search"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors"></i>
+                    <input type="text" name="q" th:value="${query}"
+                        placeholder="Search medicine name, category, or generic name..."
+                        class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                    <button type="submit" class="hidden">Search</button>
+                </form>
+            </div>
+            <div class="flex gap-2">
+                <select
+                    class="flex-1 bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm cursor-pointer">
+                    <option selected>All Categories</option>
+                    <option>Tablets</option>
+                    <option>Syrups</option>
+                    <option>Injections</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Medicines Table -->
+        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-100 italic">
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Medicine
+                                Info</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
+                                Current Stock</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Min Stock
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Unit Price
+                            </th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr th:each="med : ${medicines}" class="hover:bg-blue-50/30 transition-colors group">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-blue-600 shadow-inner group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
+                                        <i data-lucide="pill" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors"
+                                            th:text="${med.name}">Paracetamol</p>
+                                        <p class="text-xs text-gray-500 font-medium" th:text="${med.genericName}">500mg
+                                            • Tablet</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <div class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5"
+                                        th:classappend="${med.totalStock <= med.minStock} ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'">
+                                        <span class="w-1.5 h-1.5 rounded-full"
+                                            th:classappend="${med.totalStock <= med.minStock} ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'"></span>
+                                        <span th:text="${med.totalStock} + ' units'">120 units</span>
+                                    </div>
+                                    <span th:if="${med.totalStock <= med.minStock}"
+                                        class="text-[10px] font-bold text-red-400 uppercase tracking-tighter">Low stock
+                                        alert</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="text-sm font-semibold text-gray-600" th:text="${med.minStock}">20</span>
+                            </td>
+                            <td class="px-6 py-5">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-gray-900"
+                                        th:text="'$' + ${med.price}">$15.00</span>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">per unit</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        title="Edit">
+                                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                                    </button>
+                                    <button
+                                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                        title="Delete">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                    <button
+                                        class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                        title="View Batches">
+                                        <i data-lucide="layers" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(medicines)}">
+                            <td colspan="5" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center gap-4">
+                                    <div
+                                        class="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                                        <i data-lucide="search-x" class="w-10 h-10"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-900">No medicines found</p>
+                                        <p class="text-gray-500 text-sm">Try adjusting your search query or filters.</p>
+                                    </div>
+                                    <a th:href="@{/medicines}"
+                                        class="mt-2 text-blue-600 font-bold hover:underline">Clear all filters</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Placeholder -->
+            <div class="px-6 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Showing <span class="text-gray-600"
+                        th:text="${#lists.size(medicines)}">10</span> results</p>
+                <div class="flex items-center gap-2">
+                    <button
+                        class="p-2 border border-gray-200 rounded-xl bg-white text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                        disabled>
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <button
+                        class="p-2 border border-blue-200 rounded-xl bg-blue-50 text-blue-600 font-bold px-4 transition-colors">1</button>
+                    <button
+                        class="p-2 border border-gray-200 rounded-xl bg-white text-gray-400 hover:text-gray-600 transition-colors">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

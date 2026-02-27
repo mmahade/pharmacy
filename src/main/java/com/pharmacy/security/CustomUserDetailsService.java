@@ -23,9 +23,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getPharmacy().getId(),
                 user.getEmail(),
+                user.getFullName(),
                 user.getPasswordHash(),
                 user.getRole(),
-                Boolean.TRUE.equals(user.getActive())
-        );
+                Boolean.TRUE.equals(user.getActive()));
     }
 }

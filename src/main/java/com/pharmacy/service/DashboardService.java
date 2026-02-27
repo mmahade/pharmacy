@@ -22,68 +22,95 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DashboardService {
 
-    private final TenantAccessService tenantAccessService;
-    private final MedicineRepository medicineRepository;
-    private final StockBatchRepository stockBatchRepository;
-    private final PrescriptionRepository prescriptionRepository;
-    private final SaleTransactionRepository saleTransactionRepository;
-    private final PrescriptionService prescriptionService;
-    private final SalesService salesService;
+        private final TenantAccessService tenantAccessService;
+        private final MedicineRepository medicineRepository;
+        private final StockBatchRepository stockBatchRepository;
+        private final PrescriptionRepository prescriptionRepository;
+        private final SaleTransactionRepository saleTransactionRepository;
+        private final PrescriptionService prescriptionService;
+        private final SalesService salesService;
 
-    public DashboardSummaryResponse summary(AppUserPrincipal principal) {
-        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        public DashboardSummaryResponse summary(AppUserPrincipal principal) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                LocalDate today = LocalDate.now();
 
-        long totalMedicines = medicineRepository.countByPharmacy(pharmacy);
-        long prescriptionsCount = prescriptionRepository.countByPharmacy(pharmacy);
-        BigDecimal todayRevenue = saleTransactionRepository.totalForDay(pharmacy, LocalDate.now());
+                long totalMedicines = medicineRepository.countByPharmacy(pharmacy);
+                long prescriptionsCount = prescriptionRepository.countByPharmacy(pharmacy);
+                BigDecimal todayRevenue = saleTransactionRepository.totalForDay(pharmacy, today);
 
-        List<Medicine> allMeds = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
-        List<DashboardSummaryResponse.LowStockItem> lowStock = allMeds.stream()
-                .map(m -> {
-                    int total = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(m).stream()
-                            .mapToInt(b -> b.getQuantity()).sum();
-                    return new DashboardSummaryResponse.LowStockItem(m.getName(), total,
-                            m.getMinStock());
-                })
-                .filter(l -> l.stock() <= l.minStock())
-                .limit(5)
-                .toList();
+                // Calculate 7-day revenue trend
+                List<DashboardSummaryResponse.DailyRevenue> revenueTrend = new java.util.ArrayList<>();
+                java.time.format.DateTimeFormatter labelFormatter = java.time.format.DateTimeFormatter
+                                .ofPattern("MMM dd");
+                for (int i = 6; i >= 0; i--) {
+                        LocalDate date = today.minusDays(i);
+                        BigDecimal dailyTotal = saleTransactionRepository.totalForDay(pharmacy, date);
+                        revenueTrend.add(new DashboardSummaryResponse.DailyRevenue(
+                                        date.format(labelFormatter),
+                                        dailyTotal));
+                }
 
-        LocalDate today = LocalDate.now();
-        int expiryWindowDays = 30;
-        List<StockBatch> expiringBatches = stockBatchRepository
-                .findByMedicine_PharmacyAndExpiryDateBetweenOrderByExpiryDateAsc(
-                        pharmacy, today, today.plusDays(expiryWindowDays));
-        List<DashboardSummaryResponse.ExpiryAlertItem> expiringSoon = expiringBatches.stream()
-                .limit(10)
-                .map(b -> new DashboardSummaryResponse.ExpiryAlertItem(
-                        b.getMedicine().getName(),
-                        b.getMedicine().getId(),
-                        b.getBatchNumber(),
-                        b.getExpiryDate(),
-                        b.getQuantity(),
-                        (int) java.time.temporal.ChronoUnit.DAYS.between(today,
-                                b.getExpiryDate())))
-                .toList();
+                List<Medicine> allMeds = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
+                long inStockCount = 0;
+                long lowStockCount = 0;
+                long outOfStockCount = 0;
 
-        List<PrescriptionResponse> recentPrescriptions = prescriptionService.listPrescriptions(principal)
-                .stream()
-                .limit(5)
-                .toList();
+                List<DashboardSummaryResponse.LowStockItem> lowStockItems = new java.util.ArrayList<>();
 
-        List<SaleResponse> recentSales = salesService.listSales(principal)
-                .stream()
-                .limit(10)
-                .toList();
+                for (Medicine m : allMeds) {
+                        int totalStock = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(m).stream()
+                                        .mapToInt(b -> b.getQuantity()).sum();
 
-        return new DashboardSummaryResponse(
-                totalMedicines,
-                prescriptionsCount,
-                todayRevenue,
-                lowStock.size(),
-                lowStock,
-                expiringSoon,
-                recentPrescriptions,
-                recentSales);
-    }
+                        if (totalStock <= 0) {
+                                outOfStockCount++;
+                        } else if (totalStock <= m.getMinStock()) {
+                                lowStockCount++;
+                                if (lowStockItems.size() < 5) {
+                                        lowStockItems.add(new DashboardSummaryResponse.LowStockItem(m.getName(),
+                                                        totalStock, m.getMinStock()));
+                                }
+                        } else {
+                                inStockCount++;
+                        }
+                }
+
+                int expiryWindowDays = 30;
+                List<StockBatch> expiringBatches = stockBatchRepository
+                                .findByMedicine_PharmacyAndExpiryDateBetweenOrderByExpiryDateAsc(
+                                                pharmacy, today, today.plusDays(expiryWindowDays));
+                List<DashboardSummaryResponse.ExpiryAlertItem> expiringSoon = expiringBatches.stream()
+                                .limit(10)
+                                .map(b -> new DashboardSummaryResponse.ExpiryAlertItem(
+                                                b.getMedicine().getName(),
+                                                b.getMedicine().getId(),
+                                                b.getBatchNumber(),
+                                                b.getExpiryDate(),
+                                                b.getQuantity(),
+                                                (int) java.time.temporal.ChronoUnit.DAYS.between(today,
+                                                                b.getExpiryDate())))
+                                .toList();
+
+                List<PrescriptionResponse> recentPrescriptions = prescriptionService.listPrescriptions(principal)
+                                .stream()
+                                .limit(5)
+                                .toList();
+
+                List<SaleResponse> recentSales = salesService.listSales(principal)
+                                .stream()
+                                .limit(10)
+                                .toList();
+
+                return new DashboardSummaryResponse(
+                                totalMedicines,
+                                prescriptionsCount,
+                                todayRevenue,
+                                revenueTrend,
+                                inStockCount,
+                                lowStockCount,
+                                outOfStockCount,
+                                lowStockItems,
+                                expiringSoon,
+                                recentPrescriptions,
+                                recentSales);
+        }
 }

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <title>Pharmacy Settings</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 space-y-8">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Settings & Profile</h2>
+                <p class="text-gray-500 text-sm">Manage your pharmacy identity and administrative account.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold shadow-lg shadow-gray-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
+                    Save All Changes
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Sidebar Navigation (Internal) -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="bg-white rounded-[2rem] p-4 border border-gray-100 shadow-sm">
+                    <nav class="space-y-1">
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-2xl text-sm font-bold transition-all">
+                            <i data-lucide="building" class="w-5 h-5"></i>
+                            Pharmacy Profile
+                        </button>
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-2xl text-sm font-semibold transition-all">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                            User Account
+                        </button>
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-2xl text-sm font-semibold transition-all">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            Notifications
+                        </button>
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-2xl text-sm font-semibold transition-all">
+                            <i data-lucide="shield" class="w-5 h-5"></i>
+                            Security & Access
+                        </button>
+                    </nav>
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                    <h4 class="font-bold mb-2">Need help?</h4>
+                    <p class="text-xs text-blue-100 leading-relaxed mb-4">Our support team is available 24/7 for
+                        technical assistance with your pharmacy system.</p>
+                    <button
+                        class="w-full py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-bold transition-all">Contact
+                        Support</button>
+                </div>
+            </div>
+
+            <!-- Main Settings Form -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Pharmacy Profile -->
+                <section class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm space-y-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i data-lucide="building" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-extrabold text-gray-900">Pharmacy Profile</h3>
+                            <p class="text-xs text-gray-500 font-medium">Public information about your pharmacy.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Pharmacy Name</label>
+                            <input type="text" th:value="${settings.pharmacyName}"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">License Number</label>
+                            <input type="text" th:value="${settings.licenseNumber}" readonly
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-400 font-medium cursor-not-allowed" />
+                        </div>
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Contact Email</label>
+                            <input type="email" th:value="${settings.pharmacyEmail}"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                        </div>
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Physical Address</label>
+                            <textarea rows="3"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700"
+                                th:text="${settings.address}">123 Health Street, Medical District</textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Account -->
+                <section class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm space-y-8">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <i data-lucide="user" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-extrabold text-gray-900">User Account</h3>
+                            <p class="text-xs text-gray-500 font-medium">Personal account settings and preferences.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Full Name</label>
+                            <input type="text" th:value="${settings.userFullName}"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Sign-in Email</label>
+                            <input type="email" th:value="${settings.userEmail}" readonly
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-400 font-medium cursor-not-allowed" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">New Password</label>
+                            <input type="password" placeholder="Leave empty to keep current"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-gray-700 ml-1">Confirm Password</label>
+                            <input type="password" placeholder="Confirm new password"
+                                class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

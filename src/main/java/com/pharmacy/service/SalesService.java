@@ -111,8 +111,8 @@ public class SalesService {
 
         BigDecimal initialPayment = request.initialPaymentAmount() != null
                 && request.initialPaymentAmount().compareTo(BigDecimal.ZERO) > 0
-                ? request.initialPaymentAmount()
-                : BigDecimal.ZERO;
+                        ? request.initialPaymentAmount()
+                        : BigDecimal.ZERO;
         if (initialPayment.compareTo(total) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Initial payment cannot exceed total");
         }
@@ -255,11 +255,20 @@ public class SalesService {
         BigDecimal amountPaid = sale.getAmountPaid() != null ? sale.getAmountPaid() : BigDecimal.ZERO;
         BigDecimal balanceDue = sale.getTotal().subtract(amountPaid);
         var rx = sale.getPrescription();
+
+        java.time.LocalDateTime transactionDate = java.time.LocalDateTime.ofInstant(
+                sale.getCreatedAt(), java.time.ZoneId.systemDefault());
+        String customerName = rx != null ? rx.getPatientName() : "Walk-in";
+        int itemsCount = sale.getItems().size();
+
         return new SaleResponse(
                 sale.getId(),
                 sale.getSaleNumber(),
                 sale.getSaleNumber(),
+                transactionDate,
                 sale.getSaleDate(),
+                customerName,
+                itemsCount,
                 sale.getItemsSummary(),
                 items,
                 sale.getPaymentMethod(),

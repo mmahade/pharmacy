@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">MediCare Pharmacy</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); }
+        .gradient-green { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .gradient-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+
+        .sidebar-item { transition: all 0.2s; }
+        .sidebar-item:hover { background-color: #f3f4f6; }
+        .sidebar-item.active { background-color: #eff6ff; color: #1d4ed8; }
+    </style>
+
+    <th:block layout:fragment="extra-css"></th:block>
+</head>
+<body class="bg-gray-50">
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl gradient-blue text-white font-bold text-xl shadow-lg">
+                    Rx
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg">MediCare</h1>
+                    <p class="text-xs text-gray-500">Pharmacy System</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4">
+            <div class="space-y-1">
+                <a href="/dashboard" th:classappend="${#strings.equals(#httpServletRequest.requestURI, '/dashboard')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    Dashboard
+                </a>
+                <a href="/medicines" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/medicines')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="pill" class="w-5 h-5"></i>
+                    Medicines
+                </a>
+                <a href="/prescriptions" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/prescriptions')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    Prescriptions
+                </a>
+                <a href="/sales" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/sales')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    Sales
+                </a>
+                <a href="/inventory" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/inventory')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    Inventory
+                </a>
+                <a href="/customers" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/customers')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    Customers
+                </a>
+                <a href="/reports" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/reports')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    Reports
+                </a>
+                <a href="/alerts" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/alerts')} ? 'active' : ''"
+                   class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    Alerts
+                </a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <a href="/settings" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+            <div class="flex h-16 items-center gap-4 px-6">
+                <div class="flex-1 flex items-center gap-4">
+                    <div class="relative max-w-md w-full">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" placeholder="Search medicines, prescriptions, customers..."
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="text-right mr-2 hidden sm:block">
+                        <p class="text-sm font-medium" th:text="${#authentication.name}">Admin User</p>
+                        <p class="text-xs text-gray-500">Administrator</p>
+                    </div>
+
+                    <button class="relative p-2 rounded-lg hover:bg-gray-100">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span th:if="${notifications != null and notifications > 0}"
+                              class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+                              th:text="${notifications > 9} ? '9+' : ${notifications}">5</span>
+                    </button>
+
+                    <div class="relative">
+                        <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
+                            <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
+                                 th:text="${#strings.substring(#authentication.name, 0, 1)}">A</div>
+                        </button>
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
+                            <div class="p-2">
+                                <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
+                                <a href="/profile" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile Settings</a>
+                                <a href="/settings" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Pharmacy Settings</a>
+                                <a href="/preferences" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Preferences</a>
+                                <div class="border-t border-gray-100 mt-2 pt-2">
+                                    <form th:action="@{/logout}" method="post">
+                                        <button type="submit" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log out</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-auto">
+            <div layout:fragment="content">
+                <!-- Page content goes here -->
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // User menu toggle
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenu = document.getElementById('userMenu');
+
+    if (userMenuBtn && userMenu) {
+        userMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+</script>
+
+<th:block layout:fragment="extra-js"></th:block>
+</body>
+</html>

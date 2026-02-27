@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Pharmacy - MediCare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bg-mesh {
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(221, 83%, 53%, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(262, 83%, 53%, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(221, 83%, 53%, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(262, 83%, 53%, 0.1) 0px, transparent 50%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .step-inactive {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-mesh flex items-center justify-center p-6 bg-gray-50">
+
+    <div class="w-full max-w-[700px] relative">
+        <!-- Decorative blobs -->
+        <div class="absolute -top-20 -left-20 w-80 h-80 bg-blue-400 rounded-full blur-[120px] opacity-20"></div>
+        <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-purple-400 rounded-full blur-[120px] opacity-20"></div>
+
+        <div class="glass relative rounded-[2.5rem] shadow-2xl p-10 md:p-12 overflow-hidden">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-200 mb-6">
+                    <i data-lucide="plus-square" class="w-8 h-8 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+                    Register your <span class="gradient-text">Pharmacy</span>
+                </h1>
+                <p class="text-gray-500 font-medium">Join the network of modern healthcare providers</p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registrationForm" th:action="@{/api/auth/register-pharmacy}" th:object="${registerForm}"
+                method="post" class="space-y-10">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- Pharmacy Information -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                                1</div>
+                            <h2 class="text-lg font-bold text-gray-800">Pharmacy Details</h2>
+                        </div>
+
+                        <!-- Pharmacy Name -->
+                        <div class="space-y-1.5">
+                            <label for="pharmacyName" class="text-sm font-semibold text-gray-700 ml-1">Pharmacy
+                                Name</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                                    <i data-lucide="building" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" id="pharmacyName" name="pharmacyName" th:field="*{pharmacyName}"
+                                    placeholder="HealthFirst Pharmacy" required
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-pharmacyName"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+
+                        <!-- Pharmacy Email -->
+                        <div class="space-y-1.5">
+                            <label for="pharmacyEmail" class="text-sm font-semibold text-gray-700 ml-1">Business
+                                Email</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                                    <i data-lucide="mail" class="w-4 h-4"></i>
+                                </div>
+                                <input type="email" id="pharmacyEmail" name="pharmacyEmail" th:field="*{pharmacyEmail}"
+                                    placeholder="contact@pharmacy.com" required
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-pharmacyEmail"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+
+                        <!-- License Number -->
+                        <div class="space-y-1.5">
+                            <label for="licenseNumber" class="text-sm font-semibold text-gray-700 ml-1">License
+                                Number</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                                    <i data-lucide="file-badge" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" id="licenseNumber" name="licenseNumber" th:field="*{licenseNumber}"
+                                    placeholder="LIC-99230-XP" required
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-licenseNumber"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+                    </div>
+
+                    <!-- Admin Information -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-bold">
+                                2</div>
+                            <h2 class="text-lg font-bold text-gray-800">Admin Account</h2>
+                        </div>
+
+                        <!-- Admin Name -->
+                        <div class="space-y-1.5">
+                            <label for="adminFullName" class="text-sm font-semibold text-gray-700 ml-1">Full
+                                Name</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-purple-600 transition-colors">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" id="adminFullName" name="adminFullName" th:field="*{adminFullName}"
+                                    placeholder="John Doe" required
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-adminFullName"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+
+                        <!-- Admin Email -->
+                        <div class="space-y-1.5">
+                            <label for="adminEmail" class="text-sm font-semibold text-gray-700 ml-1">Admin Email</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-purple-600 transition-colors">
+                                    <i data-lucide="mail-check" class="w-4 h-4"></i>
+                                </div>
+                                <input type="email" id="adminEmail" name="adminEmail" th:field="*{adminEmail}"
+                                    placeholder="admin@medicare.com" required
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-adminEmail"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+
+                        <!-- Admin Password -->
+                        <div class="space-y-1.5">
+                            <label for="adminPassword" class="text-sm font-semibold text-gray-700 ml-1">Password</label>
+                            <div class="relative group">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-purple-600 transition-colors">
+                                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                </div>
+                                <input type="password" id="adminPassword" name="adminPassword"
+                                    th:field="*{adminPassword}" placeholder="••••••••" required minlength="8"
+                                    class="block w-full pl-11 pr-4 py-3.5 bg-white/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all font-medium text-gray-700" />
+                            </div>
+                            <p id="error-adminPassword"
+                                class="hidden text-[11px] text-red-500 font-bold ml-1 uppercase tracking-wider"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Error Message -->
+                <p id="global-error"
+                    class="hidden text-center text-sm font-bold text-red-500 py-2 px-4 bg-red-50 rounded-xl border border-red-100">
+                </p>
+
+                <!-- Footer and Submit -->
+                <div class="pt-6 border-t border-gray-100 space-y-8">
+                    <div class="flex items-start gap-3 ml-1">
+                        <input type="checkbox" id="terms" required
+                            class="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500/20">
+                        <label for="terms" class="text-sm text-gray-500 font-medium">
+                            I agree to the <a href="#" class="text-blue-600 font-bold hover:underline">Terms of
+                                Service</a> and
+                            <a href="#" class="text-blue-600 font-bold hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="submitBtn"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 hover:shadow-xl hover:translate-y-[-2px] active:translate-y-[0px] transition-all duration-300 flex items-center justify-center gap-3">
+                        <span>Create My Account</span>
+                        <div id="loader"
+                            class="hidden w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                        </div>
+                    </button>
+
+                    <p class="text-center text-sm font-medium text-gray-500">
+                        Already registered?
+                        <a th:href="@{/login}"
+                            class="text-blue-600 font-bold hover:underline transition underline-offset-4">Sign in
+                            here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bottom info -->
+        <p class="text-center mt-10 text-gray-400 text-xs font-medium uppercase tracking-widest">&copy; 2026 MediCare
+            Pharmacy System</p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            const globalError = document.getElementById('global-error');
+
+            // Reset errors
+            document.querySelectorAll('[id^="error-"]').forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+            globalError.textContent = '';
+            globalError.classList.add('hidden');
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Loading state
+            submitBtn.disabled = true;
+            loader.classList.remove('hidden');
+            submitBtn.classList.add('opacity-80');
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/login?registered=true';
+                } else {
+                    if (response.status === 400 && result.message) {
+                        // This handles validation errors from Spring
+                        const errors = result.message.split(', ');
+                        errors.forEach(err => {
+                            // Simple mapping of error messages to fields
+                            if (err.toLowerCase().includes('pharmacy name')) document.getElementById('error-pharmacyName').textContent = err;
+                            else if (err.toLowerCase().includes('pharmacy email')) document.getElementById('error-pharmacyEmail').textContent = err;
+                            else if (err.toLowerCase().includes('license')) document.getElementById('error-licenseNumber').textContent = err;
+                            else if (err.toLowerCase().includes('admin email')) document.getElementById('error-adminEmail').textContent = err;
+                            else if (err.toLowerCase().includes('password')) document.getElementById('error-adminPassword').textContent = err;
+                            else if (err.toLowerCase().includes('full name')) document.getElementById('error-adminFullName').textContent = err;
+                        });
+
+                        document.querySelectorAll('[id^="error-"]').forEach(el => {
+                            if (el.textContent) el.classList.remove('hidden');
+                        });
+
+                        if (errors.length > 0 && !document.querySelector('[id^="error-"]:not(.hidden)')) {
+                            globalError.textContent = result.message;
+                            globalError.classList.remove('hidden');
+                        }
+                    } else {
+                        globalError.textContent = result.message || 'Registration failed. Please try again.';
+                        globalError.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                globalError.textContent = 'Connection error. Please check your internet.';
+                globalError.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                loader.classList.add('hidden');
+                submitBtn.classList.remove('opacity-80');
+            }
+        });
+    </script>
+</body>
+
+</html>

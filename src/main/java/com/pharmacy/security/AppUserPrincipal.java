@@ -15,14 +15,17 @@ public class AppUserPrincipal implements UserDetails {
     private final Long userId;
     private final Long pharmacyId;
     private final String email;
+    private final String fullName;
     private final String password;
     private final Role role;
     private final boolean active;
 
-    public AppUserPrincipal(Long userId, Long pharmacyId, String email, String password, Role role, boolean active) {
+    public AppUserPrincipal(Long userId, Long pharmacyId, String email, String fullName, String password, Role role,
+            boolean active) {
         this.userId = userId;
         this.pharmacyId = pharmacyId;
         this.email = email;
+        this.fullName = fullName;
         this.password = password;
         this.role = role;
         this.active = active;

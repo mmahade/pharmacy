@@ -22,8 +22,7 @@ public class GlobalExceptionHandler {
                 status.value(),
                 status.getReasonPhrase(),
                 ex.getReason() == null ? "Request failed" : ex.getReason(),
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.status(status).body(error);
     }
 
@@ -33,8 +32,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                 "Invalid credentials",
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -48,8 +46,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message.isBlank() ? "Validation failed" : message,
-                Instant.now()
-        );
+                Instant.now());
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -58,9 +55,11 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Unexpected error occurred",
-                Instant.now()
-        );
+                ex.getMessage() == null ? "Unexpected error occurred" : ex.getMessage(),
+                Instant.now());
+        // Also print stack trace for debugging if possible (it will show up in
+        // terminal)
+        ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
