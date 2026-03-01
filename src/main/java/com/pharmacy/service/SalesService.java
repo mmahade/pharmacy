@@ -109,14 +109,25 @@ public class SalesService {
             summaryParts.add(medicine.getName() + " x " + itemReq.quantity());
         }
 
-        sale.setTotal(total);
+        BigDecimal subtotal = total;
+        BigDecimal discountAmount = request.discountAmount() != null ? request.discountAmount() : BigDecimal.ZERO;
+        BigDecimal discountPercent = request.discountPercent() != null ? request.discountPercent() : BigDecimal.ZERO;
+
+        // If both are provided, let's assume amount takes precedence or they should
+        // match.
+        // For simplicity, we apply amount directly.
+        BigDecimal finalTotal = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
+
+        sale.setTotal(finalTotal);
+        sale.setDiscountAmount(discountAmount);
+        sale.setDiscountPercent(discountPercent);
         sale.setItemsSummary(String.join(", ", summaryParts));
 
         BigDecimal initialPayment = request.initialPaymentAmount() != null
                 && request.initialPaymentAmount().compareTo(BigDecimal.ZERO) > 0
                         ? request.initialPaymentAmount()
                         : BigDecimal.ZERO;
-        if (initialPayment.compareTo(total) > 0) {
+        if (initialPayment.compareTo(finalTotal) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Initial payment cannot exceed total");
         }
         sale.setAmountPaid(initialPayment);
@@ -276,6 +287,8 @@ public class SalesService {
                 items,
                 sale.getPaymentMethod(),
                 sale.getTotal(),
+                sale.getDiscountAmount(),
+                sale.getDiscountPercent(),
                 amountPaid,
                 balanceDue,
                 sale.getDueDate(),

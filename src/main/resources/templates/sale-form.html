@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point of Sale - MediCare</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pharmacy Custom Styles -->
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: white;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased overflow-hidden" x-data="posSystem()"
+    x-init="initData([[${medicines}]])">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('pos')}"></aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <main class="flex-1 flex overflow-hidden">
+                <!-- Left Side: Product Selection -->
+                <div class="flex-1 flex flex-col p-8 space-y-6 overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-3xl font-black tracking-tight text-slate-900">Point of Sale</h2>
+                            <p class="text-slate-500 font-medium">Select medications to add to cart.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Inventory
+                                Status</span>
+                            <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative group">
+                        <i data-lucide="search"
+                            class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                        <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicinesServer()"
+                            placeholder="Search medications by name or category..."
+                            class="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-base font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                        <div x-show="searching" class="absolute right-5 top-1/2 -translate-y-1/2">
+                            <svg class="animate-spin h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                        <template x-for="medicine in medicines" :key="medicine.id">
+                            <button @click="addToCart(medicine)"
+                                class="group p-5 bg-white border border-slate-200 rounded-2xl text-left hover:border-blue-500 hover:shadow-xl transition-all active:scale-[0.98] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110 group-hover:bg-blue-50">
+                                </div>
+
+                                <div class="relative">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div
+                                            class="p-3 bg-slate-50 rounded-2xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                            <i data-lucide="pill" class="w-6 h-6"></i>
+                                        </div>
+                                        <div class="text-right">
+                                            <span
+                                                class="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors"
+                                                x-text="formatCurrency(medicine.price)"></span>
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                Unit Price</p>
+                                        </div>
+                                    </div>
+                                    <h3 class="font-bold text-slate-800 text-lg mb-1 leading-tight"
+                                        x-text="medicine.name"></h3>
+                                    <p class="text-xs font-medium text-slate-400 mb-4" x-text="medicine.category"></p>
+
+                                    <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                                        <div class="flex flex-col">
+                                            <span
+                                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Stock</span>
+                                            <span class="text-sm font-bold"
+                                                :class="medicine.totalStock <= 10 ? 'text-rose-500' : 'text-slate-700'"
+                                                x-text="(medicine.totalStock || 0) + ' ' + (medicine.unit || 'units')"></span>
+                                        </div>
+                                        <div
+                                            class="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                            <i data-lucide="plus" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </template>
+
+                        <!-- Empty Results -->
+                        <div x-show="medicines.length === 0 && !searching" class="col-span-full py-20 text-center">
+                            <div
+                                class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                <i data-lucide="search-x" class="w-10 h-10"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">No medications found</h3>
+                            <p class="text-slate-400 mt-2">Try adjusting your search terms.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Cart & Checkout -->
+                <div class="w-[450px] bg-white border-l border-slate-200 flex flex-col shadow-2xl">
+                    <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="h-10 w-10 rounded-xl gradient-blue text-white flex items-center justify-center shadow-md">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Current Order</h2>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-black text-slate-500"
+                            x-text="cart.length + ' Items'"></span>
+                    </div>
+
+                    <!-- Cart Items -->
+                    <div class="flex-1 overflow-y-auto p-8 space-y-4">
+                        <template x-for="(item, index) in cart" :key="item.id">
+                            <div
+                                class="group p-5 bg-slate-50 border border-slate-100 rounded-3xl transition-all hover:bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/50">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 leading-tight mb-1" x-text="item.name"></h4>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+                                            x-text="formatCurrency(item.price) + ' / unit'"></p>
+                                    </div>
+                                    <button @click="removeFromCart(index)"
+                                        class="p-2 text-slate-300 hover:text-rose-500 transition-colors">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div
+                                        class="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
+                                        <button @click="updateQuantity(index, -1)"
+                                            class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
+                                            <i data-lucide="minus" class="w-4 h-4 text-slate-400"></i>
+                                        </button>
+                                        <input type="number" x-model.number="item.quantity"
+                                            @input="validateQuantity(index)"
+                                            class="w-12 text-center font-bold text-slate-900 outline-none bg-transparent">
+                                        <button @click="updateQuantity(index, 1)"
+                                            class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
+                                            <i data-lucide="plus" class="w-4 h-4 text-slate-400"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-black text-slate-900"
+                                            x-text="formatCurrency(item.price * item.quantity)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Empty Cart -->
+                        <div x-show="cart.length === 0"
+                            class="h-full flex flex-col items-center justify-center text-center py-20">
+                            <div
+                                class="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6 text-slate-200">
+                                <i data-lucide="shopping-cart" class="w-12 h-12"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900">Cart is empty</h3>
+                            <p class="text-slate-400 text-sm mt-2 max-w-[200px]">Add medications from the inventory to
+                                start a sale.</p>
+                        </div>
+                    </div>
+
+                    <!-- Cart Footer / Summary -->
+                    <div class="p-8 bg-slate-50/50 border-t border-slate-100 space-y-6">
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm font-medium">
+                                <span class="text-slate-500">Subtotal</span>
+                                <span class="text-slate-900" x-text="formatCurrency(calculateRawSubtotal())"></span>
+                            </div>
+
+                            <!-- Discount Section -->
+                            <div class="space-y-3 pt-3 border-t border-slate-100">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex-1">
+                                        <label
+                                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block text-left">Discount
+                                            %</label>
+                                        <div class="relative">
+                                            <input type="number" x-model.number="discountPercent"
+                                                @input="updateDiscountFromPercent()" step="0.01" min="0" max="100"
+                                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                            <span
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label
+                                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block text-left">Discount
+                                            (TK)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <input type="number" x-model.number="discountAmount"
+                                                @input="updatePercentFromDiscount()" step="0.01" min="0"
+                                                class="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                                <span class="text-slate-500 text-sm font-medium">Payment Method</span>
+                                <select x-model="paymentMethod"
+                                    class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="CASH">Cash</option>
+                                    <option value="CREDIT_CARD">Card</option>
+                                    <option value="MOBILE_BANKING">Mobile Banking</option>
+                                </select>
+                            </div>
+                            <!-- New Fields for Partial Payment and Due Date -->
+                            <div class="pt-4 space-y-4 border-t border-slate-100">
+                                <div class="flex flex-col gap-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500 text-sm font-medium">Initial Payment</span>
+                                        <div class="relative w-32">
+                                            <span
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <input type="number" x-model.number="initialPayment" step="0.01"
+                                                class="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        </div>
+                                    </div>
+                                    <template x-if="initialPayment < calculateSubtotal()">
+                                        <div
+                                            class="flex justify-between items-center animate-in fade-in slide-in-from-top-1">
+                                            <span class="text-slate-500 text-sm font-medium">Due Date</span>
+                                            <input type="date" x-model="dueDate"
+                                                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 flex justify-between items-end">
+                                <div>
+                                    <p
+                                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                                        Total Payable</p>
+                                    <h3 class="text-4xl font-black text-blue-600 tracking-tighter"
+                                        x-text="formatCurrency(calculateSubtotal())"></h3>
+                                </div>
+                                <div class="text-right">
+                                    <span
+                                        class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black tracking-widest"
+                                        x-text="'VAT INCL.'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Reference -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <label
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Payment
+                                Reference (Optional)</label>
+                            <input type="text" x-model="paymentReference" placeholder="Cheque #, Transaction ID..."
+                                class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                        </div>
+
+                        <button @click="processCheckout" :disabled="cart.length === 0 || processing"
+                            class="btn btn-primary w-full py-5 rounded-[1.5rem] shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <template x-if="!processing">
+                                <span class="flex items-center gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                                    Complete Transaction
+                                </span>
+                            </template>
+                            <template x-if="processing">
+                                <span class="flex items-center gap-3">
+                                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    Processing...
+                                </span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div x-show="showSuccess" x-cloak
+        class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-[3rem] p-12 max-w-sm w-full text-center shadow-2xl"
+            @click.away="window.location.href = '/sales'">
+            <div
+                class="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <i data-lucide="check-circle" class="w-12 h-12"></i>
+            </div>
+            <h3 class="text-3xl font-black text-slate-900 mb-4">Sale Completed!</h3>
+            <p class="text-slate-500 font-medium mb-10 leading-relaxed">The transaction has been recorded and stock
+                levels updated.</p>
+            <button @click="window.location.href = '/sales'"
+                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all active:scale-95">
+                Back to Sales
+            </button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function posSystem() {
+            return {
+                medicines: [],
+                searchQuery: '',
+                cart: [],
+                paymentMethod: 'CASH',
+                initialPayment: 0,
+                dueDate: '',
+                paymentReference: '',
+                discountPercent: 0,
+                discountAmount: 0,
+                processing: false,
+                searching: false,
+                showSuccess: false,
+
+                initData(data) {
+                    this.medicines = data;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async searchMedicinesServer() {
+                    if (this.searchQuery.trim().length === 0) {
+                        // Restore initial list if search is cleared
+                        location.reload(); // Simple way to restore server-injected medicines
+                        return;
+                    }
+
+                    this.searching = true;
+                    try {
+                        const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.searchQuery)}`);
+                        if (response.ok) {
+                            this.medicines = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Search error:', error);
+                    } finally {
+                        this.searching = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                addToCart(medicine) {
+                    const existing = this.cart.find(item => item.id === medicine.id);
+                    if (existing) {
+                        if (existing.quantity < medicine.totalStock) {
+                            existing.quantity++;
+                        } else {
+                            alert('No more stock available!');
+                        }
+                    } else {
+                        if (medicine.totalStock > 0) {
+                            this.cart.push({
+                                id: medicine.id,
+                                name: medicine.name,
+                                price: medicine.price,
+                                quantity: 1,
+                                stockQuantity: medicine.totalStock
+                            });
+                        } else {
+                            alert('This item is out of stock!');
+                        }
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                removeFromCart(index) {
+                    this.cart.splice(index, 1);
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                updateQuantity(index, delta) {
+                    const item = this.cart[index];
+                    const newQty = item.quantity + delta;
+                    if (newQty > 0 && newQty <= item.stockQuantity) {
+                        item.quantity = newQty;
+                    }
+                },
+
+                validateQuantity(index) {
+                    const item = this.cart[index];
+                    if (item.quantity > item.stockQuantity) {
+                        item.quantity = item.stockQuantity;
+                        alert('Max available stock reached');
+                    } else if (item.quantity < 1) {
+                        item.quantity = 1;
+                    }
+                },
+
+                updateDiscountFromPercent() {
+                    const subtotal = this.calculateRawSubtotal();
+                    this.discountAmount = parseFloat(((subtotal * this.discountPercent) / 100).toFixed(2));
+                },
+
+                updatePercentFromDiscount() {
+                    const subtotal = this.calculateRawSubtotal();
+                    if (subtotal > 0) {
+                        this.discountPercent = parseFloat(((this.discountAmount / subtotal) * 100).toFixed(2));
+                    } else {
+                        this.discountPercent = 0;
+                    }
+                },
+
+                calculateRawSubtotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                },
+
+                calculateSubtotal() {
+                    const subtotal = this.calculateRawSubtotal();
+                    return Math.max(0, subtotal - this.discountAmount);
+                },
+
+                formatCurrency(val) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(val);
+                },
+
+                async processCheckout() {
+                    if (this.cart.length === 0) return;
+
+                    this.processing = true;
+
+                    const payload = {
+                        saleDate: new Date().toISOString().split('T')[0],
+                        paymentMethod: this.paymentMethod,
+                        items: this.cart.map(item => ({
+                            medicineId: item.id,
+                            quantity: item.quantity
+                        })),
+                        initialPaymentAmount: this.initialPayment || 0,
+                        initialPaymentMethod: this.paymentMethod,
+                        initialPaymentReference: this.paymentReference || '',
+                        dueDate: this.dueDate || null,
+                        discountAmount: this.discountAmount || 0,
+                        discountPercent: this.discountPercent || 0
+                    };
+
+                    try {
+                        const response = await fetch('/api/sales', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            this.showSuccess = true;
+                            this.$nextTick(() => lucide.createIcons());
+                        } else {
+                            const err = await response.json();
+                            alert('Checkout failed: ' + (err.message || 'Unknown error'));
+                            this.processing = false;
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred during checkout');
+                        this.processing = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

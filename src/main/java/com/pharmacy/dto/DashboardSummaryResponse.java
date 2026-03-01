@@ -21,8 +21,6 @@ public record DashboardSummaryResponse(
                         BigDecimal amount) {
         }
 
-
-
         /**
          * Batch expiring within the configured window (e.g. 30 days).
          */

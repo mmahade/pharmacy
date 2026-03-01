@@ -210,7 +210,9 @@
                 <div class="grid gap-6 md:grid-cols-2">
 
                     <!-- Low Stock Alerts -->
-                    <div th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockMedicines != null ? lowStockMedicines.size() : 0}, ${lowStockMedicines})}"></div>
+                    <div
+                        th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockMedicines != null ? lowStockMedicines.size() : 0}, ${lowStockMedicines})}">
+                    </div>
 
                     <!-- Expiry Alerts -->
                     <div class="card">
@@ -354,7 +356,7 @@
                 </div>
                 <!-- Page Information Footer -->
                 <div class="mt-8 bg-white/50 border-t border-slate-200">
-                   <div th:replace="~{fragments/footer :: footer}"></div>
+                    <div th:replace="~{fragments/footer :: footer}"></div>
                 </div>
             </main>
         </div>

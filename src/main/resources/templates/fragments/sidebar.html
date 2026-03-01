@@ -33,10 +33,15 @@
                     <i data-lucide="file-text" class="w-5 h-5"></i>
                     Prescriptions
                 </a>
+                <a href="/sales/new" th:classappend="${activePage == 'pos'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    Point of Sale
+                </a>
                 <a href="/sales" th:classappend="${activePage == 'sales'} ? 'active' : ''"
                     class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
                     <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                    Sales
+                    Sales History
                 </a>
                 <a href="/inventory" th:classappend="${activePage == 'inventory'} ? 'active' : ''"
                     class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">

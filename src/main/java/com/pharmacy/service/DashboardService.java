@@ -53,7 +53,7 @@ public class DashboardService {
 
                 List<com.pharmacy.dto.MedicineResponse> allMeds = inventoryService.listMedicines(principal);
                 long inStockCount = allMeds.stream().filter(m -> "In Stock".equals(m.status())).count();
-                
+
                 List<com.pharmacy.dto.MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicines(principal);
                 long lowStockCount = lowStockMeds.size();
 

@@ -29,6 +29,12 @@ public class SaleTransaction {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal discountPercent = BigDecimal.ZERO;
+
     /**
      * Total amount paid so far (partial payments).
      */
