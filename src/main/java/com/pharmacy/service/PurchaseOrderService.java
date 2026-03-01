@@ -105,7 +105,7 @@ public class PurchaseOrderService {
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
     public PurchaseOrderResponse receive(AppUserPrincipal principal, Long purchaseOrderId,
-                                         ReceivePurchaseOrderRequest request) {
+            ReceivePurchaseOrderRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(purchaseOrderId, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
@@ -130,21 +130,25 @@ public class PurchaseOrderService {
             String batchNum = lineReq.batchNumber() != null && !lineReq.batchNumber().isBlank()
                     ? lineReq.batchNumber().trim()
                     : ("B-" + line.getMedicine().getName().replaceAll("[^A-Za-z0-9]", "").substring(0,
-                    Math.min(10, line.getMedicine().getName().length())) + "-"
-                    + System.currentTimeMillis() % 100000);
+                            Math.min(10, line.getMedicine().getName().length())) + "-"
+                            + System.currentTimeMillis() % 100000);
             line.setBatchNumber(batchNum);
             Medicine medicine = line.getMedicine();
-            StockBatch batch = stockBatchRepository.findByMedicineAndBatchNumber(medicine, batchNum)
-                    .orElseGet(() -> {
-                        StockBatch b = new StockBatch();
-                        b.setMedicine(medicine);
-                        b.setBatchNumber(batchNum);
-                        b.setExpiryDate(lineReq.expiryDate() != null ? lineReq.expiryDate()
-                                : line.getPurchaseOrder().getOrderDate().plusYears(2));
-                        b.setQuantity(0);
-                        b.setUnitCostPrice(line.getUnitCostPrice());
-                        return b;
-                    });
+            LocalDate targetExpiry = lineReq.expiryDate() != null ? lineReq.expiryDate()
+                    : line.getPurchaseOrder().getOrderDate().plusYears(2);
+
+            StockBatch batch = stockBatchRepository.findByMedicineAndExpiryDate(medicine, targetExpiry)
+                    .orElseGet(() -> stockBatchRepository.findByMedicineAndBatchNumber(medicine, batchNum)
+                            .orElseGet(() -> {
+                                StockBatch b = new StockBatch();
+                                b.setMedicine(medicine);
+                                b.setBatchNumber(batchNum);
+                                b.setExpiryDate(targetExpiry);
+                                b.setQuantity(0);
+                                b.setUnitCostPrice(line.getUnitCostPrice());
+                                return b;
+                            }));
+
             batch.setQuantity(batch.getQuantity() + lineReq.quantityReceived());
             if (line.getUnitCostPrice() != null)
                 batch.setUnitCostPrice(line.getUnitCostPrice());

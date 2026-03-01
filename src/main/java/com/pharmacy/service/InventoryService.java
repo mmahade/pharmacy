@@ -73,22 +73,33 @@ public class InventoryService {
                 Medicine medicine = medicineRepository.findByIdAndPharmacy(medicineId, pharmacy)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Medicine not found"));
+
+                // Logic: 1. Try to find by Medicine + Expiry Date (Consolidation)
+                // 2. Fallback to Medicine + Batch Number
+                // 3. Create New
                 StockBatch batch = stockBatchRepository
-                                .findByMedicineAndBatchNumber(medicine, request.batchNumber().trim())
-                                .orElseGet(() -> {
-                                        StockBatch b = new StockBatch();
-                                        b.setMedicine(medicine);
-                                        b.setBatchNumber(request.batchNumber().trim());
-                                        b.setExpiryDate(request.expiryDate());
-                                        b.setUnitCostPrice(request.unitCostPrice());
-                                        b.setQuantity(0);
-                                        return b;
-                                });
-                batch.setExpiryDate(request.expiryDate());
+                                .findByMedicineAndExpiryDate(medicine, request.expiryDate())
+                                .orElseGet(() -> stockBatchRepository
+                                                .findByMedicineAndBatchNumber(medicine, request.batchNumber().trim())
+                                                .orElseGet(() -> {
+                                                        StockBatch b = new StockBatch();
+                                                        b.setMedicine(medicine);
+                                                        b.setBatchNumber(request.batchNumber().trim());
+                                                        b.setExpiryDate(request.expiryDate());
+                                                        b.setUnitCostPrice(request.unitCostPrice());
+                                                        b.setQuantity(0);
+                                                        return b;
+                                                }));
+
                 if (request.unitCostPrice() != null) {
                         batch.setUnitCostPrice(request.unitCostPrice());
                 }
                 batch.setQuantity(batch.getQuantity() + request.quantity());
+                // Ensure batch number is updated if it was found by expiry but number differs
+                if (!request.batchNumber().isBlank()) {
+                        batch.setBatchNumber(request.batchNumber().trim());
+                }
+
                 stockBatchRepository.save(batch);
                 return toResponse(medicine);
         }
@@ -159,8 +170,9 @@ public class InventoryService {
                 for (Medicine medicine : medicines) {
                         List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
                         int stock = batches.stream()
-                                .filter(b -> b.getExpiryDate() != null && !b.getExpiryDate().isBefore(LocalDate.now()))
-                                .mapToInt(StockBatch::getQuantity).sum();
+                                        .filter(b -> b.getExpiryDate() != null
+                                                        && !b.getExpiryDate().isBefore(LocalDate.now()))
+                                        .mapToInt(StockBatch::getQuantity).sum();
                         totalStockUnits += stock;
 
                         if (stock <= medicine.getMinStock()) {

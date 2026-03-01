@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Order ' + ${purchaseOrder.orderNumber} + ' - MediCare'">Purchase Order Details - MediCare</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .sidebar-item {
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .sidebar-item.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('purchase-orders')}"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <div class="flex-1 flex items-center gap-4">
+                        <div class="relative max-w-md w-full">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="text-right mr-2 hidden sm:block">
+                            <p class="text-sm font-medium" th:text="${#authentication.name}">Admin User</p>
+                            <p class="text-xs text-gray-500">Administrator</p>
+                        </div>
+
+                        <div class="relative">
+                            <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
+                                <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
+                                    th:text="${#strings.substring(#authentication.name, 0, 1)}">A</div>
+                            </button>
+                            <div id="userMenu"
+                                class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
+                                <div class="p-2">
+                                    <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
+                                    <a href="/profile"
+                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile
+                                        Settings</a>
+                                    <div class="border-t border-gray-100 mt-2 pt-2">
+                                        <form th:action="@{/logout}" method="post">
+                                            <button type="submit"
+                                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log
+                                                out</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-auto p-6 space-y-6">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <a href="/purchase-orders" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-400"></i>
+                        </a>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900" th:text="${purchaseOrder.orderNumber}">PO-001
+                            </h1>
+                            <p class="mt-1 text-gray-600">Purchase Order Details</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button
+                            class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">
+                            <i data-lucide="printer" class="w-5 h-5"></i>
+                            Print
+                        </button>
+                        <button
+                            class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                            Export
+                        </button>
+
+                        <form th:if="${purchaseOrder.status.name() == 'DRAFT'}"
+                            th:action="@{/purchase-orders/{id}/submit(id=${purchaseOrder.id})}" method="post">
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                                Submit Order
+                            </button>
+                        </form>
+
+                        <button
+                            th:if="${purchaseOrder.status.name() == 'ORDERED' or purchaseOrder.status.name() == 'PARTIALLY_RECEIVED'}"
+                            type="button" onclick="document.getElementById('receiveModal').classList.remove('hidden')"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            Receive Order
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Info Card -->
+                <div class="card p-6 border-gray-200">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-bold text-gray-900">Order Information</h2>
+                            <span th:if="${purchaseOrder.status.name() == 'DRAFT'}"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">DRAFT</span>
+                            <span th:if="${purchaseOrder.status.name() == 'ORDERED'}"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">ORDERED</span>
+                            <span th:if="${purchaseOrder.status.name() == 'RECEIVED'}"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">RECEIVED</span>
+                            <span th:if="${purchaseOrder.status.name() == 'PARTIALLY_RECEIVED'}"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">PARTIALLY_RECEIVED</span>
+                            <span th:if="${purchaseOrder.status.name() == 'CANCELLED'}"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">CANCELLED</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-500">Total Amount</div>
+                            <div class="text-2xl font-bold text-gray-900">$<span
+                                    th:text="${purchaseOrder.totalAmount}">0.00</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="flex gap-3">
+                            <div
+                                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="package" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Supplier</div>
+                                <div class="font-medium text-gray-900" th:text="${purchaseOrder.supplierName}">Supplier
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div
+                                class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="calendar" class="w-5 h-5 text-green-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Order Date</div>
+                                <div class="font-medium text-gray-900"
+                                    th:text="${#temporals.format(purchaseOrder.orderDate, 'MMM dd, yyyy')}">Date</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div
+                                class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="clock" class="w-5 h-5 text-purple-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Created At</div>
+                                <div class="font-medium text-gray-900"
+                                    th:text="${#temporals.format(purchaseOrder.createdAt, 'MMM dd, yyyy HH:mm')}">Date
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card p-6 border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Order Items</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-500">Medication</th>
+                                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-500">Quantity Ordered
+                                    </th>
+                                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-500">Quantity
+                                        Received</th>
+                                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-500">Unit Price</th>
+                                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-500">Total Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${purchaseOrder.items}"
+                                    class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-4 px-4">
+                                        <div class="font-medium text-gray-900" th:text="${item.medicineName}">Medication
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4 text-gray-900" th:text="${item.quantityOrdered}">0</td>
+                                    <td class="py-4 px-4 text-gray-900" th:text="${item.quantityReceived}">0</td>
+                                    <td class="py-4 px-4 text-gray-900">$<span
+                                            th:text="${item.unitCostPrice}">0.00</span></td>
+                                    <td class="py-4 px-4 font-medium text-gray-900">$<span
+                                            th:text="${item.lineTotal}">0.00</span></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-t-2 border-gray-200">
+                                    <td colspan="4" class="py-4 px-4 text-right font-semibold text-gray-900">Total
+                                        Amount:</td>
+                                    <td class="py-4 px-4 font-bold text-xl text-gray-900">$<span
+                                            th:text="${purchaseOrder.totalAmount}">0.00</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Page Information Footer -->
+                <div class="mt-8 bg-white/50 border-t border-slate-200">
+                    <div th:replace="~{fragments/footer :: footer}"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Receive Modal -->
+    <div id="receiveModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="card max-w-md w-full p-6 border-gray-200 shadow-lg">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Receive Purchase Order</h3>
+            <p class="text-gray-500 mb-6">
+                Are you sure you want to mark this purchase order as received? This will update the inventory stock
+                levels.
+            </p>
+            <form th:action="@{/purchase-orders/{id}/receive(id=${purchaseOrder.id})}" method="post">
+                <div class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                    <div th:each="item, stat : ${purchaseOrder.items}"
+                        class="p-4 border border-gray-100 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-3" th:text="${item.medicineName}">Medicine
+                            Name</h4>
+
+                        <input type="hidden" th:name="'lines[' + ${stat.index} + '].purchaseOrderItemId'"
+                            th:value="${item.id}" />
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Qty Received <span
+                                        class="text-xs text-gray-400 font-normal">(Ordered: <span
+                                            th:text="${item.quantityOrdered}">0</span>)</span></label>
+                                <input type="number" th:name="'lines[' + ${stat.index} + '].quantityReceived'"
+                                    th:max="${item.quantityOrdered - item.quantityReceived}"
+                                    th:value="${item.quantityOrdered - item.quantityReceived}" min="1" required
+                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <input type="date" th:name="'lines[' + ${stat.index} + '].expiryDate'"
+                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('receiveModal').classList.add('hidden')"
+                        class="flex-1 px-4 py-2.5 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        Confirm Received
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // User menu toggle
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userMenu = document.getElementById('userMenu');
+
+        if (userMenuBtn && userMenu) {
+            userMenuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

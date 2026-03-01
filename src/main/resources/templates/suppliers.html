@@ -1,107 +1,407 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="~{layout}">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
     <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
-    <title>Suppliers Directory</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suppliers - MediCare</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .sidebar-item {
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .sidebar-item.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+    </style>
 </head>
 
-<body>
-    <div layout:fragment="content" class="p-6 space-y-6">
-        <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">Supplier Directory</h2>
-                <p class="text-gray-500 text-sm">Manage medical distributors and supply partners.</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button
-                    class="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
-                    <i data-lucide="file-down" class="w-4 h-4"></i>
-                    Export List
-                </button>
-                <a href="/suppliers/add"
-                    class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all">
-                    <i data-lucide="user-plus" class="w-5 h-5"></i>
-                    New Supplier
-                </a>
-            </div>
-        </div>
+<body class="bg-gray-50 text-gray-900">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('suppliers')}"></div>
 
-        <!-- Supplier Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div th:each="supplier : ${suppliers}"
-                class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
-                <div
-                    class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                </div>
-
-                <div class="relative flex items-start justify-between mb-6">
-                    <div
-                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center text-purple-600 shadow-inner group-hover:from-purple-600 group-hover:to-indigo-700 group-hover:text-white transition-all duration-300">
-                        <i data-lucide="truck" class="w-7 h-7"></i>
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm flex-none">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <div class="flex-1 flex items-center gap-4">
+                        <div class="relative max-w-md w-full"></div>
                     </div>
-                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                            <i data-lucide="edit-2" class="w-4 h-4"></i>
-                        </button>
-                        <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
 
-                <div class="relative space-y-1 mb-6">
-                    <h3 class="text-xl font-extrabold text-gray-900 group-hover:text-purple-700 transition-colors"
-                        th:text="${supplier.name}">PharmaDist Corp</h3>
-                    <p class="text-sm text-gray-500 font-medium" th:text="${supplier.contactPerson}">David Williams
-                        (Manager)</p>
-                </div>
-
-                <div class="relative space-y-3 pt-6 border-t border-gray-50">
-                    <div class="flex items-center gap-3 text-sm text-gray-600">
-                        <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                            <i data-lucide="phone" class="w-4 h-4"></i>
+                    <div class="flex items-center gap-2">
+                        <div class="text-right mr-2 hidden sm:block">
+                            <p class="text-sm font-medium" th:text="${#authentication.name}">Admin User</p>
+                            <p class="text-xs text-gray-500">Administrator</p>
                         </div>
-                        <span class="font-bold" th:text="${supplier.phone}">+1 234 567 890</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm text-gray-600">
-                        <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
+
+                        <div class="relative">
+                            <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
+                                <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
+                                    th:text="${#strings.substring(#authentication.name, 0, 1)}">A</div>
+                            </button>
+                            <div id="userMenu"
+                                class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
+                                <div class="p-2">
+                                    <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
+                                    <a href="/profile"
+                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile
+                                        Settings</a>
+                                    <div class="border-t border-gray-100 mt-2 pt-2">
+                                        <form th:action="@{/logout}" method="post">
+                                            <button type="submit"
+                                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log
+                                                out</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <span class="font-medium truncate" th:text="${supplier.email}">orders@pharmadist.com</span>
                     </div>
-                    <div class="flex items-start gap-3 text-sm text-gray-600">
+                </div>
+            </header>
+
+            <!-- Main Scrollable Area -->
+            <main class="flex-1 overflow-auto p-6 flex flex-col">
+                <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col pb-8">
+                    <!-- Page Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold tracking-tight">Suppliers Directory</h1>
+                            <p class="text-gray-600 mt-1">Manage pharmaceutical manufacturers and distributors</p>
+                        </div>
+                        <button onclick="openAddModal()"
+                            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 gradient-blue hover:opacity-90 text-white font-medium rounded-lg shadow-sm transition-all active:scale-95 sm:w-auto w-full">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            Add Supplier
+                        </button>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div th:if="${success}"
+                        class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded shadow-sm flex items-center gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                        <span th:text="${success}"></span>
+                    </div>
+                    <div th:if="${error}"
+                        class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm flex items-center gap-3">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
+                        <span th:text="${error}"></span>
+                    </div>
+
+                    <!-- Search Filter Toolbar -->
+                    <div class="card p-4 mb-6 sticky top-0 z-10 border border-gray-200">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="search" class="text-gray-400 w-5 h-5"></i>
+                            </div>
+                            <input type="text" id="searchInput" oninput="filterTable()"
+                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Search suppliers by name, email, or contact person...">
+                        </div>
+                    </div>
+
+                    <!-- Suppliers Table -->
+                    <div class="card flex-1 flex flex-col overflow-hidden border border-gray-200">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left border-collapse" id="suppliersTable">
+                                <thead>
+                                    <tr
+                                        class="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold sticky top-0 z-10 shadow-sm">
+                                        <th class="px-6 py-4">ID</th>
+                                        <th class="px-6 py-4">Name</th>
+                                        <th class="px-6 py-4">Contact Person</th>
+                                        <th class="px-6 py-4 hidden md:table-cell">Contact Details</th>
+                                        <th class="px-6 py-4 hidden lg:table-cell">Address</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 text-sm">
+                                    <tr th:each="supplier : ${suppliers}"
+                                        class="hover:bg-blue-50/50 transition-colors group supplier-row">
+                                        <td class="px-6 py-4 font-medium" th:text="${'SUP-' + supplier.id}"></td>
+                                        <td class="px-6 py-4">
+                                            <div class="font-semibold text-gray-900 supplier-name"
+                                                th:text="${supplier.name}">Name</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                                                    <span
+                                                        th:text="${#strings.substring(supplier.contactPerson, 0, 1)}">C</span>
+                                                </div>
+                                                <span class="supplier-contact"
+                                                    th:text="${supplier.contactPerson}">Person</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 hidden md:table-cell">
+                                            <div class="flex flex-col gap-1">
+                                                <div class="flex items-center gap-1.5 text-gray-600 supplier-email">
+                                                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                                                    <span th:text="${supplier.email}">email@example.com</span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 text-gray-600">
+                                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                                    <span th:text="${supplier.phone}">123-456-7890</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 hidden lg:table-cell text-gray-500 max-w-[200px] truncate"
+                                            th:text="${supplier.address}" th:title="${supplier.address}">
+                                            Address
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button th:data-id="${supplier.id}" th:data-name="${supplier.name}"
+                                                th:data-contact="${supplier.contactPerson}"
+                                                th:data-email="${supplier.email}" th:data-phone="${supplier.phone}"
+                                                th:data-address="${supplier.address}" onclick="openEditModal(this)"
+                                                class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors inline-flex opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(suppliers)}">
+                                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <div
+                                                    class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                                                    <i data-lucide="briefcase" class="w-8 h-8"></i>
+                                                </div>
+                                                <p class="text-lg font-medium text-gray-900">No suppliers found</p>
+                                                <p class="mt-1">Get started by creating a new supplier.</p>
+                                                <button onclick="openAddModal()"
+                                                    class="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800">
+                                                    Add Supplier &rarr;
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr id="noResultsRow" class="hidden">
+                                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                            No suppliers match your search query.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <div
-                            class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            class="bg-gray-50 border-t border-gray-200 px-6 py-3 flex items-center justify-between text-sm text-gray-500">
+                            <div>Showing <span class="font-medium text-gray-900"
+                                    th:text="${#lists.size(suppliers)}"></span> suppliers</div>
                         </div>
-                        <span class="font-medium text-xs leading-relaxed" th:text="${supplier.address}">123 Distribution
-                            Way, Medical Park, State 54321</span>
                     </div>
                 </div>
+
+                <!-- Page Information Footer -->
+                <div class="mt-auto bg-white/50 border-t border-slate-200">
+                    <div th:replace="~{fragments/footer :: footer}"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Supplier Modal (Shared for Add/Edit) -->
+    <div id="supplierModal"
+        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Add New Supplier</h3>
+                <button onclick="closeModal()"
+                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
 
-            <!-- Empty State in Grid -->
-            <div th:if="${#lists.isEmpty(suppliers)}"
-                class="md:col-span-2 lg:col-span-3 bg-white border-2 border-dashed border-gray-200 rounded-[2.5rem] p-20 text-center">
-                <div class="flex flex-col items-center gap-4">
-                    <div class="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
-                        <i data-lucide="users-2" class="w-10 h-10"></i>
-                    </div>
+            <div class="p-6 overflow-y-auto">
+                <form id="supplierForm" th:action="@{/suppliers}" th:object="${supplierRequest}" method="POST"
+                    class="space-y-4">
+                    <div id="methodInput"></div>
+
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">No suppliers registered</h3>
-                        <p class="text-gray-500 text-sm">Add your distribution partners to manage procurement.</p>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Company Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="name" th:field="*{name}" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                        <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-xs text-red-500 mt-1">
+                        </p>
                     </div>
-                    <a th:href="@{/suppliers/add}"
-                        class="mt-4 px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all">Add
-                        Your First Supplier</a>
-                </div>
+
+                    <div>
+                        <label for="contactPerson" class="block text-sm font-medium text-gray-700 mb-1">Contact Person
+                            <span class="text-red-500">*</span></label>
+                        <input type="text" id="contactPerson" th:field="*{contactPerson}" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span
+                                    class="text-red-500">*</span></label>
+                            <input type="email" id="email" th:field="*{email}" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone <span
+                                    class="text-red-500">*</span></label>
+                            <input type="tel" id="phone" th:field="*{phone}" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address <span
+                                class="text-red-500">*</span></label>
+                        <textarea id="address" th:field="*{address}" required rows="3"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-none"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Cancel
+                </button>
+                <button type="submit" form="supplierForm"
+                    class="px-5 py-2 text-sm font-medium text-white gradient-blue rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-sm">
+                    Save Supplier
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script th:inline="javascript">
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Account Dropdown Logic
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userMenu = document.getElementById('userMenu');
+
+        if (userMenuBtn && userMenu) {
+            userMenuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        // Modal Logic
+        const modal = document.getElementById('supplierModal');
+        const form = document.getElementById('supplierForm');
+        const methodInputContainer = document.getElementById('methodInput');
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Supplier';
+            form.action = '/suppliers';
+            methodInputContainer.innerHTML = ''; // Ensure standard POST method
+
+            // Clear form
+            document.getElementById('name').value = '';
+            document.getElementById('contactPerson').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('address').value = '';
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function openEditModal(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const contact = button.getAttribute('data-contact');
+            const email = button.getAttribute('data-email');
+            const phone = button.getAttribute('data-phone');
+            const address = button.getAttribute('data-address');
+
+            document.getElementById('modalTitle').textContent = 'Edit Supplier';
+            form.action = '/suppliers/' + id;
+            // Inject method=POST to trigger the specific /{id} endpoint handling update
+            methodInputContainer.innerHTML = '';
+
+            document.getElementById('name').value = name;
+            document.getElementById('contactPerson').value = contact;
+            document.getElementById('email').value = email;
+            document.getElementById('phone').value = phone;
+            document.getElementById('address').value = address;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Search Filter Logic
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('.supplier-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.supplier-name').textContent.toLowerCase();
+                const contact = row.querySelector('.supplier-contact').textContent.toLowerCase();
+                const email = row.querySelector('.supplier-email').textContent.toLowerCase();
+
+                if (name.includes(filter) || contact.includes(filter) || email.includes(filter)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noResultsRow = document.getElementById('noResultsRow');
+            if (visibleCount === 0 && rows.length > 0) {
+                noResultsRow.classList.remove('hidden');
+            } else {
+                noResultsRow.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 
 </html>

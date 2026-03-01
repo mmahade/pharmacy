@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Purchase Order - MediCare</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .sidebar-item {
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .sidebar-item.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('purchase-orders')}"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <div class="flex-1 flex items-center gap-4">
+                        <div class="relative max-w-md w-full"></div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="text-right mr-2 hidden sm:block">
+                            <p class="text-sm font-medium" th:text="${#authentication.name}">Admin User</p>
+                            <p class="text-xs text-gray-500">Administrator</p>
+                        </div>
+
+                        <div class="relative">
+                            <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
+                                <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
+                                    th:text="${#strings.substring(#authentication.name, 0, 1)}">A</div>
+                            </button>
+                            <div id="userMenu"
+                                class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
+                                <div class="p-2">
+                                    <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
+                                    <a href="/profile"
+                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile
+                                        Settings</a>
+                                    <div class="border-t border-gray-100 mt-2 pt-2">
+                                        <form th:action="@{/logout}" method="post">
+                                            <button type="submit"
+                                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log
+                                                out</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-auto p-6 space-y-6">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <a href="/purchase-orders" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+                        </a>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Create Purchase Order</h1>
+                            <p class="mt-1 text-gray-600">Add new purchase order details</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form th:action="@{/purchase-orders}" method="post" id="poForm" class="space-y-6">
+                    <!-- Supplier & Info -->
+                    <div class="card p-6 border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">Supplier Information</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="supplierId" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Supplier <span class="text-red-500">*</span>
+                                </label>
+                                <select id="supplierId" name="supplierId" required
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="" disabled selected>Select a supplier</option>
+                                    <option th:each="supplier : ${suppliers}" th:value="${supplier.id}"
+                                        th:text="${supplier.name}">Supplier Name</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="orderDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Order Date <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" id="orderDate" name="orderDate" required
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card p-6 border border-gray-200">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-bold text-gray-900">Order Items</h2>
+                            <button type="button" onclick="addItemRow()"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Add Item
+                            </button>
+                        </div>
+
+                        <div id="itemsContainer" class="space-y-4">
+                            <!-- Initial Item Row -->
+                            <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg relative"
+                                data-index="0">
+                                <div class="md:col-span-5">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Medication</label>
+                                    <select name="items[0].medicineId" required onchange="updateRowTotal(this)"
+                                        class="medicine-select w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="" disabled selected>Select medication</option>
+                                        <option th:each="med : ${medicines}" th:value="${med.id}" th:text="${med.name}">
+                                            Med Name
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                    <input type="number" name="items[0].quantityOrdered" required min="1"
+                                        onchange="updateRowTotal(this)" onkeyup="updateRowTotal(this)"
+                                        class="qty-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="0" />
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price ($)</label>
+                                    <input type="number" name="items[0].unitCostPrice" required min="0" step="0.01"
+                                        onchange="updateRowTotal(this)" onkeyup="updateRowTotal(this)"
+                                        class="price-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="0.00" />
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
+                                    <div
+                                        class="row-total px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg font-medium text-gray-900">
+                                        $0.00
+                                    </div>
+                                </div>
+                                <div class="md:col-span-1 flex items-end">
+                                    <button type="button" onclick="removeItemRow(this)"
+                                        class="remove-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-semibold text-gray-900">Gross Total:</span>
+                                <span id="grandTotal" class="text-2xl font-bold text-gray-900">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="card p-6 border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">Additional Information</h2>
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea id="notes" name="notes" rows="4"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Add any additional notes or special instructions..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-end gap-3 card p-6 border border-gray-200">
+                        <a href="/purchase-orders"
+                            class="px-6 py-2.5 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            Create Order
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Page Information Footer -->
+                <div class="mt-8 bg-white/50 border-t border-slate-200">
+                    <div th:replace="~{fragments/footer :: footer}"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Script Block for handling dynamic items -->
+    <script th:inline="javascript">
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // User menu toggle
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userMenu = document.getElementById('userMenu');
+
+        if (userMenuBtn && userMenu) {
+            userMenuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        let itemIndex = 0;
+
+        function addItemRow() {
+            itemIndex++;
+            const container = document.getElementById('itemsContainer');
+            const firstRow = container.querySelector('.item-row');
+            const newRow = firstRow.cloneNode(true);
+
+            newRow.setAttribute('data-index', itemIndex);
+
+            // Update names and clear values
+            const selectElement = newRow.querySelector('.medicine-select');
+            selectElement.name = 'items[' + itemIndex + '].medicineId';
+            selectElement.value = '';
+
+            const qtyInput = newRow.querySelector('.qty-input');
+            qtyInput.name = 'items[' + itemIndex + '].quantityOrdered';
+            qtyInput.value = '';
+
+            const priceInput = newRow.querySelector('.price-input');
+            priceInput.name = 'items[' + itemIndex + '].unitCostPrice';
+            priceInput.value = '';
+
+            newRow.querySelector('.row-total').innerText = '$0.00';
+
+            // Enable remove button just in case
+            newRow.querySelector('.remove-btn').disabled = false;
+
+            container.appendChild(newRow);
+            updateRemoveButtons();
+            updateGrandTotal();
+
+            // create lucide icons in new element
+            lucide.createIcons();
+        }
+
+        function removeItemRow(btn) {
+            const container = document.getElementById('itemsContainer');
+            if (container.children.length > 1) {
+                btn.closest('.item-row').remove();
+                updateRemoveButtons();
+                reindexRows();
+                updateGrandTotal();
+            }
+        }
+
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll('.item-row');
+            const removeBtns = document.querySelectorAll('.remove-btn');
+            if (rows.length === 1) {
+                removeBtns[0].disabled = true;
+                removeBtns[0].classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                removeBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+            }
+        }
+
+        function reindexRows() {
+            const rows = document.querySelectorAll('.item-row');
+            itemIndex = 0;
+            rows.forEach((row, index) => {
+                row.querySelector('.medicine-select').name = 'items[' + index + '].medicineId';
+                row.querySelector('.qty-input').name = 'items[' + index + '].quantityOrdered';
+                row.querySelector('.price-input').name = 'items[' + index + '].unitCostPrice';
+                itemIndex = index;
+            });
+        }
+
+        function updateRowTotal(element) {
+            const row = element.closest('.item-row');
+            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const total = qty * price;
+            row.querySelector('.row-total').innerText = '$' + total.toFixed(2);
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                const price = parseFloat(row.querySelector('.price-input').value) || 0;
+                grandTotal += (qty * price);
+            });
+            document.getElementById('grandTotal').innerText = '$' + grandTotal.toFixed(2);
+        }
+
+        // Initialization defaults
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('orderDate').valueAsDate = new Date();
+            updateRemoveButtons();
+        });
+    </script>
+</body>
+
+</html>

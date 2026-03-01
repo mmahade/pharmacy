@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "Medicine", description = "Medicine catalogue and stock batch management")
 @RestController
-@RequestMapping("/api/medicine")
+@RequestMapping("/api/medicines")
 @RequiredArgsConstructor
 public class MedicineController {
 
@@ -34,7 +34,7 @@ public class MedicineController {
     @Operation(summary = "Search medicines by name", description = "Typeahead search — returns medicines whose name contains the query string `q`.")
     @GetMapping("/search")
     public List<MedicineResponse> search(@AuthenticationPrincipal AppUserPrincipal principal,
-                                         @RequestParam(name = "q", defaultValue = "") String q) {
+            @RequestParam(name = "q", defaultValue = "") String q) {
         return inventoryService.searchMedicines(principal, q);
     }
 
@@ -44,7 +44,7 @@ public class MedicineController {
     @Operation(summary = "Expiry alerts", description = "Returns stock batches expiring within the specified number of days (default 30).")
     @GetMapping("/expiry-alerts")
     public List<ExpiryAlertResponse> expiryAlerts(@AuthenticationPrincipal AppUserPrincipal principal,
-                                                  @RequestParam(name = "withinDays", defaultValue = "30") int withinDays) {
+            @RequestParam(name = "withinDays", defaultValue = "30") int withinDays) {
         return inventoryService.getExpiryAlerts(principal, withinDays);
     }
 
@@ -52,9 +52,9 @@ public class MedicineController {
      * List all batches for a medicine (by expiry date).
      */
     @Operation(summary = "List batches for a medicine", description = "Returns all stock batches for the given medicine, ordered by expiry date.")
-    @GetMapping("/medicines/{id}/batches")
+    @GetMapping("/{id}/batches")
     public List<StockBatchResponse> listBatches(@AuthenticationPrincipal AppUserPrincipal principal,
-                                                @PathVariable Long id) {
+            @PathVariable Long id) {
         return inventoryService.listBatchesForMedicine(principal, id);
     }
 
@@ -62,16 +62,16 @@ public class MedicineController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MedicineResponse create(@AuthenticationPrincipal AppUserPrincipal principal,
-                                   @Valid @RequestBody MedicineRequest request) {
+            @Valid @RequestBody MedicineRequest request) {
         return inventoryService.createMedicine(principal, request);
     }
 
     @Operation(summary = "Add stock batch", description = "Adds a new stock batch (with quantities, batch number, and expiry) to an existing medicine.")
-    @PostMapping("/medicines/{id}/batches")
+    @PostMapping("/{id}/batches")
     @ResponseStatus(HttpStatus.CREATED)
     public MedicineResponse addBatch(@AuthenticationPrincipal AppUserPrincipal principal,
-                                     @PathVariable Long id,
-                                     @Valid @RequestBody StockBatchRequest request) {
+            @PathVariable Long id,
+            @Valid @RequestBody StockBatchRequest request) {
         return inventoryService.addBatch(principal, id, request);
     }
 }

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Entry - MediCare Pharmacy</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <main class="flex-1 overflow-y-auto bg-[#f8fafc]">
+                <div class="max-w-4xl mx-auto px-8 pt-10 pb-20">
+
+                    <!-- Breadcrumbs & Navigation -->
+                    <div class="mb-10 flex items-center justify-between">
+                        <div>
+                            <nav class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4">
+                                <a href="/dashboard" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                <span class="text-blue-600 font-bold">Stock Entry</span>
+                            </nav>
+                            <h2 class="text-4xl font-extrabold tracking-tight text-slate-900">Manual Stock Entry</h2>
+                            <p class="text-slate-500 mt-3 text-lg leading-relaxed max-w-2xl">
+                                Add medicine batches manually to your inventory.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Main Form Structure -->
+                    <form id="stockEntryForm" class="space-y-8">
+                        <div
+                            class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
+                            <div
+                                class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110">
+                            </div>
+
+                            <div class="relative">
+                                <div class="flex items-center gap-4 mb-10">
+                                    <div
+                                        class="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200">
+                                        <i data-lucide="package-plus" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-slate-900">Entry Details</h3>
+                                        <p class="text-sm text-slate-400 font-medium">Select a medicine and define its
+                                            incoming batch.</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                                    <div class="md:col-span-2 space-y-3">
+                                        <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                            Select Medicine
+                                            <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="relative group/select">
+                                            <select name="medicineId" id="medicineId" required
+                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
+                                                <option value="" disabled selected>Choose a medicine...</option>
+                                                <option th:each="m : ${medicines}" th:value="${m.id}"
+                                                    th:text="${m.name} + ' (' + ${m.category} + ')'"></option>
+                                            </select>
+                                            <div
+                                                class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <label class="text-sm font-bold text-slate-700">Quantity <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="number" name="quantity" required min="1"
+                                            class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
+                                            placeholder="0">
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <label class="text-sm font-bold text-slate-700">Expiry Date <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="date" name="expiryDate" required
+                                            class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 font-medium">
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <label class="text-sm font-bold text-slate-700">Unit Cost Price</label>
+                                        <div
+                                            class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
+                                            <span
+                                                class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                            <input type="number" step="0.01" name="unitCostPrice"
+                                                class="w-full pl-10 pr-5 py-4 bg-transparent outline-none text-slate-800 font-bold placeholder:font-normal"
+                                                placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-4">
+                            <a href="/dashboard"
+                                class="px-8 py-4 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all text-sm uppercase tracking-widest text-center border border-transparent">
+                                Cancel
+                            </a>
+                            <button type="submit" id="submitBtn"
+                                class="px-12 py-5 gradient-blue text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95">
+                                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                                Process Stock Entry
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Footer -->
+                    <div class="mt-16 border-t border-slate-200 pt-12">
+                        <div th:replace="~{fragments/footer :: footer}"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Component -->
+    <div id="toast"
+        class="fixed bottom-10 right-10 z-[100] transform translate-y-32 opacity-0 transition-all duration-500 ease-out pointer-events-none">
+        <div
+            class="bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-5 flex items-center gap-5 min-w-[380px] border border-slate-800">
+            <div id="toastIconContainer"
+                class="w-14 h-14 rounded-2xl flex items-center justify-center bg-blue-500/10 text-blue-400">
+                <i id="toastIcon" data-lucide="check" class="w-8 h-8"></i>
+            </div>
+            <div class="flex-1">
+                <h4 id="toastTitle" class="font-bold text-white text-lg">Inventory Updated</h4>
+                <p id="toastMessage" class="text-slate-400 font-medium">Registry updated successfully.</p>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Global Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        const form = document.getElementById('stockEntryForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const originalContent = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></span> Processing...`;
+
+            try {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                const medicineId = data.medicineId;
+
+                // Prepare payload for StockBatchRequest
+                const payload = {
+                    batchNumber: "", // Backend will auto-generate if blank/omitted
+                    expiryDate: data.expiryDate,
+                    quantity: parseInt(data.quantity),
+                    unitCostPrice: data.unitCostPrice ? parseFloat(data.unitCostPrice) : 0
+                };
+
+                const response = await fetch(`/api/medicines/${medicineId}/batches`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Failed to update inventory');
+
+                showToast('Success', 'Stock level updated and consolidated.', 'success');
+
+                setTimeout(() => {
+                    window.location.href = '/medicines';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error', 'Unable to process stock entry.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
+        };
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+
+            const iconContainer = document.getElementById('toastIconContainer');
+            const icon = document.getElementById('toastIcon');
+
+            if (type === 'success') {
+                iconContainer.className = 'w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-400';
+                icon.setAttribute('data-lucide', 'shield-check');
+            } else {
+                iconContainer.className = 'w-14 h-14 rounded-2xl flex items-center justify-center bg-rose-500/10 text-rose-400';
+                icon.setAttribute('data-lucide', 'shield-alert');
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-32', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

@@ -30,7 +30,13 @@ public class InventoryWebController {
         // Add some sample alerts for the demo
         var expiryAlerts = inventoryService.getExpiryAlerts(principal, 30);
         model.addAttribute("expiryAlerts", expiryAlerts);
-
         return "inventory";
+    }
+
+    @GetMapping("/stock-entry")
+    public String showStockEntryForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
+        var medicines = inventoryService.listMedicines(principal);
+        model.addAttribute("medicines", medicines);
+        return "stock-entry";
     }
 }

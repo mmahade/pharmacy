@@ -43,10 +43,20 @@
                     <i data-lucide="package" class="w-5 h-5"></i>
                     Inventory
                 </a>
+                <a href="/purchase-orders/overview" th:classappend="${activePage == 'purchase-orders'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="truck" class="w-5 h-5"></i>
+                    Purchase Orders
+                </a>
                 <a href="/customers" th:classappend="${activePage == 'customers'} ? 'active' : ''"
                     class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     Customers
+                </a>
+                <a href="/suppliers" th:classappend="${activePage == 'suppliers'} ? 'active' : ''"
+                    class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    Suppliers
                 </a>
                 <a href="/reports" th:classappend="${activePage == 'reports'} ? 'active' : ''"
                     class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700">
