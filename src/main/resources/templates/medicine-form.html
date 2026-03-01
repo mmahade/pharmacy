@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Medicine - MediCare Pharmacy</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: white;
+        }
+
+        .content-area {
+            height: calc(100vh - 4rem);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('medicines')}"></aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <main class="flex-1 overflow-y-auto bg-[#f8fafc]">
+                <div class="max-w-5xl mx-auto px-8 pt-10 pb-20">
+                    
+                    <!-- Breadcrumbs & Navigation -->
+                    <div class="mb-10 flex items-center justify-between">
+                        <div>
+                            <nav class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4">
+                                <a href="/dashboard" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                <a href="/medicines" class="hover:text-blue-600 transition-colors">Medicines</a>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                <span class="text-blue-600 font-bold">Add New Entry</span>
+                            </nav>
+                            <h2 class="text-4xl font-extrabold tracking-tight text-slate-900">Add New Medicine</h2>
+                            <p class="text-slate-500 mt-3 text-lg leading-relaxed max-w-2xl">
+                                Enter the pharmaceutical details below to add a new product to your inventory catalogue.
+                            </p>
+                        </div>
+                        
+                        <div class="hidden lg:flex flex-col items-center gap-2 p-6 rounded-[2rem] bg-white shadow-xl shadow-slate-200/50 border border-slate-100/50">
+                            <div class="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                                <i data-lucide="pill" class="w-10 h-10"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Inventory Module</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Form Structure -->
+                    <form id="addMedicineForm" class="space-y-8">
+                        <div class="grid grid-cols-1 gap-8">
+                            
+                            <!-- Section: Primary Information -->
+                            <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+                                
+                                <div class="relative">
+                                    <div class="flex items-center gap-4 mb-10">
+                                        <div class="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200">
+                                            <i data-lucide="info" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-900">Primary Product Information</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Core medicine details and identification.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                                        <div class="space-y-3">
+                                            <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                                Medicine Name
+                                                <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" name="name" required
+                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                placeholder="e.g. Paracetamol Extra 500mg">
+                                        </div>
+
+                                        <div class="space-y-3">
+                                            <label class="text-sm font-bold text-slate-700">Generic Formula Name</label>
+                                            <input type="text" name="genericName"
+                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                placeholder="e.g. Acetaminophen">
+                                        </div>
+
+                                        <div class="md:col-span-2 space-y-3">
+                                            <label class="text-sm font-bold text-slate-700">Detailed Description</label>
+                                            <textarea name="description" rows="3"
+                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium resize-none"
+                                                placeholder="Add specific storage instructions, side effects, or a general product description..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grid for Classification and Inventory -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                
+                                <!-- Section: Classification -->
+                                <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
+                                    <div class="flex items-center gap-4 mb-10">
+                                        <div class="h-12 w-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                                            <i data-lucide="tag" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-900">Classification</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Categorize the medicine in your catalogue.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-8">
+                                        <div class="space-y-3">
+                                            <label class="text-sm font-bold text-slate-700">System Category <span class="text-red-500">*</span></label>
+                                            <div class="relative group/select">
+                                                <select name="category" required
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
+                                                    <option value="" disabled selected>Select Category</option>
+                                                    <option value="Analgesics">Analgesics</option>
+                                                    <option value="Antibiotics">Antibiotics</option>
+                                                    <option value="Antipyretics">Antipyretics</option>
+                                                    <option value="Antiseptics">Antiseptics</option>
+                                                    <option value="Cardiovascular">Cardiovascular</option>
+                                                    <option value="Dermatological">Dermatological</option>
+                                                    <option value="Gastrointestinal">Gastrointestinal</option>
+                                                    <option value="Respiratory">Respiratory</option>
+                                                    <option value="Vitamins">Vitamins</option>
+                                                    <option value="Hormones">Hormones</option>
+                                                </select>
+                                                <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
+                                                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Dosage Form</label>
+                                                <input type="text" name="dosageForm"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    placeholder="Tablet, Syrup...">
+                                            </div>
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Strength</label>
+                                                <input type="text" name="strength"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    placeholder="500mg, 10ml...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Inventory & Pricing -->
+                                <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
+                                    <div class="flex items-center gap-4 mb-10">
+                                        <div class="h-12 w-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
+                                            <i data-lucide="banknote" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-900">Inventory & Pricing</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Manage stock levels and unit values.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-8">
+                                        <div class="space-y-3">
+                                            <label class="text-sm font-bold text-slate-700">Brand / Manufacturer <span class="text-red-500">*</span></label>
+                                            <input type="text" name="manufacturer" required
+                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                placeholder="e.g. Pfizer Pharmaceuticals">
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Base Unit Price <span class="text-red-500">*</span></label>
+                                                <div class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
+                                                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                                    <input type="number" step="0.01" name="price" required
+                                                        class="w-full pl-10 pr-5 py-4 bg-transparent outline-none text-slate-800 font-bold placeholder:font-normal"
+                                                        placeholder="0.00">
+                                                </div>
+                                            </div>
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Reorder Alert <span class="text-red-500">*</span></label>
+                                                <input type="number" name="minStock" required
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
+                                                    placeholder="20 units">
+                                                <p class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">Low stock threshold</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <!-- Production Level Action Section (Unified with Footer) -->
+                    <div class="mt-16 border-t border-slate-200 pt-12">
+                        <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16">
+                            <div class="max-w-md text-center lg:text-left">
+                                <h4 class="text-xl font-extrabold text-slate-900 mb-2">Ready to submit?</h4>
+                                <p class="text-slate-500 font-medium">Please verify all pharmaceutical details, dosage forms, and pricing before committing to the inventory registry.</p>
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                                <a href="/medicines" 
+                                    class="w-full sm:w-auto px-8 py-4 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all text-sm uppercase tracking-widest text-center border border-transparent">
+                                    Discard Entry
+                                </a>
+                                <button type="submit" id="submitBtn"
+                                    class="w-full sm:w-auto px-12 py-5 gradient-blue text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95">
+                                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                    Add the medicine
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Standard Page Information Footer -->
+                        <div th:replace="~{fragments/footer :: footer}"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Enhanced Toast Component -->
+    <div id="toast" class="fixed bottom-10 right-10 z-[100] transform translate-y-32 opacity-0 transition-all duration-500 ease-out pointer-events-none">
+        <div class="bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-5 flex items-center gap-5 min-w-[380px] border border-slate-800">
+            <div id="toastIconContainer" class="w-14 h-14 rounded-2xl flex items-center justify-center bg-blue-500/10 text-blue-400">
+                <i id="toastIcon" data-lucide="check" class="w-8 h-8"></i>
+            </div>
+            <div class="flex-1">
+                <h4 id="toastTitle" class="font-bold text-white text-lg">Identity Confirmed</h4>
+                <p id="toastMessage" class="text-slate-400 font-medium">Updating system records...</p>
+            </div>
+            <button class="p-2 text-slate-500 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Global Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Form Submission Logic
+        const form = document.getElementById('addMedicineForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const originalContent = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing Registry...</span>
+                </div>
+            `;
+
+            try {
+                const formData = new FormData(form);
+                const payload = Object.fromEntries(formData.entries());
+
+                const response = await fetch('/api/v1/medicines', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('System verification failed');
+
+                showToast('Registry Successful', 'The product has been securely added to inventory.', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = '/medicines';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Registration Error', 'Unable to complete registry entry at this time.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
+        };
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            const iconContainer = document.getElementById('toastIconContainer');
+
+            toastMessage.textContent = message;
+
+            if (type === 'success') {
+                iconContainer.className = 'w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-400';
+                toastIcon.setAttribute('data-lucide', 'shield-check');
+            } else {
+                iconContainer.className = 'w-14 h-14 rounded-2xl flex items-center justify-center bg-rose-500/10 text-rose-400';
+                toastIcon.setAttribute('data-lucide', 'shield-alert');
+            }
+            
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-32', 'opacity-0');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

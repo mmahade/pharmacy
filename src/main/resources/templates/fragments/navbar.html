@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <header th:fragment="navbar" class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div class="flex h-16 items-center gap-4 px-6">
+            <!-- Search Bar -->
+            <div class="flex-1 flex items-center gap-4">
+                <div class="relative max-w-md w-full">
+                    <i data-lucide="search"
+                        class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" placeholder="Search medicines, prescriptions, customers..."
+                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Right Side Items -->
+            <div class="flex items-center gap-2">
+                <!-- User Info -->
+                <div class="text-right mr-2 hidden sm:block">
+                    <p class="text-sm font-medium" th:text="${#authentication.principal.fullName}">Admin User</p>
+                    <p class="text-xs text-gray-500" th:text="${#authentication.principal.role}">Administrator</p>
+                </div>
+
+                <!-- Notifications -->
+                <button class="relative p-2 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <!-- Use a common check or pass in a variable if needed -->
+                    <span th:if="${(summary != null and summary.lowStockCount > 0) or (lowStockCount != null and lowStockCount > 0)}"
+                        class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+                        th:text="${summary != null ? summary.lowStockCount : lowStockCount}">5</span>
+                </button>
+
+                <!-- User Menu -->
+                <div class="relative">
+                    <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
+                        <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
+                            th:text="${#strings.substring(#authentication.principal.fullName, 0, 1)}">A</div>
+                    </button>
+                    <div id="userMenu"
+                        class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
+                        <div class="p-2">
+                            <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
+                            <a href="/profile"
+                                class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile
+                                Settings</a>
+                            <a href="/settings"
+                                class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Pharmacy
+                                Settings</a>
+                            <a href="/preferences"
+                                class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Preferences</a>
+                            <div class="border-t border-gray-100 mt-2 pt-2">
+                                <a href="/logout"
+                                    class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log
+                                    out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+</body>
+</html>

@@ -23,6 +23,7 @@ import java.util.List;
 public class DashboardService {
 
         private final TenantAccessService tenantAccessService;
+        private final InventoryService inventoryService;
         private final MedicineRepository medicineRepository;
         private final StockBatchRepository stockBatchRepository;
         private final PrescriptionRepository prescriptionRepository;
@@ -50,29 +51,13 @@ public class DashboardService {
                                         dailyTotal));
                 }
 
-                List<Medicine> allMeds = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
-                long inStockCount = 0;
-                long lowStockCount = 0;
-                long outOfStockCount = 0;
+                List<com.pharmacy.dto.MedicineResponse> allMeds = inventoryService.listMedicines(principal);
+                long inStockCount = allMeds.stream().filter(m -> "In Stock".equals(m.status())).count();
+                
+                List<com.pharmacy.dto.MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicines(principal);
+                long lowStockCount = lowStockMeds.size();
 
-                List<DashboardSummaryResponse.LowStockItem> lowStockItems = new java.util.ArrayList<>();
-
-                for (Medicine m : allMeds) {
-                        int totalStock = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(m).stream()
-                                        .mapToInt(b -> b.getQuantity()).sum();
-
-                        if (totalStock <= 0) {
-                                outOfStockCount++;
-                        } else if (totalStock <= m.getMinStock()) {
-                                lowStockCount++;
-                                if (lowStockItems.size() < 5) {
-                                        lowStockItems.add(new DashboardSummaryResponse.LowStockItem(m.getName(),
-                                                        totalStock, m.getMinStock()));
-                                }
-                        } else {
-                                inStockCount++;
-                        }
-                }
+                long outOfStockCount = inventoryService.getOutOfStockMedicines(principal).size();
 
                 int expiryWindowDays = 30;
                 List<StockBatch> expiringBatches = stockBatchRepository
@@ -108,7 +93,7 @@ public class DashboardService {
                                 inStockCount,
                                 lowStockCount,
                                 outOfStockCount,
-                                lowStockItems,
+                                lowStockMeds,
                                 expiringSoon,
                                 recentPrescriptions,
                                 recentSales);

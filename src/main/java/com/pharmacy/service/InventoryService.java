@@ -127,6 +127,26 @@ public class InventoryService {
                                 .toList();
         }
 
+        /**
+         * Get all medicines that are low stock.
+         * A medicine is considered low stock if its total current stock is <= minStock.
+         */
+        public List<MedicineResponse> getLowStockMedicines(AppUserPrincipal principal) {
+                return listMedicines(principal).stream()
+                                .filter(m -> "Low Stock".equals(m.status()))
+                                .toList();
+        }
+
+        /**
+         * Get all medicines that are out of stock.
+         * A medicine is considered out of stock if its total current stock is <= 0.
+         */
+        public List<MedicineResponse> getOutOfStockMedicines(AppUserPrincipal principal) {
+                return listMedicines(principal).stream()
+                                .filter(m -> m.totalStock() <= 0)
+                                .toList();
+        }
+
         public InventoryStatsResponse getInventoryStats(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
                 List<Medicine> medicines = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
@@ -138,7 +158,9 @@ public class InventoryService {
 
                 for (Medicine medicine : medicines) {
                         List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
-                        int stock = batches.stream().mapToInt(StockBatch::getQuantity).sum();
+                        int stock = batches.stream()
+                                .filter(b -> b.getExpiryDate() != null && !b.getExpiryDate().isBefore(LocalDate.now()))
+                                .mapToInt(StockBatch::getQuantity).sum();
                         totalStockUnits += stock;
 
                         if (stock <= medicine.getMinStock()) {
@@ -156,7 +178,9 @@ public class InventoryService {
 
         private MedicineResponse toResponse(Medicine medicine) {
                 List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
-                int totalStock = batches.stream().mapToInt(StockBatch::getQuantity).sum();
+                int totalStock = batches.stream()
+                                .filter(b -> b.getExpiryDate() != null && !b.getExpiryDate().isBefore(LocalDate.now()))
+                                .mapToInt(StockBatch::getQuantity).sum();
                 var earliestExpiry = batches.isEmpty() ? null : batches.get(0).getExpiryDate();
                 String status = totalStock <= medicine.getMinStock() ? "Low Stock" : "In Stock";
                 List<StockBatchResponse> batchResponses = batches.stream()

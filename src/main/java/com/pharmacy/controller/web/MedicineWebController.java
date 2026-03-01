@@ -3,6 +3,7 @@ package com.pharmacy.controller.web;
 import com.pharmacy.dto.MedicineResponse;
 import com.pharmacy.security.AppUserPrincipal;
 import com.pharmacy.service.InventoryService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -43,16 +44,19 @@ public class MedicineWebController {
 
         // Add alerts and detailed stock info
         model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
-        model.addAttribute("lowStockMedicines", medicines.stream()
-                .filter(m -> "Low Stock".equals(m.status()))
-                .toList());
+        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicines(principal));
 
         return "medicines";
     }
 
     @GetMapping("/add")
-    public String showAddForm(Model model) {
-        // Form handling will be added in next step
+    public String showAddForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model, HttpServletRequest request) {
+        model.addAttribute("requestURI", request.getRequestURI());
+        
+        // Add statistics for the navbar badge
+        var stats = inventoryService.getInventoryStats(principal);
+        model.addAttribute("lowStockCount", stats.lowStockCount());
+        
         return "medicine-form";
     }
 }

@@ -11,7 +11,7 @@ public record DashboardSummaryResponse(
                 long inStockCount,
                 long lowStockCount,
                 long outOfStockCount,
-                List<LowStockItem> lowStock,
+                List<MedicineResponse> lowStock,
                 List<ExpiryAlertItem> expiringSoon,
                 List<PrescriptionResponse> recentPrescriptions,
                 List<SaleResponse> recentSales) {
@@ -21,11 +21,7 @@ public record DashboardSummaryResponse(
                         BigDecimal amount) {
         }
 
-        public record LowStockItem(
-                        String name,
-                        Integer stock,
-                        Integer minStock) {
-        }
+
 
         /**
          * Batch expiring within the configured window (e.g. 30 days).

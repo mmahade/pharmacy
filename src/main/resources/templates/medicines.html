@@ -2,10 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medicine Inventory - MediCare</title>
-    <link rel="icon" type="image/png" th:href="@{/favicon/drugstore.png}">
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,11 +151,11 @@
                         <h2 class="text-3xl font-bold tracking-tight">Medicine Inventory</h2>
                         <p class="text-gray-600 mt-1">Manage your pharmacy's medicine catalogue and stock levels.</p>
                     </div>
-                    <button id="addMedicineBtn"
+                    <a href="/medicines/add"
                         class="inline-flex items-center px-6 py-3 gradient-blue hover:opacity-90 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 gap-2">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         Add Medicine
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Stats Grid -->
@@ -209,49 +210,7 @@
                 <div class="grid gap-6 md:grid-cols-2">
 
                     <!-- Low Stock Alerts -->
-                    <div class="card">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold flex items-center gap-2">
-                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500"></i>
-                                    Low Stock Alerts
-                                </h3>
-                                <span th:if="${lowStockMedicines != null and !lowStockMedicines.isEmpty()}"
-                                    class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
-                                    th:text="${lowStockMedicines.size()}">0</span>
-                            </div>
-
-                            <!-- Low Stock List -->
-                            <div th:if="${lowStockMedicines != null and !lowStockMedicines.isEmpty()}"
-                                class="space-y-3">
-                                <div th:each="medicine : ${lowStockMedicines}"
-                                    class="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex-1">
-                                            <span class="font-medium text-gray-900" th:text="${medicine.name}">Medicine
-                                                Name</span>
-                                            <div class="text-xs text-gray-600 mt-1">
-                                                Current: <span class="font-bold"
-                                                    th:text="${medicine.totalStock}">0</span> |
-                                                Minimum: <span th:text="${medicine.minStock}">0</span>
-                                            </div>
-                                        </div>
-                                        <span
-                                            class="px-2 py-1 text-xs font-medium border border-orange-600 text-orange-600 rounded"
-                                            th:text="${medicine.totalStock} + ' left'">0 left</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty State -->
-                            <div th:if="${lowStockMedicines == null or lowStockMedicines.isEmpty()}"
-                                class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                                <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mb-2"></i>
-                                <p class="text-sm font-medium text-gray-900">All stock levels good</p>
-                                <p class="text-xs text-gray-500 mt-1">No medicines are below minimum stock.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockMedicines != null ? lowStockMedicines.size() : 0}, ${lowStockMedicines})}"></div>
 
                     <!-- Expiry Alerts -->
                     <div class="card">
@@ -393,126 +352,15 @@
                         Add First Medicine
                     </button>
                 </div>
+                <!-- Page Information Footer -->
+                <div class="mt-8 bg-white/50 border-t border-slate-200">
+                   <div th:replace="~{fragments/footer :: footer}"></div>
+                </div>
             </main>
         </div>
     </div>
 
-    <!-- Add Medicine Modal -->
-    <div id="medicineModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-            <div class="fixed inset-0 bg-gray-900/60 transition-opacity backdrop-blur-sm" onclick="closeModal()"></div>
 
-            <div
-                class="relative transform overflow-hidden rounded-[2rem] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100">
-                <div class="absolute right-6 top-6">
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <i data-lucide="x" class="w-6 h-6"></i>
-                    </button>
-                </div>
-
-                <div class="p-8">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="p-3 rounded-2xl bg-blue-50 text-blue-600">
-                            <i data-lucide="pill" class="w-8 h-8"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-900">Add New Medicine</h3>
-                            <p class="text-gray-500">Register a new product in your pharmacy catalogue.</p>
-                        </div>
-                    </div>
-
-                    <form id="addMedicineForm" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Basic Info -->
-                            <div class="space-y-4 md:col-span-2">
-                                <label class="block text-sm font-bold text-gray-700">Medicine Name *</label>
-                                <input type="text" name="name" required
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="e.g. Paracetamol 500mg">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Generic Name</label>
-                                <input type="text" name="genericName"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="e.g. Acetaminophen">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Category *</label>
-                                <select name="category" required
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none">
-                                    <option value="">Select Category</option>
-                                    <option value="Analgesics">Analgesics</option>
-                                    <option value="Antibiotics">Antibiotics</option>
-                                    <option value="Antipyretics">Antipyretics</option>
-                                    <option value="Antiseptics">Antiseptics</option>
-                                    <option value="Cardiovascular">Cardiovascular</option>
-                                    <option value="Dermatological">Dermatological</option>
-                                    <option value="Gastrointestinal">Gastrointestinal</option>
-                                    <option value="Respiratory">Respiratory</option>
-                                    <option value="Vitamins">Vitamins</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Manufacturer *</label>
-                                <input type="text" name="manufacturer" required
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="e.g. Pfizer">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Dosage Form</label>
-                                <input type="text" name="dosageForm"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="e.g. Tablet, Syrup">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Strength</label>
-                                <input type="text" name="strength"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="e.g. 500mg, 10ml">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Unit Price *</label>
-                                <input type="number" step="0.01" name="price" required
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="0.00">
-                            </div>
-
-                            <div class="space-y-4">
-                                <label class="block text-sm font-bold text-gray-700">Reorder Level (Min Stock) *</label>
-                                <input type="number" name="minStock" required
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="20">
-                            </div>
-
-                            <div class="space-y-4 md:col-span-2">
-                                <label class="block text-sm font-bold text-gray-700">Description</label>
-                                <textarea name="description" rows="3"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="Optional medicine description..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-4 pt-4">
-                            <button type="button" onclick="closeModal()"
-                                class="flex-1 px-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                class="flex-[2] px-6 py-4 gradient-blue text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-blue-200">
-                                Create Medicine
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Notification Toast -->
     <div id="toast"
@@ -534,66 +382,7 @@
 
         // Modal Controls
         const modal = document.getElementById('medicineModal');
-        const addBtn = document.getElementById('addMedicineBtn');
-        const form = document.getElementById('addMedicineForm');
 
-        function openModal() {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            lucide.createIcons();
-        }
-
-        function closeModal() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            form.reset();
-        }
-
-        if (addBtn) {
-            addBtn.onclick = openModal;
-        }
-
-        // Form Submission
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing...';
-            lucide.createIcons();
-
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
-            try {
-                const response = await fetch('/api/medicine', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        /* CSRF token if needed - Spring Security usually handles this or needs a header */
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    showToast('Success', 'Medicine added to catalogue.', 'success');
-                    closeModal();
-                    // Refresh page after a delay
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    const error = await response.json();
-                    showToast('Error', error.message || 'Failed to create medicine.', 'error');
-                }
-            } catch (err) {
-                showToast('Error', 'Connection failed. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-                lucide.createIcons();
-            }
-        };
 
         // Toast Helper
         function showToast(title, message, type = 'success') {

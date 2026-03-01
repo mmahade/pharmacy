@@ -68,7 +68,10 @@ public class SalesService {
             Medicine medicine = medicineRepository.findByIdAndPharmacy(itemReq.medicineId(), pharmacy)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Medicine not found: " + itemReq.medicineId()));
-            List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
+            List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine)
+                    .stream()
+                    .filter(b -> b.getExpiryDate() != null && !b.getExpiryDate().isBefore(LocalDate.now()))
+                    .toList();
             int available = batches.stream().mapToInt(StockBatch::getQuantity).sum();
             if (available < itemReq.quantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

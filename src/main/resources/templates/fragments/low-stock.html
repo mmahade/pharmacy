@@ -1,0 +1,40 @@
+<div th:fragment="lowStockAlert(count, items)" class="card">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500"></i>
+                Low Stock Alerts
+            </h3>
+            <span th:if="${count != null and count > 0}"
+                class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
+                th:text="${count}">0</span>
+        </div>
+
+        <!-- Low Stock List -->
+        <div th:if="${items != null and !items.isEmpty()}" class="space-y-3 overflow-y-auto max-h-[300px] pr-2">
+            <div th:each="item : ${items}"
+                class="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <span class="font-medium text-gray-900" th:text="${item.name}">Medicine Name</span>
+                        <div class="text-xs text-gray-600 mt-1">
+                            Current: <span class="font-bold" th:text="${item.totalStock}">0</span> |
+                            Minimum: <span th:text="${item.minStock}">0</span>
+                        </div>
+                    </div>
+                    <span
+                        class="px-2 py-1 text-xs font-medium border border-orange-600 text-orange-600 rounded"
+                        th:text="${item.totalStock} + ' left'">0 left</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${items == null or items.isEmpty()}"
+            class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mb-2"></i>
+            <p class="text-sm font-medium text-gray-900">All stock levels good</p>
+            <p class="text-xs text-gray-500 mt-1">No medicines are below minimum stock.</p>
+        </div>
+    </div>
+</div>
