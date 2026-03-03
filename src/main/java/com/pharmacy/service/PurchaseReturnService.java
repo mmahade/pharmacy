@@ -68,35 +68,33 @@ public class PurchaseReturnService {
             Medicine medicine = medicineRepository.findByIdAndPharmacy(itemReq.medicineId(), pharmacy)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Medicine not found: " + itemReq.medicineId()));
-            List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
-            int available = batches.stream().mapToInt(StockBatch::getQuantity).sum();
-            if (available < itemReq.quantity()) {
+
+            StockBatch batch = stockBatchRepository.findById(itemReq.batchId())
+                    .filter(b -> b.getMedicine().getId().equals(medicine.getId()))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Stock batch not found or does not belong to the selected medicine"));
+
+            if (batch.getQuantity() < itemReq.quantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Insufficient stock for " + medicine.getName() + ": required " + itemReq.quantity()
-                                + ", available " + available);
+                        "Insufficient stock in selected batch for " + medicine.getName() + ": required "
+                                + itemReq.quantity()
+                                + ", available " + batch.getQuantity());
             }
+
             BigDecimal lineTotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
             total = total.add(lineTotal);
 
             PurchaseReturnItem line = new PurchaseReturnItem();
             line.setPurchaseReturn(pr);
             line.setMedicine(medicine);
+            line.setStockBatch(batch);
             line.setQuantity(itemReq.quantity());
             line.setUnitPrice(itemReq.unitPrice());
             line.setLineTotal(lineTotal);
             pr.getItems().add(line);
 
-            int remaining = itemReq.quantity();
-            for (StockBatch batch : batches) {
-                if (remaining <= 0)
-                    break;
-                int take = Math.min(remaining, batch.getQuantity());
-                if (take <= 0)
-                    continue;
-                batch.setQuantity(batch.getQuantity() - take);
-                stockBatchRepository.save(batch);
-                remaining -= take;
-            }
+            batch.setQuantity(batch.getQuantity() - itemReq.quantity());
+            stockBatchRepository.save(batch);
         }
         pr.setTotalAmount(total);
         PurchaseReturn saved = purchaseReturnRepository.save(pr);
@@ -117,6 +115,9 @@ public class PurchaseReturnService {
                         i.getId(),
                         i.getMedicine().getId(),
                         i.getMedicine().getName(),
+                        i.getStockBatch().getId(),
+                        i.getStockBatch().getBatchNumber(),
+                        i.getStockBatch().getExpiryDate(),
                         i.getQuantity(),
                         i.getUnitPrice(),
                         i.getLineTotal()))

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Returns - MediCare Premium</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-red {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+        }
+
+        .status-badge {
+            @apply px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased" x-data="{ search: '' }">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('purchase-returns')}"></aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <div class="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-4xl font-extrabold tracking-tight text-slate-900">Purchase Returns</h1>
+                        <p class="text-slate-500 mt-2 text-lg">Manage and track items returned to your suppliers.</p>
+                    </div>
+                    <a href="/purchase-returns/new"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 font-bold group">
+                        <i data-lucide="plus" class="w-5 h-5 transition-transform group-hover:rotate-90"></i>
+                        Record New Return
+                    </a>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card p-6 flex items-center gap-5 border-l-4 border-blue-500">
+                        <div class="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i data-lucide="rotate-ccw" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Returns</p>
+                            <h3 class="text-2xl font-black text-slate-800" th:text="${totalReturnsCount}">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 flex items-center gap-5 border-l-4 border-emerald-500">
+                        <div
+                            class="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                            <i data-lucide="dollar-sign" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Returned Value</p>
+                            <h3 class="text-2xl font-black text-slate-800"
+                                th:text="${#numbers.formatCurrency(totalReturnsValue)}">$0.00</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Section -->
+                <div class="card overflow-hidden">
+                    <!-- Search & Filter Bar -->
+                    <div
+                        class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-4 items-center">
+                        <div class="relative flex-1 group">
+                            <i data-lucide="search"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                            <input type="text" x-model="search" placeholder="Search by return number or supplier..."
+                                class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all text-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-slate-50/80 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                                    <th class="px-6 py-4">Return Number</th>
+                                    <th class="px-6 py-4">Supplier</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Total Amount</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr th:each="item : ${purchaseReturns}" class="hover:bg-blue-50/30 transition-colors"
+                                    x-show="search === '' || 
+                                           '[[${item.returnNumber}]]'.toLowerCase().includes(search.toLowerCase()) ||
+                                           '[[${item.supplierName}]]'.toLowerCase().includes(search.toLowerCase())">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-900" th:text="${item.returnNumber}">PR-001
+                                        </div>
+                                        <div class="text-xs text-slate-400"
+                                            th:text="${#temporals.format(item.createdAt, 'HH:mm')}">Time</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg gradient-blue flex items-center justify-center text-white text-[10px] font-bold"
+                                                th:text="${#strings.substring(item.supplierName, 0, 1)}">S</div>
+                                            <span class="font-semibold text-slate-700"
+                                                th:text="${item.supplierName}">Supplier Name</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-slate-600"
+                                            th:text="${#temporals.format(item.returnDate, 'MMM dd, yyyy')}">Date</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-black text-slate-900"
+                                            th:text="${#numbers.formatCurrency(item.totalAmount)}">$0.00</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a th:href="@{/purchase-returns/{id}(id=${item.id})}"
+                                                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                title="View Details">
+                                                <i data-lucide="eye" class="w-5 h-5"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Empty State -->
+                                <tr th:if="${#lists.isEmpty(purchaseReturns)}">
+                                    <td colspan="5" class="px-6 py-20 text-center">
+                                        <div class="flex flex-col items-center gap-4 text-slate-400">
+                                            <div
+                                                class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center">
+                                                <i data-lucide="package-search" class="w-10 h-10"></i>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <p class="text-lg font-bold text-slate-600">No returns found</p>
+                                                <p class="text-sm">Record your first supplier return to start tracking.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer th:replace="~{fragments/footer :: footer}"></footer>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

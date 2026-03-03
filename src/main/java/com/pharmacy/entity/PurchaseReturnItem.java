@@ -24,6 +24,10 @@ public class PurchaseReturnItem {
     @JoinColumn(name = "medicine_id", nullable = false)
     private Medicine medicine;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "stock_batch_id", nullable = false)
+    private StockBatch stockBatch;
+
     @Column(nullable = false)
     private Integer quantity;
 
