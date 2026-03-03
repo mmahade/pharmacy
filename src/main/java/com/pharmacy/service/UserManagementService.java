@@ -1,6 +1,7 @@
 package com.pharmacy.service;
 
 import com.pharmacy.dto.CreateUserRequest;
+import com.pharmacy.dto.UpdateUserRequest;
 import com.pharmacy.dto.UserResponse;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.UserAccount;
@@ -40,11 +41,53 @@ public class UserManagementService {
         user.setFullName(request.fullName().trim());
         user.setEmail(request.email().trim().toLowerCase());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setPhoneNumber(request.phoneNumber() != null ? request.phoneNumber().trim() : null);
         user.setRole(request.role());
         user.setActive(true);
 
         UserAccount saved = userAccountRepository.save(user);
         return toResponse(saved);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse updateUser(AppUserPrincipal currentUser, Long userId, UpdateUserRequest request) {
+        Pharmacy pharmacy = pharmacyRepository.findById(currentUser.getPharmacyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pharmacy not found"));
+
+        UserAccount user = userAccountRepository.findByIdAndPharmacy(userId, pharmacy)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setFullName(request.fullName().trim());
+        user.setPhoneNumber(request.phoneNumber() != null ? request.phoneNumber().trim() : null);
+        user.setRole(request.role());
+        user.setActive(request.active());
+
+        UserAccount saved = userAccountRepository.save(user);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void toggleUserStatus(AppUserPrincipal currentUser, Long userId) {
+        Pharmacy pharmacy = pharmacyRepository.findById(currentUser.getPharmacyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pharmacy not found"));
+
+        UserAccount user = userAccountRepository.findByIdAndPharmacy(userId, pharmacy)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setActive(!user.getActive());
+        userAccountRepository.save(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse getUserById(AppUserPrincipal currentUser, Long userId) {
+        Pharmacy pharmacy = pharmacyRepository.findById(currentUser.getPharmacyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pharmacy not found"));
+
+        return userAccountRepository.findByIdAndPharmacy(userId, pharmacy)
+                .map(this::toResponse)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -63,6 +106,7 @@ public class UserManagementService {
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
+                user.getPhoneNumber(),
                 user.getRole(),
                 user.getActive(),
                 user.getCreatedAt(),

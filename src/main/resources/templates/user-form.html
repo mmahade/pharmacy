@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Edit User' : 'Add New User'} + ' - MediCare'">Add New User</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden"
+    x-data="userForm()">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('users')}"></aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <main class="flex-1 overflow-y-auto bg-[#f8fafc]">
+                <div class="max-w-5xl mx-auto px-8 pt-10 pb-20">
+
+                    <!-- Breadcrumbs & Navigation -->
+                    <div class="mb-10 flex items-center justify-between">
+                        <div>
+                            <nav class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4">
+                                <a href="/dashboard" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                <a href="/users" class="hover:text-blue-600 transition-colors">Staff Management</a>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                <span class="text-blue-600 font-bold"
+                                    th:text="${isEdit ? 'Edit Profile' : 'New Account'}">New Account</span>
+                            </nav>
+                            <h2 class="text-4xl font-extrabold tracking-tight text-slate-900"
+                                th:text="${isEdit ? 'Edit Staff Profile' : 'Create Staff Account'}">Create Account</h2>
+                            <p class="text-slate-500 mt-3 text-lg leading-relaxed max-w-2xl">
+                                Configure access permissions and professional details for your pharmacy team members.
+                            </p>
+                        </div>
+
+                        <div
+                            class="hidden lg:flex flex-col items-center gap-2 p-6 rounded-[2rem] bg-white shadow-xl shadow-slate-200/50 border border-slate-100/50">
+                            <div class="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                                <i data-lucide="shield-check" class="w-10 h-10"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Security
+                                Module</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Form Structure -->
+                    <form @submit.prevent="submitForm()" class="space-y-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                            <!-- Left Column: Form Fields -->
+                            <div class="lg:col-span-8 space-y-8">
+                                <!-- Section: Primary Profile -->
+                                <div
+                                    class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
+                                    <div
+                                        class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110">
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="flex items-center gap-4 mb-10">
+                                            <div
+                                                class="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200">
+                                                <i data-lucide="user" class="w-6 h-6"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-xl font-bold text-slate-900">Personal Information</h3>
+                                                <p class="text-sm text-slate-400 font-medium">Core identification and
+                                                    contact details.</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                                            <div class="md:col-span-2 space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Full Name <span
+                                                        class="text-red-500">*</span></label>
+                                                <input type="text" x-model="formData.fullName" required
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    placeholder="e.g. Dr. Jane Smith">
+                                            </div>
+
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Email Address <span
+                                                        class="text-red-500">*</span></label>
+                                                <input type="email" x-model="formData.email" required
+                                                    th:readonly="${isEdit}"
+                                                    class="w-full px-5 py-4 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    th:classappend="${isEdit} ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-50/50'"
+                                                    placeholder="jane.smith@medicare.com">
+                                            </div>
+
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Phone Number</label>
+                                                <input type="text" x-model="formData.phoneNumber"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    placeholder="+1 (555) 000-0000">
+                                            </div>
+
+                                            <div th:if="${!isEdit}" class="md:col-span-2 space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Temporary Password <span
+                                                        class="text-red-500">*</span></label>
+                                                <div class="relative">
+                                                    <input :type="showPassword ? 'text' : 'password'"
+                                                        x-model="formData.password" required
+                                                        class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                        placeholder="Create a strong password">
+                                                    <button type="button" @click="showPassword = !showPassword"
+                                                        class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                                        <i :data-lucide="showPassword ? 'eye-off' : 'eye'"
+                                                            class="w-5 h-5"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Access Control -->
+                                <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
+                                    <div class="flex items-center gap-4 mb-10">
+                                        <div
+                                            class="h-12 w-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                                            <i data-lucide="key" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-900">Access Control</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Define account role and
+                                                status.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-8">
+                                        <div class="space-y-3">
+                                            <label class="text-sm font-bold text-slate-700">System Role <span
+                                                    class="text-red-500">*</span></label>
+                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <template x-for="role in roles">
+                                                    <div @click="formData.role = role.value"
+                                                        class="p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 text-center group/role"
+                                                        :class="formData.role === role.value ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent hover:border-slate-200'">
+                                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                                                            :class="formData.role === role.value ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-slate-400 border border-slate-100 group-hover/role:scale-110'">
+                                                            <i :data-lucide="role.icon" class="w-5 h-5"></i>
+                                                        </div>
+                                                        <span class="text-xs font-bold font-black"
+                                                            :class="formData.role === role.value ? 'text-blue-700' : 'text-slate-500'"
+                                                            x-text="role.label">Role</span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <div th:if="${isEdit}"
+                                            class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-900">Account Status</p>
+                                                <p class="text-xs text-slate-400 font-medium">Toggle system access for
+                                                    this member.</p>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" x-model="formData.active" class="sr-only peer">
+                                                <div
+                                                    class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Live Preview -->
+                            <div class="lg:col-span-4 space-y-6">
+                                <div
+                                    class="glass-card bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+                                    <div
+                                        class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all">
+                                    </div>
+                                    <div
+                                        class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all">
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="flex justify-between items-start mb-8">
+                                            <div
+                                                class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-3xl font-black text-blue-400">
+                                                <span
+                                                    x-text="formData.fullName ? formData.fullName.charAt(0).toUpperCase() : '?'"></span>
+                                            </div>
+                                            <div class="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest"
+                                                :class="formData.active ? 'text-green-400' : 'text-orange-400'">
+                                                <span x-text="formData.active ? 'Active' : 'Disabled'">Active</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-6">
+                                            <div>
+                                                <h4 class="text-xl font-bold leading-tight"
+                                                    x-text="formData.fullName || 'Member Name'">Member Name</h4>
+                                                <p class="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest"
+                                                    x-text="roles.find(r => r.value === formData.role)?.label || 'Unassigned'">
+                                                    Role</p>
+                                            </div>
+
+                                            <div class="space-y-4 pt-6 border-t border-white/10">
+                                                <div class="flex items-center gap-3">
+                                                    <i data-lucide="mail" class="w-4 h-4 text-slate-500"></i>
+                                                    <span class="text-xs font-medium text-slate-300 truncate"
+                                                        x-text="formData.email || 'Email Address'">jane.smith@pharmacy.com</span>
+                                                </div>
+                                                <div class="flex items-center gap-3">
+                                                    <i data-lucide="phone" class="w-4 h-4 text-slate-500"></i>
+                                                    <span class="text-xs font-medium text-slate-300 truncate"
+                                                        x-text="formData.phoneNumber || 'Contact Number'">+1 234 567
+                                                        890</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-blue-50 border border-blue-100 rounded-[2rem] p-6">
+                                    <h5 class="text-blue-900 font-bold flex items-center gap-2 mb-3">
+                                        <i data-lucide="help-circle" class="w-5 h-5"></i>
+                                        Guidance
+                                    </h5>
+                                    <ul class="space-y-3 text-sm font-medium text-blue-800/70">
+                                        <li class="flex items-start gap-2">
+                                            <span
+                                                class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                            <span>Admins have full access to system configuration and financial
+                                                data.</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span
+                                                class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                            <span>Pharmacists can manage clinical inventory and process
+                                                prescriptions.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Production Level Action Section -->
+                        <div class="mt-16 border-t border-slate-200 pt-12">
+                            <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16">
+                                <div class="max-w-md text-center lg:text-left">
+                                    <h4 class="text-xl font-extrabold text-slate-900 mb-2">Ready to submit?</h4>
+                                    <p class="text-slate-500 font-medium">Verify all identity and access details before
+                                        committing to the staff registry.</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                                    <a href="/users"
+                                        class="w-full sm:w-auto px-8 py-4 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all text-sm uppercase tracking-widest text-center">
+                                        Discard
+                                    </a>
+                                    <button type="submit" :disabled="loading"
+                                        class="w-full sm:w-auto px-12 py-5 gradient-blue text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95">
+                                        <template x-if="!loading">
+                                            <div class="flex items-center gap-3">
+                                                <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                                <span th:text="${isEdit ? 'Update Member' : 'Create Account'}">Create
+                                                    Account</span>
+                                            </div>
+                                        </template>
+                                        <template x-if="loading">
+                                            <div class="flex items-center gap-3">
+                                                <svg class="animate-spin h-5 w-5 text-white"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                    </path>
+                                                </svg>
+                                                <span>Processing...</span>
+                                            </div>
+                                        </template>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div th:replace="~{fragments/footer :: footer}"></div>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        function userForm() {
+            const isEdit = /*[[${isEdit}]]*/ false;
+            const user = /*[[${user}]]*/ null;
+
+            return {
+                loading: false,
+                showPassword: false,
+                roles: [
+                    { value: 'ADMIN', label: 'Admin', icon: 'shield-check' },
+                    { value: 'PHARMACIST', label: 'Pharmacist', icon: 'pill' },
+                    { value: 'STAFF', label: 'Staff', icon: 'user' }
+                ],
+                formData: {
+                    fullName: user ? user.fullName : '',
+                    email: user ? user.email : '',
+                    phoneNumber: user ? (user.phoneNumber || '') : '',
+                    password: '',
+                    role: user ? user.role : 'STAFF',
+                    active: user ? user.active : true
+                },
+
+                async submitForm() {
+                    this.loading = true;
+                    const url = isEdit ? `/api/users/${user.id}` : '/api/users';
+                    const method = isEdit ? 'PUT' : 'POST';
+
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.formData)
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Registry Updated',
+                                text: 'The member account has been successfully synchronized.',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                customClass: { popup: 'rounded-[2rem]' }
+                            }).then(() => {
+                                window.location.href = '/users';
+                            });
+                        } else {
+                            const error = await response.json();
+                            Swal.fire({
+                                title: 'Entry Error',
+                                text: error.message || 'Validation failed. Please verify credentials.',
+                                icon: 'error',
+                                customClass: { popup: 'rounded-[2rem]' }
+                            });
+                        }
+                    } catch (e) {
+                        Swal.fire({
+                            title: 'Network Fail',
+                            text: 'Unable to communicate with the registry system.',
+                            icon: 'error',
+                            customClass: { popup: 'rounded-[2rem]' }
+                        });
+                    } finally {
+                        this.loading = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

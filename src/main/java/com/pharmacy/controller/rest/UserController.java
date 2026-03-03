@@ -1,6 +1,7 @@
 package com.pharmacy.controller.rest;
 
 import com.pharmacy.dto.CreateUserRequest;
+import com.pharmacy.dto.UpdateUserRequest;
 import com.pharmacy.dto.UserResponse;
 import com.pharmacy.security.AppUserPrincipal;
 import com.pharmacy.service.UserManagementService;
@@ -32,5 +33,20 @@ public class UserController {
     @GetMapping
     public List<UserResponse> listUsers(@AuthenticationPrincipal AppUserPrincipal principal) {
         return userManagementService.listPharmacyUsers(principal);
+    }
+
+    @Operation(summary = "Update user", description = "Updates an existing staff user's details.")
+    @PutMapping("/{id}")
+    public UserResponse updateUser(@AuthenticationPrincipal AppUserPrincipal principal,
+                                   @PathVariable Long id,
+                                   @Valid @RequestBody UpdateUserRequest request) {
+        return userManagementService.updateUser(principal, id, request);
+    }
+
+    @Operation(summary = "Toggle user status", description = "Activates or deactivates a user account.")
+    @PatchMapping("/{id}/toggle-status")
+    public void toggleUserStatus(@AuthenticationPrincipal AppUserPrincipal principal,
+                                 @PathVariable Long id) {
+        userManagementService.toggleUserStatus(principal, id);
     }
 }
