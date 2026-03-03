@@ -18,18 +18,22 @@ public class InventoryWebController {
 
     @GetMapping
     public String listInventory(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        // Since InventoryService doesn't have a global "list all batches"
-        // across all medicines in a single call (it's per medicine),
-        // we might need to aggregate or just show medicines with their total stock.
-        // For a dedicated "Inventory" page, showing medicines with low stock alerts
-        // or a summary of batches is common.
-
         var medicines = inventoryService.listMedicines(principal);
         model.addAttribute("medicines", medicines);
 
-        // Add some sample alerts for the demo
         var expiryAlerts = inventoryService.getExpiryAlerts(principal, 30);
         model.addAttribute("expiryAlerts", expiryAlerts);
+
+        var stats = inventoryService.getInventoryStats(principal);
+        model.addAttribute("totalMedicines", stats.totalMedicines());
+        model.addAttribute("lowStockCount", stats.lowStockCount());
+        model.addAttribute("totalStockUnits", stats.totalStockUnits());
+        model.addAttribute("totalValue", stats.totalValue());
+
+        var lowStockMedicines = inventoryService.getLowStockMedicines(principal);
+        model.addAttribute("lowStockMedicines", lowStockMedicines);
+
+        model.addAttribute("activePage", "inventory");
         return "inventory";
     }
 

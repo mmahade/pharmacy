@@ -56,7 +56,7 @@
 </head>
 
 <body class="bg-[#f8fafc] text-slate-900 antialiased overflow-hidden" x-data="posSystem()"
-    x-init="initData([[${medicines}]])">
+    x-init="initData(initialMedicines)">
 
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
@@ -362,9 +362,14 @@
     </div>
 
     <script th:inline="javascript">
+        /*<![CDATA[*/
+        const initialMedicines = /*[[${medicines}]]*/[];
+        /*]]>*/
+
         function posSystem() {
             return {
                 medicines: [],
+                allMedicines: [],
                 searchQuery: '',
                 cart: [],
                 paymentMethod: 'CASH',
@@ -378,14 +383,16 @@
                 showSuccess: false,
 
                 initData(data) {
+                    this.allMedicines = data;
                     this.medicines = data;
                     this.$nextTick(() => lucide.createIcons());
                 },
 
                 async searchMedicinesServer() {
                     if (this.searchQuery.trim().length === 0) {
-                        // Restore initial list if search is cleared
-                        location.reload(); // Simple way to restore server-injected medicines
+                        // Restore the full cached medicine list without reloading
+                        this.medicines = this.allMedicines;
+                        this.$nextTick(() => lucide.createIcons());
                         return;
                     }
 
