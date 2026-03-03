@@ -483,18 +483,20 @@
                                                 Feb 26, 2026</td>
                                             <td class="px-4 py-3">
                                                 <span
-                                                    th:class="${prescription.status == 'Completed'} ? 'px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded' :
-                                                                ${prescription.status == 'Processing'} ? 'px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded' :
-                                                                'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded'"
+                                                    th:class="${prescription.status.name() == 'COMPLETED'} ? 'px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded' :
+                                                                (${prescription.status.name() == 'PENDING'} ? 'px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded' :
+                                                                'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded')"
                                                     th:text="${prescription.status}">Completed</span>
                                             </td>
                                             <td class="px-4 py-3 text-right font-medium">$<span
                                                     th:text="${#numbers.formatDecimal(prescription.totalAmount, 1, 2)}">145.50</span>
                                             </td>
-                                            <td class="px-4 py-3">
-                                                <button class="p-1 hover:bg-gray-100 rounded">
-                                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                                                </button>
+                                            <td class="px-4 py-3 text-right">
+                                                <a th:href="@{'/prescriptions/' + ${prescription.id}}"
+                                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold">
+                                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                                    View
+                                                </a>
                                             </td>
                                         </tr>
                                     </tbody>

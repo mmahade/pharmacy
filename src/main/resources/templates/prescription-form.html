@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Prescription - MediCare</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 0.4rem;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e293b;
+            background: white;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .field-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+
+        /* Dosage Grid Styles */
+        .dosage-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+        }
+
+        .dosage-badge span {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .dosage-input {
+            width: 40px;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-weight: 700;
+            color: #2563eb;
+            font-size: 0.9rem;
+        }
+
+        /* Search Dropdown Styles */
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+        }
+
+        .dropdown-item.selected {
+            background: #eff6ff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased" x-data="rxForm()" x-init="initMedicines(allMedicines)">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('prescriptions')}"></div>
+
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <a href="/prescriptions"
+                        class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to Prescriptions
+                    </a>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2" th:replace="~{fragments/navbar :: navbar}"></div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-6 md:p-10">
+                <div class="max-w-4xl mx-auto space-y-8">
+
+                    <!-- Page Title -->
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">New Prescription</h2>
+                        <p class="text-slate-500 mt-1">Fill in the prescription details and add medication items.</p>
+                    </div>
+
+                    <!-- Patient & Doctor Info -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-xl gradient-indigo flex items-center justify-center">
+                                <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-lg">Patient &amp; Doctor Details</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="field-label">Patient Name *</label>
+                                <input type="text" x-model="patientName" placeholder="e.g. John Smith"
+                                    class="field-input">
+                            </div>
+                            <div>
+                                <label class="field-label">Doctor Name *</label>
+                                <input type="text" x-model="doctorName" placeholder="e.g. Dr. Sarah Khan"
+                                    class="field-input">
+                            </div>
+                            <div>
+                                <label class="field-label">Prescription Date</label>
+                                <input type="date" x-model="prescriptionDate" class="field-input">
+                            </div>
+                            <div>
+                                <label class="field-label">Status</label>
+                                <select x-model="status" class="field-input">
+                                    <option value="PENDING">Pending (Awaiting Dispense)</option>
+                                    <option value="COMPLETED">Completed (Dispense Now)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medication Items -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl gradient-blue flex items-center justify-center">
+                                    <i data-lucide="pill" class="w-4 h-4 text-white"></i>
+                                </div>
+                                <h3 class="font-bold text-slate-900 text-lg">Medication Items</h3>
+                            </div>
+                            <button @click="addRow"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-sm font-bold hover:bg-blue-100 transition-all">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Add Medicine
+                            </button>
+                        </div>
+
+                        <!-- Item Rows -->
+                        <div class="space-y-6">
+                            <template x-for="(item, index) in items" :key="index">
+                                <div
+                                    class="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-5 relative group/row">
+
+                                    <!-- Remove Button (Absolute) -->
+                                    <button @click="removeRow(index)"
+                                        class="absolute top-4 right-4 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover/row:opacity-100"
+                                        title="Remove Row">
+                                        <i data-lucide="x" class="w-5 h-5"></i>
+                                    </button>
+
+                                    <!-- TOP ROW: Medicine Search & Total Qty -->
+                                    <div class="grid grid-cols-12 gap-5">
+                                        <!-- Searchable Medicine -->
+                                        <div class="col-span-12 md:col-span-8 relative"
+                                            @click.outside="item.showDropdown = false">
+                                            <label class="field-label">Select Medicine</label>
+                                            <div class="relative">
+                                                <i data-lucide="search"
+                                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                                <input type="text" placeholder="Type to search medicine..."
+                                                    x-model="item.searchText" @focus="item.showDropdown = true"
+                                                    @input="item.showDropdown = true" class="field-input pl-10"
+                                                    :class="item.medicineId ? 'border-blue-200 bg-blue-50/30' : ''">
+                                            </div>
+
+                                            <!-- Dropdown -->
+                                            <div x-show="item.showDropdown" x-cloak class="dropdown-list">
+                                                <template x-for="med in filteredMedicines(item.searchText)"
+                                                    :key="med.id">
+                                                    <div class="dropdown-item" @click="selectMedicine(index, med)"
+                                                        :class="item.medicineId == med.id ? 'selected' : ''">
+                                                        <div class="flex items-center justify-between">
+                                                            <div>
+                                                                <p class="font-bold text-slate-900" x-text="med.name">
+                                                                </p>
+                                                                <p class="text-[10px] text-slate-400 font-bold uppercase"
+                                                                    x-text="med.category"></p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p class="text-xs font-black text-blue-600"
+                                                                    x-text="'$' + (med.price || 0).toFixed(2)"></p>
+                                                                <p class="text-[10px] font-bold"
+                                                                    :class="med.totalStock > 0 ? 'text-emerald-500' : 'text-rose-500'"
+                                                                    x-text="med.totalStock + ' in stock'"></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <div x-show="filteredMedicines(item.searchText).length === 0"
+                                                    class="p-4 text-center text-slate-400 text-xs font-bold italic">
+                                                    No medicines found...
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Total Quantity -->
+                                        <div class="col-span-12 md:col-span-4">
+                                            <label class="field-label">Total Quantity</label>
+                                            <div class="relative">
+                                                <input type="number" x-model.number="item.quantity" min="1"
+                                                    @input="enforceStock(index)" placeholder="Qty"
+                                                    class="field-input text-center font-bold text-lg">
+                                                <i data-lucide="package"
+                                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- BOTTOM ROW: Dosage Instructions -->
+                                    <div class="pt-5 border-t border-slate-200/60">
+                                        <label class="field-label mb-3">Dosage Instructions</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                                            <!-- Morning -->
+                                            <div class="dosage-badge">
+                                                <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i>
+                                                <span>Morn</span>
+                                                <input type="number" x-model="item.morning" class="dosage-input"
+                                                    placeholder="0">
+                                            </div>
+                                            <!-- Noon -->
+                                            <div class="dosage-badge">
+                                                <i data-lucide="sun-medium" class="w-4 h-4 text-orange-500"></i>
+                                                <span>Noon</span>
+                                                <input type="number" x-model="item.noon" class="dosage-input"
+                                                    placeholder="0">
+                                            </div>
+                                            <!-- Night -->
+                                            <div class="dosage-badge">
+                                                <i data-lucide="moon" class="w-4 h-4 text-indigo-500"></i>
+                                                <span>Night</span>
+                                                <input type="number" x-model="item.night" class="dosage-input"
+                                                    placeholder="0">
+                                            </div>
+                                            <!-- Meal Timing -->
+                                            <div class="col-span-1 md:col-span-2">
+                                                <select x-model="item.mealTiming" class="field-input bg-white h-[42px]">
+                                                    <option value="After Meal">After Meal</option>
+                                                    <option value="Before Meal">Before Meal</option>
+                                                    <option value="Empty Stomach">Empty Stomach</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Custom Instructions -->
+                                        <div class="mt-4">
+                                            <label class="field-label">Custom Notes / Specific Times</label>
+                                            <div class="relative">
+                                                <input type="text" x-model="item.customNote"
+                                                    placeholder="e.g. at 4 PM, for fever only, etc."
+                                                    class="field-input bg-white pl-10">
+                                                <i data-lucide="message-square"
+                                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stock & Total Info -->
+                                    <div class="flex items-center justify-between px-1" x-show="item.medicineId">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full"
+                                                :class="item.stockQty > 5 ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider"
+                                                x-text="item.stockQty + ' units available in stock'">
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <p class="text-xs font-bold text-slate-400 uppercase"
+                                                x-text="'Price: $' + (item.price || 0).toFixed(2)"></p>
+                                            <p class="text-sm font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg"
+                                                x-text="'Line Total: $' + ((item.price || 0) * (item.quantity || 0)).toFixed(2)">
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Empty rows message -->
+                            <div x-show="items.length === 0"
+                                class="flex flex-col items-center py-16 text-center text-slate-400 bg-white border-2 border-dashed border-slate-200 rounded-3xl">
+                                <i data-lucide="clipboard-list" class="w-12 h-12 mb-4 opacity-20"></i>
+                                <p class="text-lg font-bold text-slate-600">No items added</p>
+                                <p class="text-sm mt-1 max-w-xs">Start building your prescription by adding medicines
+                                    and setting dosage.</p>
+                                <button @click="addRow"
+                                    class="mt-6 px-6 py-2.5 gradient-blue text-white rounded-xl font-bold hover:scale-105 transition-all shadow-lg active:scale-95">
+                                    Add First Medicine
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grand Total -->
+                        <div x-show="items.length > 0"
+                            class="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-900 rounded-2xl text-white">
+                            <div>
+                                <h4 class="font-bold text-slate-400 text-xs uppercase tracking-widest">Total Summary
+                                </h4>
+                                <p class="text-sm font-medium text-slate-300 mt-1"
+                                    x-text="items.length + ' medicines currently added'"></p>
+                            </div>
+                            <div class="mt-4 md:mt-0 text-right">
+                                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Grand Total
+                                    Amount</p>
+                                <p class="text-4xl font-black" x-text="'$' + grandTotal().toFixed(2)"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div x-show="errorMsg" x-cloak
+                        class="flex items-center gap-3 p-5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 shadow-sm animate-shake">
+                        <i data-lucide="alert-octagon" class="w-6 h-6 flex-shrink-0"></i>
+                        <span class="text-sm font-black" x-text="errorMsg"></span>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="flex items-center justify-between pb-20">
+                        <a href="/prescriptions"
+                            class="px-8 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm">
+                            Discard
+                        </a>
+                        <button @click="submitForm" :disabled="processing"
+                            class="inline-flex items-center gap-3 px-10 py-4 gradient-blue text-white rounded-2xl font-black shadow-xl shadow-blue-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <template x-if="!processing">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                                    Record Prescription
+                                </span>
+                            </template>
+                            <template x-if="processing">
+                                <span class="flex items-center gap-2">
+                                    <svg class="animate-spin h-6 w-6 text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    Processing...
+                                </span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const allMedicines = /*[[${medicines}]]*/[];
+        /*]]>*/
+
+        function rxForm() {
+            const today = new Date().toISOString().split('T')[0];
+            return {
+                medicines: [],
+                patientName: '',
+                doctorName: '',
+                prescriptionDate: today,
+                status: 'PENDING',
+                items: [],
+                processing: false,
+                errorMsg: '',
+
+                initMedicines(data) {
+                    this.medicines = data || [];
+                    this.addRow();
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                filteredMedicines(text) {
+                    if (!text) return this.medicines;
+                    const q = text.toLowerCase();
+                    return this.medicines.filter(m =>
+                        m.name.toLowerCase().includes(q) ||
+                        m.category.toLowerCase().includes(q)
+                    );
+                },
+
+                addRow() {
+                    const id = Date.now();
+                    this.items.push({
+                        id: id,
+                        medicineId: '',
+                        searchText: '',
+                        showDropdown: false,
+                        quantity: 1,
+                        // Dosage Fields
+                        morning: 0,
+                        noon: 0,
+                        night: 0,
+                        mealTiming: 'After Meal',
+                        customNote: '',
+
+                        price: 0,
+                        stockQty: 0
+                    });
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                removeRow(index) {
+                    this.items.splice(index, 1);
+                },
+
+                selectMedicine(index, med) {
+                    const item = this.items[index];
+                    item.medicineId = med.id;
+                    item.searchText = med.name;
+                    item.showDropdown = false;
+                    item.price = med.price || 0;
+                    item.stockQty = med.totalStock || 0;
+
+                    if (item.quantity > item.stockQty) item.quantity = item.stockQty;
+                },
+
+                enforceStock(index) {
+                    const item = this.items[index];
+                    if (item.stockQty > 0 && item.quantity > item.stockQty) {
+                        item.quantity = item.stockQty;
+                    }
+                    if (item.quantity < 1) item.quantity = 1;
+                },
+
+                grandTotal() {
+                    return this.items.reduce((sum, i) => sum + ((i.price || 0) * (i.quantity || 0)), 0);
+                },
+
+                formatInstructions(item) {
+                    // Format: "1-0-1 (After Meal) - Msg"
+                    let parts = [];
+                    const dosage = `${item.morning || 0}-${item.noon || 0}-${item.night || 0}`;
+                    parts.push(dosage);
+
+                    if (item.mealTiming) {
+                        parts.push(`(${item.mealTiming})`);
+                    }
+
+                    if (item.customNote && item.customNote.trim()) {
+                        parts.push(`- ${item.customNote.trim()}`);
+                    }
+
+                    return parts.join(' ');
+                },
+
+                async submitForm() {
+                    this.errorMsg = '';
+
+                    if (!this.patientName.trim()) { this.errorMsg = 'Patient name is required.'; return; }
+                    if (!this.doctorName.trim()) { this.errorMsg = 'Doctor name is required.'; return; }
+                    if (this.items.length === 0) { this.errorMsg = 'Add at least one medicine.'; return; }
+
+                    const incompleteRow = this.items.findIndex(i => !i.medicineId);
+                    if (incompleteRow !== -1) {
+                        this.errorMsg = `Please select a medicine for row #${incompleteRow + 1}.`;
+                        return;
+                    }
+
+                    this.processing = true;
+
+                    const payload = {
+                        patientName: this.patientName.trim(),
+                        doctorName: this.doctorName.trim(),
+                        prescriptionDate: this.prescriptionDate || null,
+                        status: this.status,
+                        items: this.items.map(i => ({
+                            medicineId: Number(i.medicineId),
+                            quantity: Number(i.quantity),
+                            instructions: this.formatInstructions(i)
+                        }))
+                    };
+
+                    try {
+                        const resp = await fetch('/api/prescriptions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (resp.ok) {
+                            window.location.href = '/prescriptions';
+                        } else {
+                            const err = await resp.json().catch(() => ({}));
+                            this.errorMsg = err.message || 'Failed to save prescription. Please check your inputs.';
+                            this.processing = false;
+                        }
+                    } catch (e) {
+                        this.errorMsg = 'Network error. Please try again.';
+                        this.processing = false;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>

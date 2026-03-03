@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescription Detail - MediCare</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pharmacy Custom Styles -->
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .gradient-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0/0.07);
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .main-container {
+                margin: 0;
+                padding: 0;
+            }
+
+            .card {
+                border: 1px solid #e2e8f0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('prescriptions')}" class="no-print"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col main-container">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm no-print">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <a href="/prescriptions"
+                        class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to Prescriptions
+                    </a>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2" th:replace="~{fragments/navbar :: navbar}"></div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-6 md:p-10">
+                <div class="max-w-4xl mx-auto space-y-8" th:if="${prescription != null}">
+
+                    <!-- Page Header & Actions -->
+                    <div
+                        class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span
+                                    class="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest border"
+                                    th:classappend="${prescription.status.name() == 'COMPLETED'} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'">
+                                    <span th:text="${prescription.status}">PENDING</span>
+                                </span>
+                                <span class="text-slate-400 font-bold text-sm tracking-wider"
+                                    th:text="${#temporals.format(prescription.prescriptionDate, 'dd MMMM yyyy')}">Date</span>
+                            </div>
+                            <h2 class="text-4xl font-black tracking-tight text-slate-900"
+                                th:text="${prescription.prescriptionNumber}">RX-2024-1234</h2>
+                        </div>
+                        <div class="flex items-center gap-3 no-print">
+                            <button onclick="window.print()"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-sm">
+                                <i data-lucide="printer" class="w-5 h-5 text-slate-400"></i>
+                                Print Details
+                            </button>
+                            <button th:if="${prescription.status.name() == 'PENDING'}"
+                                th:onclick="'dispensePrescription(' + ${prescription.id} + ')'"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 gradient-emerald text-white rounded-xl font-bold shadow-lg shadow-emerald-100 hover:opacity-90 active:scale-95 transition-all">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                Dispense Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Patient Card -->
+                        <div class="card p-6 border border-slate-100">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div
+                                    class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient
+                                    </p>
+                                    <h3 class="text-xl font-black text-slate-900" th:text="${prescription.patientName}">
+                                        Patient Name</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Card -->
+                        <div class="card p-6 border border-slate-100">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div
+                                    class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                    <i data-lucide="stethoscope" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Prescribed By</p>
+                                    <h3 class="text-xl font-black text-slate-900"
+                                        th:text="'Dr. ' + ${prescription.doctorName}">Doctor Name</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medication Items -->
+                    <div class="card overflow-hidden border border-slate-100">
+                        <div
+                            class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h3 class="font-black text-slate-900">Medication Regimen</h3>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                                th:text="${#lists.size(prescription.items)} + ' items prescribed'">0 items</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="italic text-slate-400 border-b border-slate-50">
+                                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest">Medicine</th>
+                                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-center">
+                                            Qty</th>
+                                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest">Instructions
+                                        </th>
+                                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-right">
+                                            Unit Price</th>
+                                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-right">
+                                            Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    <tr th:each="item : ${prescription.items}"
+                                        class="hover:bg-slate-50/30 transition-colors">
+                                        <td class="px-6 py-5">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center">
+                                                    <i data-lucide="pill" class="w-4 h-4"></i>
+                                                </div>
+                                                <span class="font-bold text-slate-900 text-sm"
+                                                    th:text="${item.medicineName}">Medicine</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-5 text-center">
+                                            <span
+                                                class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-black"
+                                                th:text="${item.quantity}">0</span>
+                                        </td>
+                                        <td class="px-6 py-5">
+                                            <p class="text-sm font-medium text-slate-600 italic"
+                                                th:text="${item.instructions != null ? item.instructions : 'No special instructions'}">
+                                                Instructions</p>
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-medium text-slate-400 text-sm"
+                                            th:text="${'$' + #numbers.formatDecimal(item.unitPrice, 1, 2)}">$0.00</td>
+                                        <td class="px-6 py-5 text-right font-black text-slate-900"
+                                            th:text="${'$' + #numbers.formatDecimal(item.lineTotal, 1, 2)}">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Total Bar -->
+                        <div
+                            class="bg-slate-900 p-8 text-white flex flex-col md:flex-row md:items-center justify-between">
+                            <div>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total
+                                    Prescription Value</h4>
+                                <p class="text-xs text-slate-500 font-medium">Inclusive of all taxes and dispensing fees
+                                    if applicable.</p>
+                            </div>
+                            <div class="mt-4 md:mt-0 text-right">
+                                <p class="text-4xl font-black"
+                                    th:text="${'$' + #numbers.formatDecimal(prescription.totalAmount, 1, 'COMMA', 2, 'POINT')}">
+                                    $0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footnote for Print -->
+                    <div class="hidden print:block pt-10 text-center">
+                        <div class="border-t border-slate-200 pt-6">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">MediCare Pharmacy
+                                System</p>
+                            <p class="text-[10px] text-slate-300 mt-1 italic">This is an electronically generated
+                                prescription detail. Signature of Pharmacist required for dispensing.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Prescription Not Found -->
+                <div class="max-w-4xl mx-auto py-20 text-center" th:if="${prescription == null}">
+                    <div
+                        class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mx-auto mb-6">
+                        <i data-lucide="alert-octagon" class="w-12 h-12"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Prescription Not Found</h2>
+                    <p class="text-slate-500 mt-2">The prescription you are looking for might have been moved or
+                        deleted.</p>
+                    <a href="/prescriptions"
+                        class="mt-8 inline-flex items-center gap-2 px-6 py-3 gradient-blue text-white rounded-xl font-bold">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        Back to List
+                    </a>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        async function dispensePrescription(id) {
+            if (!confirm('Are you sure you want to dispense this prescription? This will deduct stock and create a sale.')) return;
+
+            try {
+                const resp = await fetch(`/api/prescriptions/${id}/complete`, { method: 'PUT' });
+                if (resp.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await resp.json().catch(() => ({}));
+                    alert('Error: ' + (err.message || 'Failed to dispense.'));
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+            }
+        }
+    </script>
+</body>
+
+</html>
