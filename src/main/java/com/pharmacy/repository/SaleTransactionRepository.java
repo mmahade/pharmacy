@@ -22,6 +22,12 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
 
     Optional<SaleTransaction> findTopByPharmacyAndSaleDateOrderByCreatedAtDesc(Pharmacy pharmacy, LocalDate saleDate);
 
+    List<SaleTransaction> findByPharmacyAndSaleDateBetweenOrderBySaleDateDesc(Pharmacy pharmacy, LocalDate start,
+            LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(s.total) FROM SaleTransaction s WHERE s.pharmacy = :pharmacy AND s.saleDate BETWEEN :start AND :end")
+    BigDecimal totalForRange(Pharmacy pharmacy, LocalDate start, LocalDate end);
+
     default BigDecimal totalForDay(Pharmacy pharmacy, LocalDate date) {
         return findByPharmacyOrderByCreatedAtDesc(pharmacy)
                 .stream()

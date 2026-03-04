@@ -25,4 +25,8 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
      */
     List<StockBatch> findByMedicine_PharmacyAndExpiryDateBetweenOrderByExpiryDateAsc(
             Pharmacy pharmacy, LocalDate startInclusive, LocalDate endInclusive);
+
+    List<StockBatch> findByMedicine_PharmacyOrderByExpiryDateAsc(Pharmacy pharmacy);
+
+    List<StockBatch> findByMedicine_Pharmacy_IdAndExpiryDateBefore(Long pharmacyId, LocalDate date);
 }

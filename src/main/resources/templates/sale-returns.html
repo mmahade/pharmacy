@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Returns - MediCare Premium</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased" x-data="{ search: '' }">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside th:replace="~{fragments/sidebar :: sidebar('sale-returns')}"></aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0">
+            <!-- Navbar -->
+            <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+            <div class="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-4xl font-extrabold tracking-tight text-slate-900">Sales Returns</h1>
+                        <p class="text-slate-500 mt-2 text-lg">Manage and track items returned by customers.</p>
+                    </div>
+                    <a href="/sale-returns/new"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 font-bold group">
+                        <i data-lucide="plus" class="w-5 h-5 transition-transform group-hover:rotate-90"></i>
+                        Process New Return
+                    </a>
+                </div>
+
+                <!-- List Section -->
+                <div class="card overflow-hidden">
+                    <!-- Search & Filter Bar -->
+                    <div
+                        class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-4 items-center">
+                        <div class="relative flex-1 group">
+                            <i data-lucide="search"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                            <input type="text" x-model="search" placeholder="Search by return number or sale number..."
+                                class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all text-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-slate-50/80 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                                    <th class="px-6 py-4">Return Number</th>
+                                    <th class="px-6 py-4">Original Sale</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Total Amount</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr th:each="item : ${returns}" class="hover:bg-blue-50/30 transition-colors" x-show="search === '' || 
+                                           '[[${item.returnNumber}]]'.toLowerCase().includes(search.toLowerCase()) ||
+                                           '[[${item.saleNumber}]]'.toLowerCase().includes(search.toLowerCase())">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-900" th:text="${item.returnNumber}">SR-001
+                                        </div>
+                                        <div class="text-xs text-slate-400"
+                                            th:text="${#temporals.format(item.createdAt, 'HH:mm')}">Time</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="h-8 w-8 rounded-lg gradient-blue flex items-center justify-center text-white text-[10px] font-bold">
+                                                <i data-lucide="receipt" class="w-4 h-4"></i>
+                                            </div>
+                                            <div>
+                                                <span class="font-semibold text-slate-700"
+                                                    th:text="${item.saleNumber}">S-001</span>
+                                                <a th:href="@{/sales/{id}(id=${item.saleId})}"
+                                                    class="ml-2 text-xs text-blue-500 hover:underline">View Sale</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-slate-600"
+                                            th:text="${#temporals.format(item.returnDate, 'MMM dd, yyyy')}">Date</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-black text-slate-900"
+                                            th:text="${#numbers.formatCurrency(item.totalAmount)}">$0.00</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a th:href="@{/sale-returns/{id}(id=${item.id})}"
+                                                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                title="View Details">
+                                                <i data-lucide="eye" class="w-5 h-5"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Empty State -->
+                                <tr th:if="${#lists.isEmpty(returns)}">
+                                    <td colspan="5" class="px-6 py-20 text-center">
+                                        <div class="flex flex-col items-center gap-4 text-slate-400">
+                                            <div
+                                                class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center">
+                                                <i data-lucide="rotate-ccw" class="w-10 h-10"></i>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <p class="text-lg font-bold text-slate-600">No returns found</p>
+                                                <p class="text-sm">Process your first customer return to start tracking.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer th:replace="~{fragments/footer :: footer}"></footer>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

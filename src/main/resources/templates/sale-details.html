@@ -249,7 +249,8 @@
                                             <div class="flex justify-between items-center text-sm">
                                                 <span
                                                     class="font-bold text-slate-400 uppercase tracking-widest text-xs">Discount</span>
-                                                <span class="font-bold text-emerald-500">$0.00</span>
+                                                <span class="font-bold text-emerald-500"
+                                                    th:text="'- ' + ${#numbers.formatCurrency(sale.discountAmount)}">-$0.00</span>
                                             </div>
                                             <div
                                                 class="flex justify-between items-center pt-4 border-t border-slate-100">
@@ -499,6 +500,7 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
+                                saleId: this.saleId,
                                 returnDate: new Date().toISOString().split('T')[0],
                                 reason: this.returnReason,
                                 items: itemsToReturn

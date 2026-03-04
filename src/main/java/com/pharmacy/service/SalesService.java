@@ -253,6 +253,7 @@ public class SalesService {
     private SaleResponse toResponse(SaleTransaction sale) {
         List<SaleItemResponse> items = sale.getItems().stream()
                 .map(si -> new SaleItemResponse(
+                        si.getId(),
                         si.getMedicine().getId(),
                         si.getMedicine().getName(),
                         si.getQuantity(),
@@ -282,6 +283,7 @@ public class SalesService {
                 transactionDate,
                 sale.getSaleDate(),
                 customerName,
+                null, // customerPhone
                 itemsCount,
                 sale.getItemsSummary(),
                 items,
