@@ -2,6 +2,7 @@ package com.pharmacy.service;
 
 import com.pharmacy.dto.PurchaseOrderItemRequest;
 import com.pharmacy.dto.PurchaseOrderRequest;
+import com.pharmacy.dto.PurchaseOrderPaymentRequest;
 import com.pharmacy.dto.PurchaseOrderResponse;
 import com.pharmacy.dto.ReceivePurchaseOrderRequest;
 import com.pharmacy.entity.*;
@@ -98,6 +99,54 @@ public class PurchaseOrderService {
         return toResponse(purchaseOrderRepository.save(po));
     }
 
+    @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+    public PurchaseOrderResponse cancel(AppUserPrincipal principal, Long id) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(id, pharmacy)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
+
+        if (po.getStatus() == PurchaseOrderStatus.CANCELLED) {
+            return toResponse(po);
+        }
+        if (po.getStatus() != PurchaseOrderStatus.DRAFT && po.getStatus() != PurchaseOrderStatus.ORDERED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Only DRAFT or ORDERED purchase orders can be cancelled");
+        }
+
+        po.setStatus(PurchaseOrderStatus.CANCELLED);
+        return toResponse(purchaseOrderRepository.save(po));
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+    public PurchaseOrderResponse addPayment(AppUserPrincipal principal, Long id, PurchaseOrderPaymentRequest request) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        PurchaseOrder po = purchaseOrderRepository.findByIdAndPharmacy(id, pharmacy)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase order not found"));
+
+        if (po.getStatus() == PurchaseOrderStatus.DRAFT || po.getStatus() == PurchaseOrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot record payment for DRAFT or CANCELLED purchase orders");
+        }
+
+        BigDecimal balanceDue = po.getTotalAmount().subtract(po.getAmountPaid());
+        if (request.amount().compareTo(balanceDue) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Payment amount cannot exceed balance due " + balanceDue);
+        }
+
+        PurchasePayment payment = new PurchasePayment();
+        payment.setPurchaseOrder(po);
+        payment.setAmount(request.amount());
+        payment.setPaymentMethod(request.paymentMethod());
+        payment.setReference(request.reference());
+        po.getPayments().add(payment);
+        po.setAmountPaid(po.getAmountPaid().add(request.amount()));
+
+        return toResponse(purchaseOrderRepository.save(po));
+    }
+
     /**
      * Receive (full or partial) goods against a purchase order. Increases inventory
      * for each line.
@@ -186,6 +235,7 @@ public class PurchaseOrderService {
                 po.getOrderDate(),
                 po.getStatus(),
                 po.getTotalAmount(),
+                po.getAmountPaid(),
                 po.getCreatedAt(),
                 po.getSupplier().getId(),
                 po.getSupplier().getName(),

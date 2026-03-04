@@ -1,6 +1,7 @@
 package com.pharmacy.controller.rest;
 
 import com.pharmacy.dto.PurchaseOrderRequest;
+import com.pharmacy.dto.PurchaseOrderPaymentRequest;
 import com.pharmacy.dto.PurchaseOrderResponse;
 import com.pharmacy.dto.ReceivePurchaseOrderRequest;
 import com.pharmacy.security.AppUserPrincipal;
@@ -55,5 +56,19 @@ public class PurchaseOrderController {
                                          @PathVariable Long id,
                                          @Valid @RequestBody ReceivePurchaseOrderRequest request) {
         return purchaseOrderService.receive(principal, id, request);
+    }
+
+    @Operation(summary = "Cancel purchase order", description = "Cancels a DRAFT or ORDERED purchase order.")
+    @PutMapping("/{id}/cancel")
+    public PurchaseOrderResponse cancel(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
+        return purchaseOrderService.cancel(principal, id);
+    }
+
+    @Operation(summary = "Add payment", description = "Records a payment against a purchase order (partial payments supported).")
+    @PostMapping("/{id}/payments")
+    public PurchaseOrderResponse addPayment(@AuthenticationPrincipal AppUserPrincipal principal,
+                                            @PathVariable Long id,
+                                            @Valid @RequestBody PurchaseOrderPaymentRequest request) {
+        return purchaseOrderService.addPayment(principal, id, request);
     }
 }

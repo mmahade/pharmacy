@@ -13,6 +13,7 @@ public record PurchaseOrderResponse(
         LocalDate orderDate,
         PurchaseOrderStatus status,
         BigDecimal totalAmount,
+        BigDecimal amountPaid,
         Instant createdAt,
         Long supplierId,
         String supplierName,

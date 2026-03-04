@@ -1,6 +1,7 @@
 package com.pharmacy.controller.web;
 
 import com.pharmacy.dto.PurchaseOrderRequest;
+import com.pharmacy.dto.PurchaseOrderPaymentRequest;
 import com.pharmacy.dto.PurchaseOrderResponse;
 import com.pharmacy.dto.ReceivePurchaseOrderRequest;
 import com.pharmacy.security.AppUserPrincipal;
@@ -84,6 +85,20 @@ public class PurchaseOrderWebController {
             @PathVariable Long id,
             @Valid @ModelAttribute ReceivePurchaseOrderRequest request) {
         purchaseOrderService.receive(principal, id, request);
+        return "redirect:/purchase-orders/" + id;
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancel(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
+        purchaseOrderService.cancel(principal, id);
+        return "redirect:/purchase-orders/" + id;
+    }
+
+    @PostMapping("/{id}/payments")
+    public String addPayment(@AuthenticationPrincipal AppUserPrincipal principal,
+                             @PathVariable Long id,
+                             @Valid @ModelAttribute PurchaseOrderPaymentRequest request) {
+        purchaseOrderService.addPayment(principal, id, request);
         return "redirect:/purchase-orders/" + id;
     }
 }

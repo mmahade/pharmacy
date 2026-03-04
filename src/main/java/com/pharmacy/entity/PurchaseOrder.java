@@ -54,6 +54,9 @@ public class PurchaseOrder {
     @OneToMany(mappedBy = "purchaseOrder", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseOrderItem> items = new ArrayList<>();
 
+    @OneToMany(mappedBy = "purchaseOrder", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private List<PurchasePayment> payments = new ArrayList<>();
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
