@@ -5,6 +5,7 @@ import com.pharmacy.entity.PurchaseOrder;
 import com.pharmacy.entity.PurchaseOrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,10 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     Optional<PurchaseOrder> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
 
     List<PurchaseOrder> findByPharmacyAndStatusOrderByCreatedAtDesc(Pharmacy pharmacy, PurchaseOrderStatus status);
+
+    List<PurchaseOrder> findByPharmacyAndOrderDateBetweenOrderByOrderDateDesc(Pharmacy pharmacy, LocalDate start,
+            LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(p.totalAmount) FROM PurchaseOrder p WHERE p.pharmacy = :pharmacy AND p.orderDate BETWEEN :start AND :end")
+    java.math.BigDecimal totalForRange(Pharmacy pharmacy, java.time.LocalDate start, java.time.LocalDate end);
 }

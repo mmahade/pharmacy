@@ -4,6 +4,7 @@ import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.PurchaseReturn;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,4 +12,10 @@ public interface PurchaseReturnRepository extends JpaRepository<PurchaseReturn, 
     List<PurchaseReturn> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
 
     Optional<PurchaseReturn> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
+
+    List<PurchaseReturn> findByPurchaseOrder_PharmacyAndReturnDateBetweenOrderByReturnDateDesc(Pharmacy pharmacy,
+            LocalDate start, LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(r.totalAmount) FROM PurchaseReturn r WHERE r.purchaseOrder.pharmacy = :pharmacy AND r.returnDate BETWEEN :start AND :end")
+    java.math.BigDecimal totalForRange(Pharmacy pharmacy, java.time.LocalDate start, java.time.LocalDate end);
 }
