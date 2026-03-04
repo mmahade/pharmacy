@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout}">
+
+<head>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+    <title th:text="${report.title() + ' - Medicare Reports'}">Report Details</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style th:inline="css">
+        .glass-card {
+            background: white;
+            border: 1px solid rgba(241, 245, 249, 1);
+        }
+
+        @media print {
+
+            aside,
+            header,
+            form,
+            .breadcrumb,
+            button,
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .content-area {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .report-card {
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .summary-card {
+                border: 1px solid #eee !important;
+                break-inside: avoid;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            th {
+                background-color: #f9fafb !important;
+                color: black !important;
+                border-bottom: 2px solid #eee !important;
+            }
+
+            td {
+                border-bottom: 1px solid #f3f4f6 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex min-h-screen bg-slate-50">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+
+        <!-- Main Content -->
+        <div layout:fragment="content"
+            class="flex-1 p-6 md:p-10 space-y-8 max-w-7xl mx-auto content-area overflow-auto">
+            <!-- Back Button & Actions -->
+            <div class="no-print flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <a href="/reports"
+                    class="inline-flex items-center gap-3 text-slate-500 hover:text-blue-600 font-bold transition-all group">
+                    <div
+                        class="p-2.5 bg-white rounded-xl shadow-sm border border-slate-200 group-hover:bg-blue-50 group-hover:border-blue-100 group-hover:shadow-md transition-all">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    </div>
+                    <span class="text-sm tracking-wide">Back to Analytics</span>
+                </a>
+
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button onclick="window.print()"
+                        class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-xl font-bold shadow-sm hover:shadow-md transition-all active:scale-95 group">
+                        <i data-lucide="printer"
+                            class="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors"></i>
+                        Print Statement
+                    </button>
+                </div>
+            </div>
+
+            <!-- Date Filter Card -->
+            <div th:if="${startDate != null}"
+                class="no-print bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden">
+                <!-- Decorative bg -->
+                <div
+                    class="absolute -right-20 -top-20 w-64 h-64 bg-blue-50/50 rounded-full mix-blend-multiply blur-3xl">
+                </div>
+
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                            <i data-lucide="calendar-search" class="w-5 h-5 text-blue-500"></i>
+                            Filter Period
+                        </h3>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Adjust dates to regenerate the <span
+                                class="text-slate-700 font-bold" th:text="${report.title()}">Report</span>.</p>
+                    </div>
+
+                    <form method="get" class="flex flex-col sm:flex-row items-end gap-4 w-full md:w-auto">
+                        <div class="space-y-1.5 w-full sm:w-auto">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Start
+                                Date</label>
+                            <div class="relative group">
+                                <i data-lucide="calendar"
+                                    class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="date" name="start" th:value="${startDate}"
+                                    class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 outline-none transition-all">
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 w-full sm:w-auto">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">End
+                                Date</label>
+                            <div class="relative group">
+                                <i data-lucide="calendar"
+                                    class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="date" name="end" th:value="${endDate}"
+                                    class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 outline-none transition-all">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            Apply
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statement Card -->
+            <div
+                class="report-card bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden relative">
+                <!-- Header Section -->
+                <div
+                    class="p-8 md:p-12 border-b-2 border-dashed border-slate-100 flex flex-col md:flex-row justify-between gap-8 relative overflow-hidden bg-slate-50/30">
+                    <!-- Abstract styling for report header -->
+                    <div class="absolute top-0 right-0 w-full h-full opacity-[0.03] pointer-events-none"
+                        style="background-image: radial-gradient(#3b82f6 1px, transparent 1px); background-size: 20px 20px;">
+                    </div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+                        <div
+                            class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-blue-900/20 shrink-0">
+                            <i data-lucide="bar-chart-2" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <div
+                                class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full mb-3 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">MediCare
+                                    Insight Report</span>
+                            </div>
+                            <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight"
+                                th:text="${report.title()}">Report Title</h1>
+                            <p class="text-sm font-medium text-slate-500 mt-2 flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i> Main Branch
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 text-left md:text-right flex flex-col justify-end">
+                        <div
+                            class="bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm inline-block w-full md:w-auto">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Period
+                                Details</p>
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-sm font-bold text-slate-800 text-left">
+                                    <p th:if="${startDate != null}" th:text="${startDate + ' to ' + endDate}">Date Range
+                                    </p>
+                                    <p th:unless="${startDate != null}">All Time</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 mt-4 px-2 tracking-widest uppercase">
+                            Gen: <span
+                                th:text="${#temporals.format(#temporals.createNow(), 'MMM dd, yyyy HH:mm')}">Time</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Summary Bar -->
+                <div th:if="${!report.summary().isEmpty()}"
+                    class="px-8 py-8 border-b-2 border-slate-50 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-white relative">
+
+                    <div th:each="entry, stat : ${report.summary()}"
+                        class="summary-card bg-slate-50/50 rounded-2xl p-5 border border-slate-100 hover:border-blue-100 hover:shadow-md hover:bg-white transition-all group relative overflow-hidden">
+
+                        <!-- Decorative color bar -->
+                        <div class="absolute top-0 left-0 w-1 h-full" th:classappend="${
+                             (entry.key.toLowerCase().contains('profit') || entry.value == 'PROFIT' || entry.key.toLowerCase().contains('income')) ? 'bg-emerald-500' :
+                             (entry.key.toLowerCase().contains('loss') || entry.value == 'LOSS' || entry.key.toLowerCase().contains('expense')) ? 'bg-rose-500' :
+                             (stat.index % 4 == 0) ? 'bg-blue-500' :
+                             (stat.index % 4 == 1) ? 'bg-purple-500' :
+                             (stat.index % 4 == 2) ? 'bg-amber-500' : 'bg-cyan-500'
+                         }">
+                        </div>
+
+                        <div class="flex items-start justify-between mb-3 pl-2">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest"
+                                th:text="${entry.key}"></p>
+                            <div class="w-6 h-6 rounded-lg flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity"
+                                th:classappend="${
+                                  (entry.key.toLowerCase().contains('profit') || entry.value == 'PROFIT' || entry.key.toLowerCase().contains('income')) ? 'bg-emerald-100 text-emerald-600' :
+                                  (entry.key.toLowerCase().contains('loss') || entry.value == 'LOSS' || entry.key.toLowerCase().contains('expense')) ? 'bg-rose-100 text-rose-600' :
+                                  (stat.index % 4 == 0) ? 'bg-blue-100 text-blue-600' :
+                                  (stat.index % 4 == 1) ? 'bg-purple-100 text-purple-600' :
+                                  (stat.index % 4 == 2) ? 'bg-amber-100 text-amber-600' : 'bg-cyan-100 text-cyan-600'
+                              }">
+                                <i th:data-lucide="${
+                                  (entry.key.toLowerCase().contains('profit') || entry.value == 'PROFIT') ? 'trending-up' :
+                                  (entry.key.toLowerCase().contains('loss') || entry.value == 'LOSS') ? 'trending-down' :
+                                  (entry.key.toLowerCase().contains('total') || entry.key.toLowerCase().contains('amount')) ? 'dollar-sign' :
+                                  (entry.key.toLowerCase().contains('count') || entry.key.toLowerCase().contains('qty')) ? 'hash' : 'activity'
+                              }" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+
+                        <div class="pl-2">
+                            <div th:if="${entry.key == 'Summary Status' || entry.key == 'Status'}" class="mt-1">
+                                <span th:if="${entry.value == 'PROFIT'}"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-black rounded-lg border border-emerald-100 uppercase tracking-widest">
+                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Profit
+                                </span>
+                                <span th:if="${entry.value == 'LOSS'}"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-600 text-xs font-black rounded-lg border border-rose-100 uppercase tracking-widest">
+                                    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Loss
+                                </span>
+                                <span th:unless="${entry.value == 'PROFIT' || entry.value == 'LOSS'}"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 text-xs font-black rounded-lg border border-slate-200 uppercase tracking-widest border border-slate-200"
+                                    th:text="${entry.value}">
+                                </span>
+                            </div>
+
+                            <div th:unless="${entry.key == 'Summary Status' || entry.key == 'Status'}"
+                                class="flex items-baseline gap-1 mt-1">
+                                <p class="text-2xl font-black text-slate-900 tracking-tight" th:text="${entry.value}">
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <i data-lucide="table-2" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-lg">Detailed Records</h3>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left bg-white whitespace-nowrap">
+                                <thead class="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th th:each="header, hStat : ${report.headers()}"
+                                            class="py-4 px-6 text-[11px] font-black text-slate-500 uppercase tracking-widest first:pl-8 last:pr-8"
+                                            th:text="${header}">Header</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr th:each="row : ${report.rows()}"
+                                        class="hover:bg-blue-50/30 transition-colors group">
+                                        <td th:each="cell, cStat : ${row}"
+                                            class="py-4 px-6 text-sm font-medium text-slate-700 first:pl-8 last:pr-8 group-hover:text-blue-900 transition-colors"
+                                            th:classappend="${cell != null and #strings.contains(cell, '$')} ? 'font-bold' : ''"
+                                            th:text="${cell}">Cell</td>
+                                    </tr>
+                                    <tr th:if="${report.rows().isEmpty()}">
+                                        <td th:colspan="${report.headers().size()}"
+                                            class="py-24 text-center bg-slate-50/50">
+                                            <div class="flex flex-col items-center gap-4 max-w-sm mx-auto">
+                                                <div
+                                                    class="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-300">
+                                                    <i data-lucide="search-x" class="w-10 h-10"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-slate-800 font-bold text-lg mb-1">No Data Found</p>
+                                                    <p class="font-medium text-slate-500 text-sm">There are no records
+                                                        available for the selected period. Try adjusting your filters.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div
+                    class="px-8 py-6 bg-slate-50 text-center border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-left flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">System Generated
+                            Report</p>
+                    </div>
+                    <div class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        MediCare <span class="bg-slate-200 w-1 h-1 rounded-full mx-1 inline-block"></span> Page 1 of 1
+                    </div>
+                </div>
+            </div>
+
+            <th:block layout:fragment="extra-js">
+                <script th:inline="javascript">
+                    /*<![CDATA[*/
+                    // Ensure Lucide icons render inside this page content
+                    document.addEventListener('DOMContentLoaded', () => {
+                        lucide.createIcons();
+                    });
+                    /*]]>*/
+                </script>
+            </th:block>
+        </div>
+    </div>
+</body>
+
+</html>
