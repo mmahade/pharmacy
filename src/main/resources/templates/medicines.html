@@ -298,13 +298,13 @@
                                     <p class="text-sm text-gray-500 font-medium" th:text="${medicine.category}">Category
                                     </p>
                                 </div>
-                                <span th:if="${medicine.status == 'In Stock'}"
+                                <span th:if="${medicine.totalStock > medicine.minStock}"
                                     class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">In
                                     Stock</span>
-                                <span th:if="${medicine.status == 'Low Stock'}"
+                                <span th:if="${medicine.totalStock > 0 and medicine.totalStock <= medicine.minStock}"
                                     class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">Low
                                     Stock</span>
-                                <span th:if="${medicine.status == 'Out of Stock'}"
+                                <span th:if="${medicine.totalStock <= 0}"
                                     class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">Out of
                                     Stock</span>
                             </div>

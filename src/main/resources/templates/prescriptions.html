@@ -128,48 +128,70 @@
                 <!-- Stats Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Prescriptions</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${totalCount}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">All time records</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-indigo">
-                            <i data-lucide="clipboard-list" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Pending Dispense</p>
-                            <h3 class="text-2xl font-bold text-amber-600 mt-1" th:text="${pendingCount}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Awaiting dispensing</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-amber">
-                            <i data-lucide="clock" class="w-5 h-5 text-white"></i>
+                    <!-- Total Prescriptions -->
+                    <div class="card p-6 relative overflow-hidden group">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Prescriptions</p>
+                                <h3 class="text-3xl font-black text-gray-900 mt-2 mb-1" th:text="${totalCount}">0</h3>
+                                <p class="text-xs font-medium text-gray-500">All time records</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-blue-50/50 flex items-center justify-center border border-blue-100/50 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="clipboard-list" class="w-7 h-7 text-blue-500"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Completed</p>
-                            <h3 class="text-2xl font-bold text-emerald-600 mt-1" th:text="${completedCount}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Fully dispensed</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-green">
-                            <i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i>
+                    <!-- Pending Dispense -->
+                    <div class="card p-6 relative overflow-hidden group">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-amber opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pending Dispense</p>
+                                <h3 class="text-3xl font-black text-gray-900 mt-2 mb-1" th:text="${pendingCount}">0</h3>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <span class="flex h-2 w-2 relative">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                    </span>
+                                    <p class="text-xs font-bold text-amber-600">Awaiting attention</p>
+                                </div>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50/50 flex items-center justify-center border border-amber-100/50 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="clock" class="w-7 h-7 text-amber-500"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Value</p>
-                            <h3 class="text-2xl font-bold text-blue-600 mt-1"
-                                th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</h3>
-                            <p class="text-xs text-gray-500 mt-1">Prescription value</p>
+                    <!-- Completed -->
+                    <div class="card p-6 relative overflow-hidden group">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Completed</p>
+                                <h3 class="text-3xl font-black text-gray-900 mt-2 mb-1" th:text="${completedCount}">0</h3>
+                                <p class="text-xs font-medium text-emerald-600">Fully dispensed</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50/50 flex items-center justify-center border border-emerald-100/50 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="check-circle-2" class="w-7 h-7 text-emerald-500"></i>
+                            </div>
                         </div>
-                        <div class="p-2 rounded-lg gradient-purple">
-                            <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
+                    </div>
+
+                    <!-- Total Value -->
+                    <div class="card p-6 relative overflow-hidden group">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Value</p>
+                                <h3 class="text-3xl font-black text-gray-900 mt-2 mb-1"
+                                    th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</h3>
+                                <p class="text-xs font-medium text-gray-500">Prescription revenue</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-purple-50/50 flex items-center justify-center border border-purple-100/50 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="dollar-sign" class="w-7 h-7 text-purple-500"></i>
+                            </div>
                         </div>
                     </div>
                 </div>

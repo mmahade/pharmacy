@@ -75,10 +75,10 @@
             <header th:replace="~{fragments/navbar :: navbar}"></header>
 
             <main class="flex-1 overflow-y-auto bg-[#f8fafc]">
-                <div class="max-w-5xl mx-auto px-8 pt-10 pb-20">
+                <div class="w-full px-6 py-6 pb-20">
 
                     <!-- Breadcrumbs & Navigation -->
-                    <div class="mb-10 flex items-center justify-between">
+                    <div class="mb-6 flex items-center justify-between">
                         <div>
                             <nav class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4">
                                 <a href="/dashboard" class="hover:text-blue-600 transition-colors">Dashboard</a>
@@ -157,26 +157,23 @@
                             </div>
 
                             <!-- Grid for Classification and Inventory -->
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                                 <!-- Section: Classification -->
                                 <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
                                     <div class="flex items-center gap-4 mb-10">
-                                        <div
-                                            class="h-12 w-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                                        <div class="h-12 w-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
                                             <i data-lucide="tag" class="w-6 h-6"></i>
                                         </div>
                                         <div>
                                             <h3 class="text-xl font-bold text-slate-900">Classification</h3>
-                                            <p class="text-sm text-slate-400 font-medium">Categorize the medicine in
-                                                your catalogue.</p>
+                                            <p class="text-sm text-slate-400 font-medium">Categorize the medicine.</p>
                                         </div>
                                     </div>
 
                                     <div class="space-y-8">
                                         <div class="space-y-3">
-                                            <label class="text-sm font-bold text-slate-700">System Category <span
-                                                    class="text-red-500">*</span></label>
+                                            <label class="text-sm font-bold text-slate-700">System Category <span class="text-red-500">*</span></label>
                                             <div class="relative group/select">
                                                 <select name="category" required
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
@@ -192,8 +189,7 @@
                                                     <option value="Vitamins">Vitamins</option>
                                                     <option value="Hormones">Hormones</option>
                                                 </select>
-                                                <div
-                                                    class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
+                                                <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
                                                     <i data-lucide="chevron-down" class="w-5 h-5"></i>
                                                 </div>
                                             </div>
@@ -202,65 +198,116 @@
                                         <div class="grid grid-cols-2 gap-6">
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Dosage Form</label>
-                                                <input type="text" name="dosageForm"
-                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                    placeholder="Tablet, Syrup...">
+                                                <div class="relative group/select">
+                                                    <select name="dosageForm"
+                                                        class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
+                                                        <option value="" disabled selected>Form...</option>
+                                                        <option value="Tablet">Tablet</option>
+                                                        <option value="Capsule">Capsule</option>
+                                                        <option value="Syrup">Syrup</option>
+                                                        <option value="Injection">Injection</option>
+                                                        <option value="Cream">Cream</option>
+                                                        <option value="Drops">Drops</option>
+                                                        <option value="Inhaler">Inhaler</option>
+                                                    </select>
+                                                    <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
+                                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Strength</label>
                                                 <input type="text" name="strength"
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                    placeholder="500mg, 10ml...">
+                                                    placeholder="500mg...">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Section: Inventory & Pricing -->
+                                <!-- Section: Logistics & Sourcing -->
                                 <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
                                     <div class="flex items-center gap-4 mb-10">
-                                        <div
-                                            class="h-12 w-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
-                                            <i data-lucide="banknote" class="w-6 h-6"></i>
+                                        <div class="h-12 w-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200">
+                                            <i data-lucide="truck" class="w-6 h-6"></i>
                                         </div>
                                         <div>
-                                            <h3 class="text-xl font-bold text-slate-900">Inventory & Pricing</h3>
-                                            <p class="text-sm text-slate-400 font-medium">Manage stock levels and unit
-                                                values.</p>
+                                            <h3 class="text-xl font-bold text-slate-900">Logistics & Supply</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Tracking and vendor info.</p>
                                         </div>
                                     </div>
 
                                     <div class="space-y-8">
                                         <div class="space-y-3">
-                                            <label class="text-sm font-bold text-slate-700">Brand / Manufacturer <span
-                                                    class="text-red-500">*</span></label>
-                                            <input type="text" name="manufacturer" required
+                                            <label class="text-sm font-bold text-slate-700">Primary Supplier / Vendor <span class="text-red-500">*</span></label>
+                                            <input type="text" name="supplier" required
                                                 class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                placeholder="e.g. Pfizer Pharmaceuticals">
+                                                placeholder="e.g. Global Pharma Distributors">
                                         </div>
 
                                         <div class="grid grid-cols-2 gap-6">
                                             <div class="space-y-3">
-                                                <label class="text-sm font-bold text-slate-700">Base Unit Price <span
-                                                        class="text-red-500">*</span></label>
-                                                <div
-                                                    class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
-                                                    <span
-                                                        class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                                <label class="text-sm font-bold text-slate-700">Location Aisle</label>
+                                                <input type="text" name="aisleLocation"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
+                                                    placeholder="A-12">
+                                            </div>
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Shelf Number</label>
+                                                <input type="text" name="shelfLocation"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
+                                                    placeholder="04">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Financials & Pricing -->
+                                <div class="glass-card bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/40">
+                                    <div class="flex items-center gap-4 mb-10">
+                                        <div class="h-12 w-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200">
+                                            <i data-lucide="banknote" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-900">Financials & Pricing</h3>
+                                            <p class="text-sm text-slate-400 font-medium">Manage unit values & limits.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-8">
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Base Unit Price <span class="text-red-500">*</span></label>
+                                                <div class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
+                                                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
                                                     <input type="number" step="0.01" name="price" required
                                                         class="w-full pl-10 pr-5 py-4 bg-transparent outline-none text-slate-800 font-bold placeholder:font-normal"
                                                         placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="space-y-3">
-                                                <label class="text-sm font-bold text-slate-700">Reorder Alert <span
-                                                        class="text-red-500">*</span></label>
+                                                <label class="text-sm font-bold text-slate-700">Cost per Unit</label>
+                                                <div class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
+                                                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                                    <input type="number" step="0.01" name="costPrice"
+                                                        class="w-full pl-10 pr-5 py-4 bg-transparent outline-none text-slate-800 font-medium placeholder:font-normal"
+                                                        placeholder="0.00">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-6">
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Reorder Alert <span class="text-red-500">*</span></label>
                                                 <input type="number" name="minStock" required
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
                                                     placeholder="20 units">
-                                                <p
-                                                    class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">
-                                                    Low stock threshold</p>
+                                            </div>
+                                            <div class="space-y-3">
+                                                <label class="text-sm font-bold text-slate-700">Max Stock Level</label>
+                                                <input type="number" name="maxStock"
+                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
+                                                    placeholder="200 units">
                                             </div>
                                         </div>
                                     </div>
