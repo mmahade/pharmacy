@@ -18,6 +18,8 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
     Optional<StockBatch> findByMedicineAndBatchNumber(Medicine medicine, String batchNumber);
 
     Optional<StockBatch> findByMedicineAndExpiryDate(Medicine medicine, LocalDate expiryDate);
+    
+    Optional<StockBatch> findFirstByMedicineOrderByIdDesc(Medicine medicine);
 
     /**
      * Batches expiring between start and end (inclusive), for pharmacy's medicines,
