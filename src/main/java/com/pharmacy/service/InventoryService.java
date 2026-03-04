@@ -74,31 +74,55 @@ public class InventoryService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Medicine not found"));
 
-                // Logic: 1. Try to find by Medicine + Expiry Date (Consolidation)
-                // 2. Fallback to Medicine + Batch Number
-                // 3. Create New
+                String providedBatchNumber = request.batchNumber() != null ? request.batchNumber().trim() : "";
+
+                // Logic: 1. Try to find by Medicine + Expiry Date (Consolidation prioritized by USER)
+                // 2. Fallback to Medicine + Batch Number (if provided)
+                // 3. Create New (Generate Batch Number if needed)
                 StockBatch batch = stockBatchRepository
                                 .findByMedicineAndExpiryDate(medicine, request.expiryDate())
-                                .orElseGet(() -> stockBatchRepository
-                                                .findByMedicineAndBatchNumber(medicine, request.batchNumber().trim())
-                                                .orElseGet(() -> {
-                                                        StockBatch b = new StockBatch();
-                                                        b.setMedicine(medicine);
-                                                        b.setBatchNumber(request.batchNumber().trim());
-                                                        b.setExpiryDate(request.expiryDate());
-                                                        b.setUnitCostPrice(request.unitCostPrice());
-                                                        b.setQuantity(0);
-                                                        return b;
-                                                }));
+                                .orElseGet(() -> {
+                                        if (!providedBatchNumber.isBlank()) {
+                                                return stockBatchRepository
+                                                                .findByMedicineAndBatchNumber(medicine,
+                                                                                providedBatchNumber)
+                                                                .orElse(null);
+                                        }
+                                        return null;
+                                });
+
+                if (batch == null) {
+                        batch = new StockBatch();
+                        batch.setMedicine(medicine);
+                        batch.setExpiryDate(request.expiryDate());
+                        batch.setQuantity(0);
+
+                        String finalBatchNum = providedBatchNumber;
+                        if (finalBatchNum.isBlank()) {
+                                // Serial number generation: Find last batch and increment
+                                int nextSerial = stockBatchRepository.findFirstByMedicineOrderByIdDesc(medicine)
+                                                .map(lastBatch -> {
+                                                        try {
+                                                                return Integer.parseInt(lastBatch.getBatchNumber()) + 1;
+                                                        } catch (NumberFormatException e) {
+                                                                return 1; // Fallback if last batch wasn't numeric
+                                                        }
+                                                })
+                                                .orElse(1); // Start from 1 for new medicines
+                                
+                                // Double check if this number already exists (human safety)
+                                while (stockBatchRepository.findByMedicineAndBatchNumber(medicine, String.valueOf(nextSerial)).isPresent()) {
+                                        nextSerial++;
+                                }
+                                finalBatchNum = String.valueOf(nextSerial);
+                        }
+                        batch.setBatchNumber(finalBatchNum);
+                }
 
                 if (request.unitCostPrice() != null) {
                         batch.setUnitCostPrice(request.unitCostPrice());
                 }
                 batch.setQuantity(batch.getQuantity() + request.quantity());
-                // Ensure batch number is updated if it was found by expiry but number differs
-                if (!request.batchNumber().isBlank()) {
-                        batch.setBatchNumber(request.batchNumber().trim());
-                }
 
                 stockBatchRepository.save(batch);
                 return toResponse(medicine);
