@@ -1,6 +1,7 @@
 package com.pharmacy.controller.web;
 
 import com.pharmacy.dto.SaleResponse;
+import com.pharmacy.dto.SalesSummaryResponse;
 import com.pharmacy.security.AppUserPrincipal;
 import com.pharmacy.service.InventoryService;
 import com.pharmacy.service.SalesService;
@@ -25,7 +26,9 @@ public class SalesWebController {
     @GetMapping
     public String listSales(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
         List<SaleResponse> sales = salesService.listSales(principal);
+        SalesSummaryResponse stats = salesService.getSalesSummary(principal);
         model.addAttribute("sales", sales);
+        model.addAttribute("stats", stats);
         model.addAttribute("activePage", "sales");
         return "sales";
     }

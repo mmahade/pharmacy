@@ -41,7 +41,7 @@ public class InventoryService {
                         return List.of();
                 }
                 var page = PageRequest.of(0, 25);
-                return medicineRepository.findByPharmacyAndNameContainingIgnoreCaseOrderByNameAsc(
+                return medicineRepository.searchMedicines(
                                 pharmacy, query.trim(), page)
                                 .stream()
                                 .map(this::toResponse)
@@ -63,6 +63,35 @@ public class InventoryService {
                 medicine.setDosageForm(request.dosageForm());
                 medicine.setStrength(request.strength());
                 medicine.setDescription(request.description());
+                return toResponse(medicineRepository.save(medicine));
+        }
+
+        public MedicineResponse getMedicine(AppUserPrincipal principal, Long id) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                Medicine medicine = medicineRepository.findByIdAndPharmacy(id, pharmacy)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Medicine not found"));
+                return toResponse(medicine);
+        }
+
+        @Transactional
+        @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+        public MedicineResponse updateMedicine(AppUserPrincipal principal, Long id, MedicineRequest request) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                Medicine medicine = medicineRepository.findByIdAndPharmacy(id, pharmacy)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Medicine not found"));
+
+                medicine.setName(request.name().trim());
+                medicine.setCategory(request.category().trim());
+                medicine.setManufacturer(request.manufacturer().trim());
+                medicine.setMinStock(request.minStock());
+                medicine.setPrice(request.price());
+                medicine.setGenericName(request.genericName());
+                medicine.setDosageForm(request.dosageForm());
+                medicine.setStrength(request.strength());
+                medicine.setDescription(request.description());
+
                 return toResponse(medicineRepository.save(medicine));
         }
 

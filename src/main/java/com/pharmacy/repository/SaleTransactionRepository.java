@@ -12,6 +12,7 @@ import java.util.Optional;
 
 public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, Long> {
     Optional<SaleTransaction> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
+    Optional<SaleTransaction> findByPrescription(com.pharmacy.entity.Prescription prescription);
 
     List<SaleTransaction> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
 
@@ -30,12 +31,12 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
     BigDecimal totalForRange(Pharmacy pharmacy, LocalDate start, LocalDate end);
 
     default BigDecimal totalForDay(Pharmacy pharmacy, LocalDate date) {
-        return findByPharmacyOrderByCreatedAtDesc(pharmacy)
-                .stream()
-                .filter(s -> date.equals(s.getSaleDate()))
-                .map(SaleTransaction::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = totalForRange(pharmacy, date, date);
+        return total != null ? total : BigDecimal.ZERO;
     }
+
+    @Query("SELECT SUM(s.total - s.amountPaid) FROM SaleTransaction s WHERE s.pharmacy = :pharmacy")
+    BigDecimal totalPendingBalance(Pharmacy pharmacy);
 
     @org.springframework.data.jpa.repository.Query("SELECT " +
             "si.medicine.name AS medicineName, " +

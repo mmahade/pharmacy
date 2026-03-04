@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface SaleReturnRepository extends JpaRepository<SaleReturn, Long> {
     List<SaleReturn> findBySale_PharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
+ 
+    long countBySale_Pharmacy(Pharmacy pharmacy);
 
     java.util.Optional<SaleReturn> findByIdAndSale_Pharmacy(Long id, Pharmacy pharmacy);
 
@@ -17,4 +19,11 @@ public interface SaleReturnRepository extends JpaRepository<SaleReturn, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT SUM(r.totalAmount) FROM SaleReturn r WHERE r.sale.pharmacy = :pharmacy AND r.returnDate BETWEEN :start AND :end")
     java.math.BigDecimal totalForRange(Pharmacy pharmacy, java.time.LocalDate start, java.time.LocalDate end);
+
+    long countBySale_PharmacyAndReturnDateBetween(Pharmacy pharmacy, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    default java.math.BigDecimal totalForDay(Pharmacy pharmacy, LocalDate date) {
+        java.math.BigDecimal total = totalForRange(pharmacy, date, date);
+        return total != null ? total : java.math.BigDecimal.ZERO;
+    }
 }

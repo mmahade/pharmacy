@@ -14,5 +14,6 @@ public record SaleReturnResponse(
         Instant createdAt,
         Long saleId,
         String saleNumber,
+        String itemsSummary,
         List<SaleReturnItemResponse> items) {
 }

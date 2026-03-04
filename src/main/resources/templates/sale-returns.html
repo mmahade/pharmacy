@@ -79,6 +79,7 @@
                                 <tr class="bg-slate-50/80 text-slate-500 text-xs font-bold uppercase tracking-widest">
                                     <th class="px-6 py-4">Return Number</th>
                                     <th class="px-6 py-4">Original Sale</th>
+                                    <th class="px-6 py-4">Returned Items</th>
                                     <th class="px-6 py-4">Date</th>
                                     <th class="px-6 py-4">Total Amount</th>
                                     <th class="px-6 py-4 text-right">Actions</th>
@@ -109,6 +110,10 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
+                                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-tight max-w-[250px] truncate" 
+                                             th:text="${item.itemsSummary}">Medicines</div>
+                                    </td>
+                                    <td class="px-6 py-4">
                                         <div class="text-sm font-medium text-slate-600"
                                             th:text="${#temporals.format(item.returnDate, 'MMM dd, yyyy')}">Date</div>
                                     </td>
@@ -133,7 +138,7 @@
                                         <div class="flex flex-col items-center gap-4 text-slate-400">
                                             <div
                                                 class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center">
-                                                <i data-lucide="rotate-ccw" class="w-10 h-10"></i>
+                                                <i data-lucide="undo-2" class="w-10 h-10"></i>
                                             </div>
                                             <div class="space-y-1">
                                                 <p class="text-lg font-bold text-slate-600">No returns found</p>

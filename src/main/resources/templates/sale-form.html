@@ -65,37 +65,44 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col h-screen overflow-hidden">
             <!-- Navbar -->
-            <header th:replace="~{fragments/navbar :: navbar}"></header>
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <!-- Title & Search -->
+                    <div class="flex-1 flex items-center gap-6">
+                        <div class="hidden lg:block">
+                            <h2 class="text-xl font-black tracking-tight text-slate-900 leading-none">POS</h2>
+                        </div>
+                        
+                        <div class="relative group max-w-md w-full">
+                            <i data-lucide="search"
+                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                            <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicinesServer()"
+                                placeholder="Search medications..."
+                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
+                            <div x-show="searching" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                <svg class="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:replace="~{fragments/navbar :: right_items}"></div>
+                </div>
+            </header>
 
             <main class="flex-1 flex overflow-hidden">
                 <!-- Left Side: Product Selection -->
                 <div class="flex-1 flex flex-col p-8 space-y-6 overflow-hidden">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-3xl font-black tracking-tight text-slate-900">Point of Sale</h2>
                             <p class="text-slate-500 font-medium">Select medications to add to cart.</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Inventory
                                 Status</span>
                             <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        </div>
-                    </div>
-
-                    <div class="relative group">
-                        <i data-lucide="search"
-                            class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
-                        <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicinesServer()"
-                            placeholder="Search medications by name or category..."
-                            class="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-base font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
-                        <div x-show="searching" class="absolute right-5 top-1/2 -translate-y-1/2">
-                            <svg class="animate-spin h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
                         </div>
                     </div>
 
@@ -359,17 +366,17 @@
     <!-- Success Modal -->
     <div x-show="showSuccess" x-cloak
         class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white rounded-[3rem] p-12 max-w-sm w-full text-center shadow-2xl"
+        <div class="bg-white rounded-[3rem] p-12 max-w-sm w-full text-center shadow-2xl animate-premium-in"
             @click.away="window.location.href = '/sales'">
             <div
-                class="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                class="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner premium-icon-bounce">
                 <i data-lucide="check-circle" class="w-12 h-12"></i>
             </div>
             <h3 class="text-3xl font-black text-slate-900 mb-4">Sale Completed!</h3>
             <p class="text-slate-500 font-medium mb-10 leading-relaxed">The transaction has been recorded and stock
                 levels updated.</p>
             <button @click="window.location.href = '/sales'"
-                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all active:scale-95">
+                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/20">
                 Back to Sales
             </button>
         </div>

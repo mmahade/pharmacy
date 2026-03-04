@@ -59,7 +59,7 @@ public class PurchaseReturnService {
         pr.setPharmacy(pharmacy);
         pr.setSupplier(supplier);
         pr.setCreatedBy(currentUser);
-        pr.setReturnNumber(nextReturnNumber(pharmacy.getName()));
+        pr.setReturnNumber(nextReturnNumber(pharmacy));
         pr.setReturnDate(request.returnDate() == null ? LocalDate.now() : request.returnDate());
         pr.setReason(request.reason() != null ? request.reason().trim() : null);
 
@@ -101,12 +101,9 @@ public class PurchaseReturnService {
         return toResponse(saved);
     }
 
-    private String nextReturnNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4)
-            code = code.substring(0, 4);
-        return "PR-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String nextReturnNumber(Pharmacy pharmacy) {
+        long count = purchaseReturnRepository.countByPharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
     private PurchaseReturnResponse toResponse(PurchaseReturn pr) {

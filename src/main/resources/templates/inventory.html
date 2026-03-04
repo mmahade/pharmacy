@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory &amp; Stock - MediCare</title>
+    <title>Inventory & Stock - MediCare</title>
     <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
 
     <!-- Tailwind CSS CDN -->
@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
         * {
             font-family: 'Inter', sans-serif;
@@ -23,6 +23,10 @@
 
         .gradient-blue {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-purple {
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
         }
 
         .gradient-green {
@@ -33,434 +37,372 @@
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         }
 
-        .gradient-purple {
-            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
-        }
-
-        .gradient-teal {
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        .gradient-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
         .card {
             background: white;
             border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0/0.07), 0 1px 2px -1px rgb(0 0 0/0.07);
-            transition: box-shadow 0.2s;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card:hover {
-            box-shadow: 0 10px 25px -5px rgb(0 0 0/0.1);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            transform: translateY(-4px);
         }
 
-        .status-in-stock {
-            background: #ecfdf5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
+        .alert-critical {
+            background-color: #fef2f2;
+            border-color: #fecaca;
         }
 
-        .status-low-stock {
-            background: #fffbeb;
-            color: #d97706;
-            border: 1px solid #fde68a;
+        .alert-warning {
+            background-color: #fff7ed;
+            border-color: #fed7aa;
         }
 
-        .status-out-stock {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
+        .alert-notice {
+            background-color: #fefce8;
+            border-color: #fef08a;
         }
 
-        .progress-bar {
-            height: 4px;
+        .status-badge {
+            padding: 0.25rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             border-radius: 9999px;
-            background: #f1f5f9;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: #f3f4f6;
+            border-radius: 9999px;
             overflow: hidden;
         }
 
         .progress-bar-fill {
             height: 100%;
             border-radius: 9999px;
-            transition: width 0.6s ease;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #cbd5e1;
+            transition: width 1s ease;
         }
     </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-slate-900 antialiased">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <div th:replace="~{fragments/sidebar :: sidebar('inventory')}"></div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
             <!-- Header -->
-            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
                 <div class="flex h-16 items-center gap-4 px-6">
                     <div class="flex-1 flex items-center gap-4">
-                        <div class="relative max-w-md w-full">
+                        <div class="relative max-w-md w-full group">
                             <i data-lucide="search"
-                                class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                            <input type="text" placeholder="Search inventory, batches, stock levels..."
-                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                            <input type="text" id="globalSearch" placeholder="Search inventory, batches, medicine..."
+                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm">
                         </div>
                     </div>
-                    <div class="flex items-center gap-2" th:replace="~{fragments/navbar :: navbar}"></div>
+                    <div th:replace="~{fragments/navbar :: right_items}"></div>
                 </div>
             </header>
 
-            <main class="flex-1 overflow-auto p-6 space-y-6">
+            <main class="flex-1 overflow-y-auto p-6 space-y-6 pb-12">
 
                 <!-- Page Header -->
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h2 class="text-3xl font-bold tracking-tight">Inventory &amp; Stock</h2>
-                        <p class="text-gray-600 mt-1">Monitor stock levels, batches, and expiry alerts.</p>
+                        <h2 class="text-3xl font-bold tracking-tight">Catalogue & Stock</h2>
+                        <p class="text-gray-600 mt-1">Real-time monitoring of pharmaceutical inventory and expiry alerts.</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="/inventory/stock-entry"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-sm">
+                            class="px-4 py-2 bg-white border border-gray-200 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2">
                             <i data-lucide="package-plus" class="w-4 h-4 text-indigo-500"></i>
-                            Add Stock Batch
+                            Stock Entry
                         </a>
                         <a href="/medicines/add"
-                            class="inline-flex items-center gap-2 px-6 py-3 gradient-blue text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:opacity-90 active:scale-95 transition-all">
+                            class="px-5 py-2.5 gradient-blue text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-2">
                             <i data-lucide="plus" class="w-5 h-5"></i>
                             New Medicine
                         </a>
                     </div>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
+                <!-- Stats Deck (Dashboard Card Style) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Total Medicines -->
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Medicines</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${totalMedicines}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Active catalogue items</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-blue">
-                            <i data-lucide="pill" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-
-                    <!-- Low Stock -->
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
-                            <h3 class="text-2xl font-bold text-orange-600 mt-1" th:text="${lowStockCount}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Need reordering</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-orange">
-                            <i data-lucide="alert-triangle" class="w-5 h-5 text-white"></i>
+                    <div class="card overflow-hidden group relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Medicines</span>
+                                    <div class="text-3xl font-black text-slate-800 mt-2" th:text="${totalMedicines}">0</div>
+                                </div>
+                                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <i data-lucide="pill" class="w-7 h-7"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 font-medium italic">Active catalogue items</p>
                         </div>
                     </div>
 
-                    <!-- Total Stock Units -->
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Stock Units</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${totalStockUnits}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Units in stock</p>
+                    <!-- Low Stock Count -->
+                    <div class="card overflow-hidden group relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Low Stock</span>
+                                    <div class="text-3xl font-black text-orange-600 mt-2" th:text="${lowStockCount}">0</div>
+                                </div>
+                                <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 font-medium italic">Under reorder threshold</p>
                         </div>
-                        <div class="p-2 rounded-lg gradient-green">
-                            <i data-lucide="package" class="w-5 h-5 text-white"></i>
+                    </div>
+
+                    <!-- Total Units -->
+                    <div class="card overflow-hidden group relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-emerald opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Units</span>
+                                    <div class="text-3xl font-black text-slate-800 mt-2" th:text="${totalStockUnits}">0</div>
+                                </div>
+                                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <i data-lucide="boxes" class="w-7 h-7"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 font-medium italic">Current physical assets</p>
                         </div>
                     </div>
 
                     <!-- Inventory Value -->
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Inventory Value</p>
-                            <h3 class="text-2xl font-bold text-blue-600 mt-1"
-                                th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</h3>
-                            <p class="text-xs text-gray-500 mt-1">Estimated retail value</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-purple">
-                            <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
+                    <div class="card overflow-hidden group relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Value</span>
+                                    <div class="text-2xl font-black text-slate-800 mt-2"
+                                        th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                                </div>
+                                <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
+                                    <i data-lucide="dollar-sign" class="w-7 h-7"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 font-medium italic">Est. retail valuation</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Alert Panels -->
+                <!-- Warnings Row (Dashboard Alert Panel Style) -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
                     <!-- Low Stock Alerts -->
                     <div class="card overflow-hidden">
-                        <div
-                            class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-orange-50/50">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-9 h-9 rounded-xl gradient-orange flex items-center justify-center shadow-sm">
-                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-white"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-gray-900">Low Stock Alerts</h3>
-                                    <p class="text-xs text-gray-500">Items below minimum threshold</p>
-                                </div>
-                            </div>
-                            <span class="px-2.5 py-1 bg-orange-100 text-orange-700 text-xs font-black rounded-full"
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500"></i>
+                                Replenishment Needed
+                            </h3>
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
                                 th:text="${lowStockMedicines != null ? lowStockMedicines.size() : 0}">0</span>
                         </div>
-                        <div class="p-4 space-y-2 max-h-60 overflow-y-auto">
-                            <!-- Has Items -->
+                        <div class="p-4 space-y-3 max-h-[300px] overflow-y-auto">
                             <div th:if="${lowStockMedicines != null and !lowStockMedicines.isEmpty()}">
                                 <div th:each="med : ${lowStockMedicines}"
-                                    class="flex items-center justify-between p-3 bg-orange-50 border border-orange-100 rounded-xl">
-                                    <div class="flex items-center gap-3">
-                                        <span class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></span>
-                                        <div>
-                                            <p class="font-bold text-gray-800 text-sm" th:text="${med.name}">Medicine
-                                            </p>
-                                            <p class="text-xs text-gray-500" th:text="${med.category}">Category</p>
+                                    class="p-3 border rounded-lg alert-warning border-orange-200">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center text-orange-600 border border-orange-100">
+                                                <i data-lucide="pill" class="w-5 h-5"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900" th:text="${med.name}">Medicine</p>
+                                                <p class="text-xs text-gray-500 font-medium" th:text="${med.category}">Category</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-sm font-black text-orange-600"
-                                            th:text="${med.totalStock} + ' left'">0 left</span>
-                                        <p class="text-xs text-gray-400" th:text="'Min: ' + ${med.minStock}">Min: 0</p>
+                                        <div class="text-right">
+                                            <div class="text-sm font-black text-orange-700" th:text="${med.totalStock} + ' unit'">0 units</div>
+                                            <div class="text-[10px] font-bold text-gray-400" th:text="'Warning At: ' + ${med.minStock}">0</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Empty State -->
                             <div th:if="${lowStockMedicines == null or lowStockMedicines.isEmpty()}"
-                                class="flex flex-col items-center justify-center py-10 text-center">
-                                <i data-lucide="check-circle" class="w-10 h-10 text-emerald-400 mb-3"></i>
-                                <p class="font-bold text-gray-700">All stock levels OK</p>
-                                <p class="text-xs text-gray-400 mt-1">No medicines below minimum threshold.</p>
+                                class="py-10 text-center text-gray-400">
+                                <i data-lucide="check-circle" class="w-10 h-10 mx-auto mb-2 opacity-20"></i>
+                                <p class="text-sm font-medium">All levels optimal</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Expiry Alerts -->
-                    <div class="card overflow-hidden">
-                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-red-50/50">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-sm">
-                                    <i data-lucide="clock" class="w-4 h-4 text-white"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-gray-900">Expiry Warnings</h3>
-                                    <p class="text-xs text-gray-500">Batches expiring within 30 days</p>
-                                </div>
+                    <div class="card">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center gap-2">
+                                    <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
+                                    Expiring Soon (30 days)
+                                </h3>
+                                <span th:if="${expiryAlerts != null and !expiryAlerts.isEmpty()}"
+                                    class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
+                                    th:text="${expiryAlerts.size()}">0</span>
                             </div>
-                            <span class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-black rounded-full"
-                                th:text="${expiryAlerts != null ? expiryAlerts.size() : 0}">0</span>
-                        </div>
-                        <div class="p-4 space-y-2 max-h-60 overflow-y-auto">
-                            <!-- Has Items -->
-                            <div th:if="${expiryAlerts != null and !expiryAlerts.isEmpty()}">
+
+                            <!-- Expiry List -->
+                            <div th:if="${expiryAlerts != null and !expiryAlerts.isEmpty()}"
+                                class="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
                                 <div th:each="alert : ${expiryAlerts}"
                                     th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-50 border-red-200' : (${alert.daysUntilExpiry <= 14} ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200')"
-                                    class="flex items-center justify-between p-3 border rounded-xl">
-                                    <div class="flex items-center gap-3">
-                                        <span class="w-2 h-2 rounded-full flex-shrink-0"
-                                            th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-500' : (${alert.daysUntilExpiry <= 14} ? 'bg-orange-500' : 'bg-yellow-500')"></span>
-                                        <div>
-                                            <p class="font-bold text-gray-800 text-sm" th:text="${alert.medicineName}">
-                                                Medicine</p>
-                                            <p class="text-xs text-gray-500">
-                                                Batch:
-                                                <span class="font-mono" th:text="${alert.batchNumber}">BATCH</span>
-                                                &nbsp;·&nbsp; Qty:
-                                                <span th:text="${alert.quantity}">0</span>
-                                            </p>
+                                    class="p-3 border rounded-lg">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-900" th:text="${alert.medicineName}">
+                                                Medicine Name</div>
+                                            <div class="text-xs text-gray-600 mt-1">
+                                                Batch: <span class="font-mono"
+                                                    th:text="${alert.batchNumber}">BATCH-001</span> |
+                                                Qty: <span th:text="${alert.quantity}">0</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">
+                                                Expires: <span
+                                                    th:text="${#temporals.format(alert.expiryDate, 'MMM dd, yyyy')}">Date</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="text-right flex-shrink-0">
                                         <span
-                                            th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-500 text-white' : 'bg-orange-100 text-orange-700'"
-                                            class="px-2 py-1 text-xs font-black rounded-lg"
+                                            th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-500 text-white' : 'border border-orange-600 text-orange-600'"
+                                            class="px-2 py-1 text-xs font-medium rounded"
                                             th:text="${alert.daysUntilExpiry} + 'd'">0d</span>
-                                        <p class="text-xs text-gray-400 mt-1"
-                                            th:text="${#temporals.format(alert.expiryDate, 'dd MMM yyyy')}">Date</p>
                                     </div>
                                 </div>
                             </div>
+
                             <!-- Empty State -->
                             <div th:if="${expiryAlerts == null or expiryAlerts.isEmpty()}"
-                                class="flex flex-col items-center justify-center py-10 text-center">
-                                <i data-lucide="shield-check" class="w-10 h-10 text-emerald-400 mb-3"></i>
-                                <p class="font-bold text-gray-700">No expiring batches</p>
-                                <p class="text-xs text-gray-400 mt-1">All inventory is well within shelf life.</p>
+                                class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mb-2"></i>
+                                <p class="text-sm font-medium text-gray-900">No expiring items</p>
+                                <p class="text-xs text-gray-500 mt-1">All batches are well within their shelf life.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Inventory Table -->
+                <!-- Inventory Ledger (Dashboard Table Style) -->
                 <div class="card overflow-hidden">
-                    <!-- Table Header -->
-                    <div
-                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 border-b border-gray-100">
+                    <div class="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h3 class="font-bold text-gray-900 text-lg">Stock Overview</h3>
-                            <p class="text-sm text-gray-500 mt-0.5"
-                                th:text="${#lists.size(medicines)} + ' medicines in catalogue'">0 medicines</p>
+                            <h3 class="text-lg font-bold text-gray-900">Inventory Ledger</h3>
+                            <p class="text-xs text-gray-500 font-medium"
+                                th:text="${#lists.size(medicines)} + ' indexed items'">0 items</p>
                         </div>
-                        <div class="relative">
-                            <i data-lucide="search"
-                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                            <input type="text" id="tableSearch" placeholder="Filter table..."
-                                class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-52">
+                        <div class="relative group">
+                            <i data-lucide="filter" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-blue-500"></i>
+                            <input type="text" id="tableFilter" placeholder="Filter stock..."
+                                class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm w-full sm:w-64 font-medium">
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left" id="inventoryTable">
-                            <thead>
-                                <tr class="bg-gray-50/60 border-b border-gray-100">
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                        Medicine</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                        Category</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">
-                                        Stock Level</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">
-                                        Min Stock</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                        Expiry</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">
-                                        Status</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">
-                                        Unit Price</th>
-                                    <th
-                                        class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">
-                                        Actions</th>
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Medicine</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Stock</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Limit</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Shelf Life</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Status</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Price</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50">
-
-                                <!-- Medicine Rows -->
-                                <tr th:each="med : ${medicines}"
-                                    class="hover:bg-gray-50/50 transition-colors group inventory-row">
-                                    <!-- Medicine Name -->
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-4">
-                                            <div
-                                                class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr th:each="med : ${medicines}" class="hover:bg-gray-50 transition-colors group inventory-row">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                                                 <i data-lucide="pill" class="w-5 h-5"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900" th:text="${med.name}">Medicine Name
-                                                </p>
-                                                <p class="text-xs text-gray-400 mt-0.5" th:text="${med.manufacturer}">
-                                                    Manufacturer</p>
+                                                <div class="font-bold text-gray-900" th:text="${med.name}">Name</div>
+                                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" th:text="${med.manufacturer}">Brand</div>
                                             </div>
                                         </div>
                                     </td>
-
-                                    <!-- Category -->
-                                    <td class="px-6 py-5">
-                                        <span
-                                            class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg"
-                                            th:text="${med.category}">Category</span>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase tracking-wider"
+                                              th:text="${med.category}">Type</span>
                                     </td>
-
-                                    <!-- Stock Level with Progress Bar -->
-                                    <td class="px-6 py-5 text-center">
+                                    <td class="px-6 py-4 text-center">
                                         <div class="flex flex-col items-center gap-1.5">
-                                            <span class="text-base font-black text-gray-900"
-                                                th:text="${med.totalStock}">0</span>
-                                            <div class="progress-bar w-24">
+                                            <div class="text-sm font-black text-gray-800" th:text="${med.totalStock}">0</div>
+                                            <div class="progress-bar-container w-16">
                                                 <div class="progress-bar-fill"
-                                                    th:classappend="${med.totalStock <= 0} ? 'bg-red-500' : (${med.totalStock <= med.minStock} ? 'bg-orange-400' : 'bg-emerald-500')"
-                                                    th:style="'width: ' + ${med.minStock > 0 ? T(java.lang.Math).min(100, (med.totalStock * 100 / (med.minStock * 2))) : (med.totalStock > 0 ? 100 : 0)} + '%'">
+                                                     th:classappend="${med.totalStock <= 0} ? 'bg-red-500' : (${med.totalStock <= med.minStock} ? 'bg-orange-500' : 'bg-emerald-500')"
+                                                     th:style="'width: ' + ${med.minStock > 0 ? T(java.lang.Math).min(100, (med.totalStock * 100 / (med.minStock * 2))) : (med.totalStock > 0 ? 100 : 0)} + '%'">
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-
-                                    <!-- Min Stock -->
-                                    <td class="px-6 py-5 text-center">
-                                        <span class="text-sm font-bold text-gray-500" th:text="${med.minStock}">0</span>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="text-xs font-bold text-gray-400" th:text="${med.minStock}">0</span>
                                     </td>
-
-                                    <!-- Earliest Expiry -->
-                                    <td class="px-6 py-5">
-                                        <span th:if="${med.earliestExpiry != null}"
-                                            class="text-xs font-semibold text-gray-600"
-                                            th:text="${#temporals.format(med.earliestExpiry, 'dd MMM yyyy')}">Date</span>
-                                        <span th:if="${med.earliestExpiry == null}"
-                                            class="text-xs font-semibold text-gray-300">—</span>
+                                    <td class="px-6 py-4">
+                                        <div th:if="${med.earliestExpiry != null}" class="flex flex-col">
+                                            <span class="text-xs font-bold text-gray-700" th:text="${#temporals.format(med.earliestExpiry, 'dd MMM yyyy')}">Date</span>
+                                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Earliest Batch</span>
+                                        </div>
+                                        <span th:if="${med.earliestExpiry == null}" class="text-gray-200 italic">—</span>
                                     </td>
-
-                                    <!-- Status Badge -->
-                                    <td class="px-6 py-5 text-center">
-                                        <span th:if="${med.totalStock > med.minStock}"
-                                            class="px-2.5 py-1 text-[10px] font-black rounded-full status-in-stock uppercase tracking-wider">
-                                            In Stock</span>
-                                        <span th:if="${med.totalStock <= med.minStock and med.totalStock > 0}"
-                                            class="px-2.5 py-1 text-[10px] font-black rounded-full status-low-stock uppercase tracking-wider">
-                                            Low Stock</span>
-                                        <span th:if="${med.totalStock <= 0}"
-                                            class="px-2.5 py-1 text-[10px] font-black rounded-full status-out-stock uppercase tracking-wider">
-                                            Out of Stock</span>
+                                    <td class="px-6 py-4 text-center">
+                                        <span th:if="${med.totalStock > med.minStock}" class="status-badge bg-emerald-100 text-emerald-700">Stable</span>
+                                        <span th:if="${med.totalStock <= med.minStock and med.totalStock > 0}" class="status-badge bg-orange-100 text-orange-700">Low</span>
+                                        <span th:if="${med.totalStock <= 0}" class="status-badge bg-red-100 text-red-700">Empty</span>
                                     </td>
-
-                                    <!-- Unit Price -->
-                                    <td class="px-6 py-5 text-right">
-                                        <span class="font-black text-gray-900"
-                                            th:text="${med.price != null ? '$' + #numbers.formatDecimal(med.price, 1, 2) : '—'}">$0.00</span>
-                                    </td>
-
-                                    <!-- Actions -->
-                                    <td class="px-6 py-5 text-right">
-                                        <div
-                                            class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td class="px-6 py-4 text-right font-black text-blue-600"
+                                             th:text="${med.price != null ? '$' + #numbers.formatDecimal(med.price, 1, 2) : '—'}">0.00</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                             <a th:href="@{/medicines/{id}(id=${med.id})}"
-                                                class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
-                                                title="View Details">
+                                               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                               title="View Details">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </a>
                                             <a href="/inventory/stock-entry"
-                                                class="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
-                                                title="Add Stock">
+                                               class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                                               title="Add Stock">
                                                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                                             </a>
                                         </div>
                                     </td>
                                 </tr>
-
-                                <!-- Empty State -->
                                 <tr th:if="${#lists.isEmpty(medicines)}">
-                                    <td colspan="8" class="px-6 py-20 text-center">
-                                        <div class="flex flex-col items-center gap-4">
-                                            <div
-                                                class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                                <i data-lucide="package" class="w-10 h-10"></i>
+                                    <td colspan="8" class="py-20 text-center">
+                                        <div class="max-w-xs mx-auto">
+                                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                                <i data-lucide="package-search" class="w-8 h-8"></i>
                                             </div>
-                                            <div>
-                                                <p class="text-lg font-bold text-slate-900">No inventory yet</p>
-                                                <p class="text-slate-500 text-sm mt-1">Start by adding medicines to your
-                                                    catalogue.</p>
-                                            </div>
+                                            <h4 class="text-lg font-bold text-slate-800 mb-1">No Stock Data</h4>
+                                            <p class="text-gray-400 text-sm mb-6">Start by indexing physical stock in the system.</p>
                                             <a href="/medicines/add"
-                                                class="inline-flex items-center gap-2 px-6 py-2.5 gradient-blue text-white rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 mt-2">
-                                                <i data-lucide="plus" class="w-5 h-5"></i>
-                                                Add First Medicine
+                                               class="inline-flex items-center gap-2 px-6 py-2.5 gradient-blue text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all">
+                                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                                Register Medicine
                                             </a>
                                         </div>
                                     </td>
@@ -470,22 +412,38 @@
                     </div>
                 </div>
 
+                <!-- Footer Consistency -->
+                <div class="pt-10 border-t border-gray-200/60">
+                    <div th:replace="~{fragments/footer :: footer}"></div>
+                </div>
             </main>
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+        // Initialize Icons
         lucide.createIcons();
 
-        // Live table filter
-        const searchInput = document.getElementById('tableSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                const query = this.value.toLowerCase();
+        // Live Table Search
+        const tableFilter = document.getElementById('tableFilter');
+        if (tableFilter) {
+            tableFilter.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
                 document.querySelectorAll('.inventory-row').forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(query) ? '' : 'none';
                 });
+            });
+        }
+
+        // Global search redirect for better UX
+        const gSearch = document.getElementById('globalSearch');
+        if (gSearch && tableFilter) {
+            gSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    tableFilter.value = gSearch.value;
+                    tableFilter.dispatchEvent(new Event('input'));
+                }
             });
         }
     </script>

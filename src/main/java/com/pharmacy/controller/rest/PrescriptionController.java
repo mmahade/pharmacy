@@ -44,7 +44,9 @@ public class PrescriptionController {
 
     @Operation(summary = "Complete prescription", description = "Marks a prescription as fully dispensed, deducting stock for each item.")
     @PutMapping("/{id}/complete")
-    public PrescriptionResponse complete(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {
-        return prescriptionService.completePrescription(principal, id);
+    public PrescriptionResponse complete(@AuthenticationPrincipal AppUserPrincipal principal, 
+                                       @PathVariable Long id,
+                                       @RequestBody com.pharmacy.dto.PrescriptionCompleteRequest request) {
+        return prescriptionService.completePrescription(principal, id, request);
     }
 }

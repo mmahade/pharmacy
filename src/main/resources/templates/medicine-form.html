@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Medicine - MediCare Pharmacy</title>
+    <title th:text="${(isEdit ?: false) ? 'Edit Medicine - MediCare' : 'Add Medicine - MediCare'}">Add Medicine - MediCare</title>
     <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -85,10 +85,10 @@
                                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
                                 <a href="/medicines" class="hover:text-blue-600 transition-colors">Medicines</a>
                                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
-                                <span class="text-blue-600 font-bold">Add New Entry</span>
+                                <span class="text-blue-600 font-bold" th:text="${(isEdit ?: false) ? 'Edit Product' : 'Add New Entry'}">Add New Entry</span>
                             </nav>
-                            <h2 class="text-4xl font-extrabold tracking-tight text-slate-900">Add New Medicine</h2>
-                            <p class="text-slate-500 mt-3 text-lg leading-relaxed max-w-2xl">
+                             <h2 class="text-4xl font-extrabold tracking-tight text-slate-900" th:text="${(isEdit ?: false) ? 'Edit Medicine' : 'Add New Medicine'}">Add New Medicine</h2>
+                            <p class="text-slate-500 mt-3 text-lg leading-relaxed max-w-2xl" th:text="${(isEdit ?: false) ? 'Update product specifications and inventory parameters.' : 'Enter the pharmaceutical details below to add a new product to your inventory catalogue.'}">
                                 Enter the pharmaceutical details below to add a new product to your inventory catalogue.
                             </p>
                         </div>
@@ -134,21 +134,21 @@
                                                 Medicine Name
                                                 <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="text" name="name" required
+                                            <input type="text" name="name" required th:value="${medicine?.name}"
                                                 class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
                                                 placeholder="e.g. Paracetamol Extra 500mg">
                                         </div>
 
                                         <div class="space-y-3">
                                             <label class="text-sm font-bold text-slate-700">Generic Formula Name</label>
-                                            <input type="text" name="genericName"
+                                            <input type="text" name="genericName" th:value="${medicine?.genericName}"
                                                 class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
                                                 placeholder="e.g. Acetaminophen">
                                         </div>
 
                                         <div class="md:col-span-2 space-y-3">
                                             <label class="text-sm font-bold text-slate-700">Detailed Description</label>
-                                            <textarea name="description" rows="3"
+                                            <textarea name="description" rows="3" th:text="${medicine?.description}"
                                                 class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium resize-none"
                                                 placeholder="Add specific storage instructions, side effects, or a general product description..."></textarea>
                                         </div>
@@ -177,17 +177,9 @@
                                             <div class="relative group/select">
                                                 <select name="category" required
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
-                                                    <option value="" disabled selected>Select Category</option>
-                                                    <option value="Analgesics">Analgesics</option>
-                                                    <option value="Antibiotics">Antibiotics</option>
-                                                    <option value="Antipyretics">Antipyretics</option>
-                                                    <option value="Antiseptics">Antiseptics</option>
-                                                    <option value="Cardiovascular">Cardiovascular</option>
-                                                    <option value="Dermatological">Dermatological</option>
-                                                    <option value="Gastrointestinal">Gastrointestinal</option>
-                                                    <option value="Respiratory">Respiratory</option>
-                                                    <option value="Vitamins">Vitamins</option>
-                                                    <option value="Hormones">Hormones</option>
+                                                    <option value="" disabled th:selected="${medicine == null}">Select Category</option>
+                                                    <option th:each="cat : ${ {'Analgesics', 'Antibiotics', 'Antipyretics', 'Antiseptics', 'Cardiovascular', 'Dermatological', 'Gastrointestinal', 'Respiratory', 'Vitamins', 'Hormones'} }"
+                                                            th:value="${cat}" th:text="${cat}" th:selected="${medicine?.category == cat}"></option>
                                                 </select>
                                                 <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
                                                     <i data-lucide="chevron-down" class="w-5 h-5"></i>
@@ -201,14 +193,9 @@
                                                 <div class="relative group/select">
                                                     <select name="dosageForm"
                                                         class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
-                                                        <option value="" disabled selected>Form...</option>
-                                                        <option value="Tablet">Tablet</option>
-                                                        <option value="Capsule">Capsule</option>
-                                                        <option value="Syrup">Syrup</option>
-                                                        <option value="Injection">Injection</option>
-                                                        <option value="Cream">Cream</option>
-                                                        <option value="Drops">Drops</option>
-                                                        <option value="Inhaler">Inhaler</option>
+                                                        <option value="" disabled th:selected="${medicine == null}">Form...</option>
+                                                        <option th:each="form : ${ {'Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Drops', 'Inhaler'} }"
+                                                                th:value="${form}" th:text="${form}" th:selected="${medicine?.dosageForm == form}"></option>
                                                     </select>
                                                     <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
                                                         <i data-lucide="chevron-down" class="w-5 h-5"></i>
@@ -217,7 +204,7 @@
                                             </div>
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Strength</label>
-                                                <input type="text" name="strength"
+                                                <input type="text" name="strength" th:value="${medicine?.strength}"
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
                                                     placeholder="500mg...">
                                             </div>
@@ -239,8 +226,8 @@
 
                                     <div class="space-y-8">
                                         <div class="space-y-3">
-                                            <label class="text-sm font-bold text-slate-700">Primary Supplier / Vendor <span class="text-red-500">*</span></label>
-                                            <input type="text" name="supplier" required
+                                            <label class="text-sm font-bold text-slate-700">Primary Manufacturer <span class="text-red-500">*</span></label>
+                                            <input type="text" name="manufacturer" required th:value="${medicine?.manufacturer}"
                                                 class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
                                                 placeholder="e.g. Global Pharma Distributors">
                                         </div>
@@ -280,7 +267,7 @@
                                                 <label class="text-sm font-bold text-slate-700">Base Unit Price <span class="text-red-500">*</span></label>
                                                 <div class="relative bg-slate-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200">
                                                     <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                                                    <input type="number" step="0.01" name="price" required
+                                                    <input type="number" step="0.01" name="price" required th:value="${medicine?.price}"
                                                         class="w-full pl-10 pr-5 py-4 bg-transparent outline-none text-slate-800 font-bold placeholder:font-normal"
                                                         placeholder="0.00">
                                                 </div>
@@ -299,7 +286,7 @@
                                         <div class="grid grid-cols-2 gap-6">
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Reorder Alert <span class="text-red-500">*</span></label>
-                                                <input type="number" name="minStock" required
+                                                <input type="number" name="minStock" required th:value="${medicine?.minStock}"
                                                     class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-bold"
                                                     placeholder="20 units">
                                             </div>
@@ -331,7 +318,7 @@
                                     <button type="submit" id="submitBtn"
                                         class="w-full sm:w-auto px-12 py-5 gradient-blue text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95">
                                         <i data-lucide="shield-check" class="w-6 h-6"></i>
-                                        Add the medicine
+                                        <span th:text="${(isEdit ?: false) ? 'Update Medicine' : 'Add the medicine'}">Add the medicine</span>
                                     </button>
                                 </div>
                             </div>
@@ -391,18 +378,26 @@
                 const formData = new FormData(form);
                 const payload = Object.fromEntries(formData.entries());
 
-                const response = await fetch('/api/medicines', {
-                    method: 'POST',
+                const isEdit = /*[[${isEdit ?: false}]]*/ false;
+                const medicineId = /*[[${medicine?.id}]]*/ null;
+                
+                const url = isEdit ? `/api/medicines/${medicineId}` : '/api/medicines';
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) throw new Error('System verification failed');
 
-                showToast('Registry Successful', 'The product has been securely added to inventory.', 'success');
+                showToast(isEdit ? 'Update Successful' : 'Registry Successful', 
+                         isEdit ? 'The product has been securely updated.' : 'The product has been securely added to inventory.', 
+                         'success');
 
                 setTimeout(() => {
-                    window.location.href = '/medicines';
+                    window.location.href = isEdit ? `/medicines/${medicineId}` : '/medicines';
                 }, 1500);
 
             } catch (error) {

@@ -99,7 +99,7 @@
                                 class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
-                    <div class="flex items-center gap-2" th:replace="~{fragments/navbar :: navbar}"></div>
+                    <div th:replace="~{fragments/navbar :: right_items}"></div>
                 </div>
             </header>
 
@@ -216,7 +216,7 @@
                 </div>
 
                 <!-- Prescriptions Table -->
-                <div class="card overflow-hidden">
+                <div id="prescriptionListContainer" th:fragment="prescriptionList" class="card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left" id="prescriptionsTable">
                             <thead>
@@ -277,22 +277,29 @@
                                         </div>
                                     </td>
 
-                                    <!-- Status -->
-                                    <td class="px-6 py-5 text-center">
-                                        <span th:if="${rx.status.name() == 'COMPLETED'}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            Completed
-                                        </span>
-                                        <span th:if="${rx.status.name() == 'PENDING'}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                                            Pending
-                                        </span>
-                                        <span
-                                            th:if="${rx.status.name() != 'COMPLETED' and rx.status.name() != 'PENDING'}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full bg-slate-50 text-slate-600 border border-slate-100 uppercase tracking-wider"
-                                            th:text="${rx.status}">STATUS</span>
+                                    <!-- Status & Payment -->
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col items-center gap-1.5">
+                                            <span th:if="${rx.status.name() == 'COMPLETED'}"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Completed
+                                            </span>
+                                            <span th:if="${rx.status.name() == 'PENDING'}"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-full bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                                Pending
+                                            </span>
+                                            
+                                            <!-- Payment Badge -->
+                                            <span th:if="${rx.status.name() == 'COMPLETED'}"
+                                                  th:classappend="${rx.amountPaid >= rx.totalAmount} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'"
+                                                  class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold rounded-md border uppercase tracking-tight">
+                                                <i th:if="${rx.amountPaid >= rx.totalAmount}" data-lucide="check-check" class="w-3 h-3"></i>
+                                                <i th:if="${rx.amountPaid < rx.totalAmount}" data-lucide="alert-circle" class="w-3 h-3"></i>
+                                                <span th:text="${rx.amountPaid >= rx.totalAmount ? 'Fully Paid' : 'Due: $' + #numbers.formatDecimal(rx.totalAmount - rx.amountPaid, 1, 2)}">Badge</span>
+                                            </span>
+                                        </div>
                                     </td>
 
                                     <!-- Item Count -->
@@ -321,8 +328,9 @@
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </a>
                                             <!-- Complete / Dispense Button (PENDING only) -->
-                                            <button th:if="${rx.status.name() == 'PENDING'}" th:attr="data-id=${rx.id}"
-                                                onclick="completePrescription(this.dataset.id)"
+                                            <button th:if="${rx.status.name() == 'PENDING'}" 
+                                                th:attr="data-id=${rx.id}, data-amount=${rx.totalAmount}"
+                                                onclick="completePrescription(this.dataset.id, this.dataset.amount)"
                                                 class="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
                                                 title="Dispense &amp; Complete">
                                                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
@@ -345,11 +353,12 @@
                                                 <i data-lucide="clipboard-list" class="w-10 h-10"></i>
                                             </div>
                                             <div>
-                                                <p class="text-lg font-bold text-slate-900">No prescriptions yet</p>
-                                                <p class="text-slate-500 text-sm mt-1">Start by recording a new doctor
-                                                    prescription.</p>
+                                                <p class="text-lg font-bold text-slate-900" 
+                                                   th:text="${searchQuery != null and !searchQuery.isEmpty() ? 'No results found' : 'No prescriptions yet'}">No prescriptions yet</p>
+                                                <p class="text-slate-500 text-sm mt-1"
+                                                   th:text="${searchQuery != null and !searchQuery.isEmpty() ? 'No prescriptions match &quot;' + searchQuery + '&quot;.' : 'Start by recording a new doctor prescription.'}"></p>
                                             </div>
-                                            <a href="/prescriptions/new"
+                                            <a th:if="${searchQuery == null or searchQuery.isEmpty()}" href="/prescriptions/new"
                                                 class="inline-flex items-center gap-2 px-6 py-2.5 gradient-blue text-white rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 mt-2">
                                                 <i data-lucide="file-plus" class="w-5 h-5"></i>
                                                 New Prescription
@@ -367,25 +376,59 @@
     </div>
 
     <!-- Confirm Complete Modal -->
-    <div id="completeModal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm no-print">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center">
-            <div
-                class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-5">
-                <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+    <div id="completeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Dispense Prescription</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Finalize items & record payment.</p>
+                </div>
             </div>
-            <h3 class="text-xl font-black text-slate-900 mb-2">Dispense Prescription?</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-                This will mark the prescription as <strong>Completed</strong>, deduct stock, and create a sale record.
-            </p>
+
+            <div class="space-y-5 mb-8">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Payable</span>
+                    <span id="modalTotalPayable" class="text-lg font-black text-slate-900">$0.00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Method</label>
+                        <select id="modalPaymentMethod" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all appearance-none cursor-pointer text-sm">
+                            <option value="CASH">Cash</option>
+                            <option value="CREDIT_CARD">Credit Card</option>
+                            <option value="MOBILE_BANKING">Mobile Banking</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount Paid</label>
+                        <div class="relative">
+                            <input type="number" id="modalAmountPaid" step="0.01" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 transition-all text-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reference (Optional)</label>
+                        <input type="text" id="modalPaymentReference" placeholder="e.g. TRX-123" class="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-medium text-slate-800 transition-all text-sm" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Due Date</label>
+                        <input type="date" id="modalDueDate" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all text-sm" />
+                    </div>
+                </div>
+            </div>
+
             <div class="flex gap-3">
-                <button onclick="closeModal()"
-                    class="flex-1 py-3 border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+                <button onclick="closeModal()" class="flex-1 py-3 border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
                     Cancel
                 </button>
-                <button id="confirmCompleteBtn"
-                    class="flex-1 py-3 gradient-blue text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
-                    Confirm &amp; Dispense
+                <button id="confirmCompleteBtn" class="flex-1 py-3 gradient-blue text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all active:scale-95">
+                    Confirm & Dispense
                 </button>
             </div>
         </div>
@@ -394,15 +437,44 @@
     <script>
         lucide.createIcons();
 
-        // ---- Live search filter ----
+        // ---- Live search logic (AJAX) ----
         const rxSearch = document.getElementById('rxSearch');
+        let searchTimeout = null;
+
         if (rxSearch) {
             rxSearch.addEventListener('input', function () {
-                const q = this.value.toLowerCase();
-                document.querySelectorAll('.rx-row').forEach(row => {
-                    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-                });
+                const query = this.value;
+                if (searchTimeout) clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performRxSearch(query);
+                }, 300);
             });
+        }
+
+        async function performRxSearch(query) {
+            try {
+                const response = await fetch(`/prescriptions?q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (response.ok) {
+                    const html = await response.text();
+                    const container = document.getElementById('prescriptionListContainer');
+                    if (container) {
+                        container.outerHTML = html;
+                        // Re-initialize icons in the new content
+                        lucide.createIcons();
+                        // Re-apply current status filter if any
+                        if (currentFilter !== 'ALL') {
+                            filterTable(currentFilter);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Prescription search failed:', error);
+            }
         }
 
         // ---- Status filter tabs ----
@@ -423,8 +495,10 @@
 
         // ---- Complete prescription ----
         let pendingCompleteId = null;
-        function completePrescription(id) {
+        function completePrescription(id, totalAmount) {
             pendingCompleteId = id;
+            document.getElementById('modalTotalPayable').textContent = '$' + parseFloat(totalAmount).toFixed(2);
+            document.getElementById('modalAmountPaid').value = totalAmount;
             document.getElementById('completeModal').classList.remove('hidden');
         }
         function closeModal() {
@@ -435,8 +509,20 @@
             if (!pendingCompleteId) return;
             this.textContent = 'Processing...';
             this.disabled = true;
+
+            const payload = {
+                paymentMethod: document.getElementById('modalPaymentMethod').value,
+                amountPaid: parseFloat(document.getElementById('modalAmountPaid').value) || 0,
+                paymentReference: document.getElementById('modalPaymentReference').value || "",
+                dueDate: document.getElementById('modalDueDate').value || null
+            };
+
             try {
-                const resp = await fetch(`/api/prescriptions/${pendingCompleteId}/complete`, { method: 'PUT' });
+                const resp = await fetch(`/api/prescriptions/${pendingCompleteId}/complete`, { 
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 if (resp.ok) {
                     window.location.reload();
                 } else {

@@ -55,11 +55,13 @@ public class SaleReturnService {
         SaleReturn sr = new SaleReturn();
         sr.setSale(sale);
         sr.setCreatedBy(currentUser);
-        sr.setReturnNumber(generateReturnNumber(pharmacy.getName()));
+        sr.setReturnNumber(generateReturnNumber(pharmacy));
         sr.setReturnDate(request.returnDate() == null ? LocalDate.now() : request.returnDate());
         sr.setReason(request.reason() != null ? request.reason().trim() : null);
 
         BigDecimal totalAmount = BigDecimal.ZERO;
+        List<String> summaryParts = new java.util.ArrayList<>();
+
         for (SaleReturnItemRequest itemReq : request.items()) {
             SaleItem saleItem = sale.getItems().stream()
                     .filter(i -> i.getId().equals(itemReq.saleItemId()))
@@ -88,13 +90,24 @@ public class SaleReturnService {
             sr.getItems().add(sri);
 
             totalAmount = totalAmount.add(sri.getLineTotal());
+            summaryParts.add(saleItem.getMedicine().getName() + " x " + itemReq.quantityReturned());
 
             // Restock inventory
             restockInventory(saleItem, itemReq.quantityReturned());
         }
 
         sr.setTotalAmount(totalAmount);
+        sr.setItemsSummary(String.join(", ", summaryParts));
         SaleReturn saved = saleReturnRepository.save(sr);
+
+        // Adjust original sale balance
+        sale.setTotal(sale.getTotal().subtract(totalAmount));
+        // If amountPaid > new total, cap it (refund given)
+        if (sale.getAmountPaid().compareTo(sale.getTotal()) > 0) {
+            sale.setAmountPaid(sale.getTotal());
+        }
+        saleTransactionRepository.save(sale);
+
         return toResponse(saved);
     }
 
@@ -116,12 +129,9 @@ public class SaleReturnService {
         }
     }
 
-    private String generateReturnNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4)
-            code = code.substring(0, 4);
-        return "SR-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String generateReturnNumber(Pharmacy pharmacy) {
+        long count = saleReturnRepository.countBySale_Pharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
     private SaleReturnResponse toResponse(SaleReturn sr) {
@@ -144,6 +154,7 @@ public class SaleReturnService {
                 sr.getCreatedAt(),
                 sr.getSale().getId(),
                 sr.getSale().getSaleNumber(),
+                sr.getItemsSummary() != null ? sr.getItemsSummary() : "N/A",
                 items);
     }
 }

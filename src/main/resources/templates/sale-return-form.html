@@ -374,7 +374,17 @@
                                 icon: 'success',
                                 title: 'Success!',
                                 text: 'Sales return has been recorded and stock restocked.',
-                                confirmButtonColor: '#3b82f6'
+                                confirmButtonColor: '#3b82f6',
+                                customClass: {
+                                    popup: 'swal2-premium-popup animate-premium-in',
+                                    title: 'swal2-premium-title',
+                                    htmlContainer: 'swal2-premium-content',
+                                    confirmButton: 'swal2-premium-confirm',
+                                    icon: 'premium-icon-bounce'
+                                },
+                                showClass: {
+                                    popup: 'animate-premium-in'
+                                }
                             });
                             window.location.href = '/sale-returns';
                         } else {

@@ -45,6 +45,27 @@ public class SalesService {
         return toResponse(sale);
     }
 
+    public SalesSummaryResponse getSalesSummary(AppUserPrincipal principal) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        LocalDate today = LocalDate.now();
+        LocalDate thirtyDaysAgo = today.minusDays(30);
+
+        long todaySalesCount = saleTransactionRepository.countByPharmacyAndSaleDateBetween(pharmacy, today, today);
+        BigDecimal todaySales = saleTransactionRepository.totalForDay(pharmacy, today);
+        BigDecimal todayReturns = saleReturnRepository.totalForDay(pharmacy, today);
+        BigDecimal todayRevenue = todaySales.subtract(todayReturns);
+        
+        BigDecimal pendingBalance = saleTransactionRepository.totalPendingBalance(pharmacy);
+        long returnsCount30d = saleReturnRepository.countBySale_PharmacyAndReturnDateBetween(pharmacy, thirtyDaysAgo,
+                today);
+
+        return new SalesSummaryResponse(
+                todaySalesCount,
+                todayRevenue,
+                pendingBalance != null ? pendingBalance : BigDecimal.ZERO,
+                returnsCount30d);
+    }
+
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST','STAFF')")
     public SaleResponse createSale(AppUserPrincipal principal, SaleRequest request) {
@@ -57,7 +78,7 @@ public class SalesService {
         SaleTransaction sale = new SaleTransaction();
         sale.setPharmacy(pharmacy);
         sale.setCreatedBy(currentUser);
-        sale.setSaleNumber(nextSaleNumber(pharmacy.getName()));
+        sale.setSaleNumber(nextSaleNumber(pharmacy));
         sale.setSaleDate(request.saleDate() == null ? LocalDate.now() : request.saleDate());
         sale.setPaymentMethod(request.paymentMethod());
         if (request.dueDate() != null) {
@@ -178,11 +199,12 @@ public class SalesService {
         SaleReturn saleReturn = new SaleReturn();
         saleReturn.setSale(sale);
         saleReturn.setCreatedBy(currentUser);
-        saleReturn.setReturnNumber(nextReturnNumber(pharmacy.getName()));
+        saleReturn.setReturnNumber(nextReturnNumber(pharmacy));
         saleReturn.setReturnDate(request.returnDate() != null ? request.returnDate() : LocalDate.now());
         saleReturn.setReason(request.reason() != null ? request.reason().trim() : null);
 
         BigDecimal totalRefund = BigDecimal.ZERO;
+        List<String> summaryParts = new java.util.ArrayList<>();
         for (SaleReturnItemRequest itemReq : request.items()) {
             SaleItem saleItem = sale.getItems().stream()
                     .filter(i -> i.getId().equals(itemReq.saleItemId()))
@@ -202,7 +224,8 @@ public class SalesService {
             }
             BigDecimal lineTotal = saleItem.getUnitPrice().multiply(BigDecimal.valueOf(itemReq.quantityReturned()));
             totalRefund = totalRefund.add(lineTotal);
-
+            summaryParts.add(saleItem.getMedicine().getName() + " x " + itemReq.quantityReturned());
+            
             SaleReturnItem ri = new SaleReturnItem();
             ri.setSaleReturn(saleReturn);
             ri.setSaleItem(saleItem);
@@ -230,24 +253,28 @@ public class SalesService {
             }
         }
         saleReturn.setTotalAmount(totalRefund);
+        saleReturn.setItemsSummary(String.join(", ", summaryParts));
         saleReturnRepository.save(saleReturn);
+
+        // Adjust original sale balance
+        sale.setTotal(sale.getTotal().subtract(totalRefund));
+        // If amountPaid > new total, cap it (refund given)
+        if (sale.getAmountPaid().compareTo(sale.getTotal()) > 0) {
+            sale.setAmountPaid(sale.getTotal());
+        }
+        saleTransactionRepository.save(sale);
+
         return toReturnResponse(saleReturn);
     }
 
-    private String nextSaleNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String pharmacyCode = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (pharmacyCode.length() > 4)
-            pharmacyCode = pharmacyCode.substring(0, 4);
-        return "S-" + pharmacyCode + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String nextSaleNumber(Pharmacy pharmacy) {
+        long count = saleTransactionRepository.countByPharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
-    private String nextReturnNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String code = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (code.length() > 4)
-            code = code.substring(0, 4);
-        return "SR-" + code + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String nextReturnNumber(Pharmacy pharmacy) {
+        long count = saleReturnRepository.countBySale_Pharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
     private SaleResponse toResponse(SaleTransaction sale) {
@@ -319,6 +346,7 @@ public class SalesService {
                 r.getCreatedAt(),
                 r.getSale().getId(),
                 r.getSale().getSaleNumber(),
+                r.getItemsSummary() != null ? r.getItemsSummary() : "N/A",
                 items);
     }
 }

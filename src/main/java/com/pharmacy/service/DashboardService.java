@@ -7,6 +7,7 @@ import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PrescriptionRepository;
+import com.pharmacy.repository.SaleReturnRepository;
 import com.pharmacy.repository.SaleTransactionRepository;
 import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
@@ -27,6 +28,7 @@ public class DashboardService {
         private final StockBatchRepository stockBatchRepository;
         private final PrescriptionRepository prescriptionRepository;
         private final SaleTransactionRepository saleTransactionRepository;
+        private final SaleReturnRepository saleReturnRepository;
         private final PrescriptionService prescriptionService;
         private final SalesService salesService;
 
@@ -36,7 +38,10 @@ public class DashboardService {
 
                 long totalMedicines = medicineRepository.countByPharmacy(pharmacy);
                 long prescriptionsCount = prescriptionRepository.countByPharmacy(pharmacy);
-                BigDecimal todayRevenue = saleTransactionRepository.totalForDay(pharmacy, today);
+                
+                BigDecimal todaySales = saleTransactionRepository.totalForDay(pharmacy, today);
+                BigDecimal todayReturns = saleReturnRepository.totalForDay(pharmacy, today);
+                BigDecimal todayRevenue = todaySales.subtract(todayReturns);
 
                 // Calculate 7-day revenue trend
                 List<DashboardSummaryResponse.DailyRevenue> revenueTrend = new java.util.ArrayList<>();
@@ -44,10 +49,13 @@ public class DashboardService {
                                 .ofPattern("MMM dd");
                 for (int i = 6; i >= 0; i--) {
                         LocalDate date = today.minusDays(i);
-                        BigDecimal dailyTotal = saleTransactionRepository.totalForDay(pharmacy, date);
+                        BigDecimal dailySales = saleTransactionRepository.totalForDay(pharmacy, date);
+                        BigDecimal dailyReturns = saleReturnRepository.totalForDay(pharmacy, date);
+                        BigDecimal netDaily = dailySales.subtract(dailyReturns);
+                        
                         revenueTrend.add(new DashboardSummaryResponse.DailyRevenue(
                                         date.format(labelFormatter),
-                                        dailyTotal));
+                                        netDaily));
                 }
 
                 List<com.pharmacy.dto.MedicineResponse> allMeds = inventoryService.listMedicines(principal);
@@ -81,7 +89,7 @@ public class DashboardService {
 
                 List<SaleResponse> recentSales = salesService.listSales(principal)
                                 .stream()
-                                .limit(10)
+                                .limit(5)
                                 .toList();
 
                 List<DashboardSummaryResponse.TopSellingMedicine> topSellingMedicines = saleTransactionRepository

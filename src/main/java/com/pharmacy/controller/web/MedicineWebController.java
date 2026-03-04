@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -24,7 +25,8 @@ public class MedicineWebController {
     @GetMapping
     public String listMedicines(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
-            Model model) {
+            Model model,
+            HttpServletRequest request) {
         List<MedicineResponse> medicines;
         if (query != null && !query.isEmpty()) {
             medicines = inventoryService.searchMedicines(principal, query);
@@ -46,6 +48,10 @@ public class MedicineWebController {
         model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
         model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicines(principal));
 
+        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+            return "medicines :: medicineList";
+        }
+
         return "medicines";
     }
 
@@ -57,6 +63,44 @@ public class MedicineWebController {
         var stats = inventoryService.getInventoryStats(principal);
         model.addAttribute("lowStockCount", stats.lowStockCount());
         
+        // Add isEdit flag to avoid template exceptions
+        model.addAttribute("isEdit", false);
+        
         return "medicine-form";
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@AuthenticationPrincipal AppUserPrincipal principal,
+            @PathVariable Long id,
+            Model model,
+            HttpServletRequest request) {
+        model.addAttribute("requestURI", request.getRequestURI());
+        
+        MedicineResponse medicine = inventoryService.getMedicine(principal, id);
+        model.addAttribute("medicine", medicine);
+        model.addAttribute("isEdit", true);
+
+        // Add statistics for the navbar badge
+        var stats = inventoryService.getInventoryStats(principal);
+        model.addAttribute("lowStockCount", stats.lowStockCount());
+
+        return "medicine-form";
+    }
+
+    @GetMapping("/{id}")
+    public String getMedicine(@AuthenticationPrincipal AppUserPrincipal principal,
+            @PathVariable Long id,
+            Model model,
+            HttpServletRequest request) {
+        model.addAttribute("requestURI", request.getRequestURI());
+        
+        MedicineResponse medicine = inventoryService.getMedicine(principal, id);
+        model.addAttribute("medicine", medicine);
+
+        // Add statistics for the navbar badge
+        var stats = inventoryService.getInventoryStats(principal);
+        model.addAttribute("lowStockCount", stats.lowStockCount());
+
+        return "medicine-detail";
     }
 }

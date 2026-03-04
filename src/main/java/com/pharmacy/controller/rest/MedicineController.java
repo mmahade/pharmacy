@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,10 +61,18 @@ public class MedicineController {
 
     @Operation(summary = "Create medicine", description = "Adds a new medicine to the pharmacy's catalogue.")
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public MedicineResponse create(@AuthenticationPrincipal AppUserPrincipal principal,
-            @Valid @RequestBody MedicineRequest request) {
+    @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+    public MedicineResponse createMedicine(@AuthenticationPrincipal AppUserPrincipal principal,
+            @RequestBody @Valid MedicineRequest request) {
         return inventoryService.createMedicine(principal, request);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+    public MedicineResponse updateMedicine(@AuthenticationPrincipal AppUserPrincipal principal,
+            @PathVariable Long id,
+            @RequestBody @Valid MedicineRequest request) {
+        return inventoryService.updateMedicine(principal, id, request);
     }
 
     @Operation(summary = "Add stock batch", description = "Adds a new stock batch (with quantities, batch number, and expiry) to an existing medicine.")

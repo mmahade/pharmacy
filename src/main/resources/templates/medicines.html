@@ -84,55 +84,16 @@
             <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                 <div class="flex h-16 items-center gap-4 px-6">
                     <div class="flex-1 flex items-center gap-4">
-                        <div class="relative max-w-md w-full">
+                        <form th:action="@{/medicines}" method="get" class="relative max-w-md w-full">
                             <i data-lucide="search"
                                 class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                            <input type="text" placeholder="Search medicines, prescriptions, customers..."
+                            <input type="text" name="q" th:value="${searchQuery}"
+                                placeholder="Search medicines by name, category, or generic..."
                                 class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
+                        </form>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <div class="text-right mr-2 hidden sm:block">
-                            <p class="text-sm font-medium" th:text="${#authentication.name}">Admin User</p>
-                            <p class="text-xs text-gray-500">Administrator</p>
-                        </div>
-
-                        <button class="relative p-2 rounded-lg hover:bg-gray-100">
-                            <i data-lucide="bell" class="w-5 h-5"></i>
-                            <span th:if="${totalMedicines != null and lowStockCount > 0}"
-                                class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
-                                th:text="${lowStockCount}">5</span>
-                        </button>
-
-                        <div class="relative">
-                            <button id="userMenuBtn" class="p-2 rounded-full hover:bg-gray-100">
-                                <div class="h-8 w-8 rounded-full gradient-blue flex items-center justify-center text-white font-medium text-sm"
-                                    th:text="${#strings.substring(#authentication.name, 0, 1)}">A</div>
-                            </button>
-                            <div id="userMenu"
-                                class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
-                                <div class="p-2">
-                                    <div class="px-3 py-2 text-sm font-medium border-b border-gray-100">My Account</div>
-                                    <a href="/profile"
-                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Profile
-                                        Settings</a>
-                                    <a href="/settings"
-                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Pharmacy
-                                        Settings</a>
-                                    <a href="/preferences"
-                                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Preferences</a>
-                                    <div class="border-t border-gray-100 mt-2 pt-2">
-                                        <form th:action="@{/logout}" method="post">
-                                            <button type="submit"
-                                                class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Log
-                                                out</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div th:replace="~{fragments/navbar :: right_items}"></div>
                 </div>
             </header>
 
@@ -276,93 +237,80 @@
                     </div>
                 </div>
 
-                <!-- Search Section -->
-                <div class="relative max-w-2xl">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                    <form th:action="@{/medicines}" method="get">
-                        <input type="text" name="q" th:value="${searchQuery}"
-                            placeholder="Search medicines by name, category, or manufacturer..."
-                            class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                    </form>
-                </div>
+                <!-- Medicines List -->
+                <div id="medicineListContainer" th:fragment="medicineList" class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-gray-900" 
+                            th:text="${searchQuery != null and !searchQuery.isEmpty() ? 'Search Results for &quot;' + searchQuery + '&quot;' : 'All Medicines'}">
+                            All Medicines
+                        </h3>
+                        <span class="text-sm text-gray-500 font-medium" th:text="${#lists.size(medicines)} + ' items found'">0 items found</span>
+                    </div>
 
-                <!-- Medicines Grid -->
-                <div th:if="${not #lists.isEmpty(medicines)}"
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div th:each="medicine : ${medicines}" class="card overflow-hidden flex flex-col">
-                        <div class="p-6 flex-1">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="flex-1">
-                                    <h3 class="text-xl font-bold text-gray-900" th:text="${medicine.name}">Medicine Name
-                                    </h3>
-                                    <p class="text-sm text-gray-500 font-medium" th:text="${medicine.category}">Category
-                                    </p>
+                    <!-- Grid -->
+                    <div th:if="${not #lists.isEmpty(medicines)}"
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div th:each="medicine : ${medicines}" class="card overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
+                            <div class="p-6 flex-1">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold text-gray-900" th:text="${medicine.name}">Medicine Name</h3>
+                                        <p class="text-sm text-gray-500 font-medium" th:text="${medicine.category}">Category</p>
+                                    </div>
+                                    <span th:if="${medicine.totalStock > medicine.minStock}"
+                                        class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">In Stock</span>
+                                    <span th:if="${medicine.totalStock > 0 and medicine.totalStock <= medicine.minStock}"
+                                        class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">Low Stock</span>
+                                    <span th:if="${medicine.totalStock <= 0}"
+                                        class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">Out of Stock</span>
                                 </div>
-                                <span th:if="${medicine.totalStock > medicine.minStock}"
-                                    class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">In
-                                    Stock</span>
-                                <span th:if="${medicine.totalStock > 0 and medicine.totalStock <= medicine.minStock}"
-                                    class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">Low
-                                    Stock</span>
-                                <span th:if="${medicine.totalStock <= 0}"
-                                    class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">Out of
-                                    Stock</span>
+
+                                <div class="space-y-3 py-4 border-y border-gray-100 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">Manufacturer</span>
+                                        <span class="text-gray-900 font-semibold" th:text="${medicine.manufacturer}">PharmaCo</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">Generic</span>
+                                        <span class="text-gray-900 font-semibold italic" th:text="${medicine.genericName}">Generic</span>
+                                    </div>
+                                    <div th:if="${medicine.earliestExpiry}" class="flex justify-between">
+                                        <span class="text-gray-500">Next Expiry</span>
+                                        <span class="text-gray-900 font-semibold" th:text="${#temporals.format(medicine.earliestExpiry, 'MMM dd, yyyy')}">Jan 01, 2026</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between mt-6">
+                                    <div>
+                                        <p class="text-xs text-gray-500 uppercase font-semibold">Total Stock</p>
+                                        <p class="text-2xl font-bold" th:text="${medicine.totalStock}">0</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-500 uppercase font-semibold">Price</p>
+                                        <p class="text-2xl font-bold text-blue-600" th:text="${'$' + #numbers.formatDecimal(medicine.price, 1, 2)}">$0.00</p>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="space-y-3 py-4 border-y border-gray-100">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Manufacturer</span>
-                                    <span class="text-gray-900 font-semibold"
-                                        th:text="${medicine.manufacturer}">PharmaCo</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Min Stock</span>
-                                    <span class="text-gray-900 font-semibold" th:text="${medicine.minStock}">0</span>
-                                </div>
-                                <div th:if="${medicine.earliestExpiry}" class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Next Expiry</span>
-                                    <span class="text-gray-900 font-semibold"
-                                        th:text="${#temporals.format(medicine.earliestExpiry, 'MMM dd, yyyy')}">Jan 01,
-                                        2026</span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between mt-6">
-                                <div>
-                                    <p class="text-xs text-gray-500 uppercase font-semibold">Total Stock</p>
-                                    <p class="text-2xl font-bold" th:text="${medicine.totalStock}">0</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-xs text-gray-500 uppercase font-semibold">Price</p>
-                                    <p class="text-2xl font-bold text-blue-600"
-                                        th:text="${'$' + #numbers.formatDecimal(medicine.price, 1, 2)}">$0.00</p>
-                                </div>
+                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <a th:href="@{/medicines/{id}(id=${medicine.id})}"
+                                    class="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center justify-between">
+                                    View Details
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </a>
                             </div>
                         </div>
-                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                            <a th:href="@{/medicines/{id}(id=${medicine.id})}"
-                                class="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center justify-between">
-                                View Details
-                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                            </a>
-                        </div>
                     </div>
-                </div>
 
-                <!-- Empty State -->
-                <div th:if="${#lists.isEmpty(medicines)}" class="card py-16 text-center">
-                    <div
-                        class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-                        <i data-lucide="package" class="w-8 h-8"></i>
+                    <!-- Empty State -->
+                    <div th:if="${#lists.isEmpty(medicines)}" class="card py-16 text-center">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                            <i data-lucide="package" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">No medicines found</h3>
+                        <p class="text-gray-500 mt-1 max-w-sm mx-auto"
+                            th:text="${searchQuery != null and !searchQuery.isEmpty() ? 'No medicines match your search &quot;' + searchQuery + '&quot;.' : 'Your medicine inventory is currently empty.'}">
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">No medicines found</h3>
-                    <p class="text-gray-500 mt-1 max-w-sm mx-auto"
-                        th:text="${searchQuery != null ? 'No medicines match your search criteria.' : 'Your medicine inventory is currently empty.'}">
-                    </p>
-                    <button onclick="openModal()" th:if="${searchQuery == null}"
-                        class="inline-flex items-center px-4 py-2 mt-6 gradient-blue text-white font-semibold rounded-lg shadow hover:opacity-90">
-                        Add First Medicine
-                    </button>
                 </div>
                 <!-- Page Information Footer -->
                 <div class="mt-8 bg-white/50 border-t border-slate-200">
@@ -420,6 +368,52 @@
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
+        }
+
+        // Live Search Logic
+        const searchInput = document.querySelector('input[name="q"]');
+        let searchTimeout = null;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value;
+                
+                // Clear existing timeout
+                if (searchTimeout) clearTimeout(searchTimeout);
+                
+                // Debounce search
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
+            });
+            
+            // Prevent form submission
+            searchInput.closest('form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                performSearch(searchInput.value);
+            });
+        }
+
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`/medicines?q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    const container = document.getElementById('medicineListContainer');
+                    if (container) {
+                        container.innerHTML = html;
+                        // Re-initialize icons in the new content
+                        lucide.createIcons();
+                    }
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
         }
 
         // User menu toggle

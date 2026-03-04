@@ -32,6 +32,9 @@ public class SaleReturn {
     @Column(length = 500)
     private String reason;
 
+    @Column(nullable = true)
+    private String itemsSummary;
+
     @Column(nullable = false)
     private Instant createdAt;
 

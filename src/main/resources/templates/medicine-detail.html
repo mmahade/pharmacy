@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${medicine.name + ' - Detail - MediCare'}">Medicine Detail - MediCare</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pharmacy Custom Styles -->
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .gradient-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0/0.07);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('medicines')}"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div class="flex h-16 items-center gap-4 px-6">
+                    <a href="/medicines"
+                        class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to Medicines
+                    </a>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2" th:replace="~{fragments/navbar :: navbar}"></div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-6 md:p-10">
+                <div class="max-w-[1600px] mx-auto space-y-8" th:if="${medicine != null}">
+
+                    <!-- Page Header & Actions -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-slate-200">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest border bg-blue-50 text-blue-600 border-blue-100"
+                                    th:text="${medicine.category}">CATEGORY</span>
+                                <span class="px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest border"
+                                    th:classappend="${medicine.status == 'In Stock'} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'"
+                                    th:text="${medicine.status}">In Stock</span>
+                            </div>
+                            <h2 class="text-5xl font-black tracking-tight text-slate-900 mb-2 truncate" th:text="${medicine.name}">Medicine Name</h2>
+                            <p class="text-slate-500 font-medium text-lg italic" th:if="${medicine.genericName != null}" th:text="${medicine.genericName}">Generic Name</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <a th:href="@{'/inventory/stock-entry?medicineId=' + ${medicine.id}}"
+                                class="inline-flex items-center gap-2 px-6 py-3 gradient-blue text-white rounded-2xl font-bold shadow-xl shadow-blue-200 hover:opacity-90 active:scale-95 transition-all">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                                New Stock Batch
+                            </a>
+                            <a th:href="@{/medicines/{id}/edit(id=${medicine.id})}"
+                               class="p-3 bg-white border border-slate-200 text-slate-400 rounded-2xl hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
+                                <i data-lucide="edit-3" class="w-6 h-6"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Total Inventory -->
+                        <div class="card p-8 border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-24 h-24 gradient-blue opacity-5 -mr-12 -mt-12 rounded-full transition-transform group-hover:scale-125"></div>
+                            <div class="relative">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Inventory</p>
+                                <div class="flex items-end gap-2">
+                                    <h3 class="text-4xl font-black text-slate-900" th:text="${medicine.totalStock}">520</h3>
+                                    <span class="text-slate-400 font-bold mb-1 uppercase text-xs">Units</span>
+                                </div>
+                                <div class="mt-4 flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" th:text="'Min: ' + ${medicine.minStock}">Min: 20</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unit Sell Price -->
+                        <div class="card p-8 border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-24 h-24 gradient-emerald opacity-5 -mr-12 -mt-12 rounded-full transition-transform group-hover:scale-125"></div>
+                            <div class="relative">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Unit Sell Price</p>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-2xl font-black text-emerald-600 mb-0.5">$</span>
+                                    <h3 class="text-4xl font-black text-slate-900" th:text="${#numbers.formatDecimal(medicine.price, 1, 2)}">12.50</h3>
+                                </div>
+                                <p class="mt-4 text-xs font-bold text-slate-400">Regular Retail Price</p>
+                            </div>
+                        </div>
+
+                        <!-- Manufacturer -->
+                        <div class="card p-8 border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-24 h-24 gradient-indigo opacity-5 -mr-12 -mt-12 rounded-full transition-transform group-hover:scale-125"></div>
+                            <div class="relative">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Manufacturer</p>
+                                <h3 class="text-xl font-black text-slate-900 line-clamp-2" th:text="${medicine.manufacturer}">Pfizer Pharmaceuticals</h3>
+                                <p class="mt-4 text-xs font-bold text-slate-400">Verified Supplier</p>
+                            </div>
+                        </div>
+
+                        <!-- Strength/Form -->
+                        <div class="card p-8 border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500 opacity-5 -mr-12 -mt-12 rounded-full transition-transform group-hover:scale-125"></div>
+                            <div class="relative">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Medical Spec</p>
+                                <div class="flex items-center gap-3">
+                                    <div class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-xl font-black text-sm border border-amber-100" th:text="${medicine.strength != null ? medicine.strength : 'N/A'}">500mg</div>
+                                    <div class="px-3 py-1.5 bg-slate-50 text-slate-700 rounded-xl font-black text-sm border border-slate-100" th:text="${medicine.dosageForm != null ? medicine.dosageForm : 'N/A'}">Tablet</div>
+                                </div>
+                                <p class="mt-4 text-xs font-bold text-slate-400">Dosage details</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Sections -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-white">
+                        
+                        <!-- Batches Section -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="card border border-slate-100 overflow-hidden">
+                                <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                    <div class="flex items-center gap-3 text-slate-900">
+                                        <div class="w-10 h-10 rounded-xl gradient-blue text-white flex items-center justify-center">
+                                            <i data-lucide="layers" class="w-5 h-5"></i>
+                                        </div>
+                                        <h3 class="font-black text-lg">Inventory Batches</h3>
+                                    </div>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest" th:text="${#lists.size(medicine.batches)} + ' ACTIVE BATCHES'">0 Batches</span>
+                                </div>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                                            <tr>
+                                                <th class="px-8 py-4 text-left">Batch Number</th>
+                                                <th class="px-6 py-4 text-center">Expiry Date</th>
+                                                <th class="px-6 py-4 text-center">Cost Price</th>
+                                                <th class="px-6 py-4 text-center">Stock Level</th>
+                                                <th class="px-8 py-4 text-right">Progress</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-slate-900 font-medium">
+                                            <tr th:each="batch : ${medicine.batches}" class="hover:bg-slate-50/50 transition-colors">
+                                                <td class="px-8 py-5">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="font-black text-slate-800" th:text="${batch.batchNumber}">B-1023</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 text-center">
+                                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-lg shadow-sm"
+                                                         th:classappend="${batch.expiryDate.isBefore(#temporals.createNow().toLocalDate().plusDays(30))} ? 'text-rose-600 border-rose-100' : ''">
+                                                        <i data-lucide="calendar" class="w-3.5 h-3.5 opacity-40"></i>
+                                                        <span class="font-bold text-sm" th:text="${#temporals.format(batch.expiryDate, 'MMM dd, yyyy')}">Mar 12, 2026</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 text-center">
+                                                    <span class="text-slate-400 font-bold">$</span>
+                                                    <span class="font-black text-slate-700" th:text="${#numbers.formatDecimal(batch.unitCostPrice, 1, 2)}">8.50</span>
+                                                </td>
+                                                <td class="px-6 py-5 text-center font-black text-slate-900" th:text="${batch.quantity}">120</td>
+                                                <td class="px-8 py-5 text-right min-w-[150px]">
+                                                    <div class="flex items-center justify-end gap-3">
+                                                        <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden max-w-[100px]">
+                                                            <div class="h-full gradient-blue" th:style="'width: ' + (${batch.quantity} * 100 / ${medicine.totalStock}) + '%'"></div>
+                                                        </div>
+                                                        <span class="text-[10px] font-black text-slate-400" th:text="${#numbers.formatPercent(batch.quantity * 1.0 / medicine.totalStock, 1, 0)}">20%</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(medicine.batches)}">
+                                                <td colspan="5" class="px-8 py-12 text-center text-slate-400 font-medium italic">
+                                                    No stock batches registered for this medicine.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Info -->
+                        <div class="space-y-6">
+                            <!-- About Card -->
+                            <div class="card border border-slate-100 p-8 shadow-sm text-slate-900">
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Product Description</h4>
+                                <p class="text-slate-600 leading-relaxed font-medium" th:text="${medicine.description != null ? medicine.description : 'No description available for this medicine.'}">Medicine description text goes here.</p>
+                                
+                                <div class="mt-10 pt-8 border-t border-slate-100 grid grid-cols-2 gap-6">
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Batches</p>
+                                        <p class="text-2xl font-black text-slate-900" th:text="${#lists.size(medicine.batches)}">0</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Category</p>
+                                        <p class="text-2xl font-black text-slate-900 line-clamp-1" th:text="${medicine.category}">Analgesic</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Analytics Preview Card -->
+                            <div class="card gradient-blue p-8 shadow-2xl shadow-blue-200">
+                                <div class="flex items-start justify-between mb-8">
+                                    <div class="w-14 h-14 rounded-2xl bg-white/10 text-white flex items-center justify-center">
+                                        <i data-lucide="trending-up" class="w-7 h-7"></i>
+                                    </div>
+                                    <span class="px-3 py-1 bg-emerald-400 text-[10px] font-black text-emerald-950 rounded-lg uppercase tracking-wider">Fast Moving</span>
+                                </div>
+                                <h4 class="text-white text-xl font-black mb-2">Inventory Health</h4>
+                                <p class="text-blue-100 text-sm font-medium mb-10 leading-relaxed">This product is currently maintaining healthy stock levels across multiple batches.</p>
+                                <div class="bg-white/10 rounded-2xl p-5 border border-white/10">
+                                    <p class="text-[10px] font-black text-blue-200 uppercase tracking-widest mb-2 text-center">Stock Utilization</p>
+                                    <div class="w-full h-3 bg-white/20 rounded-full overflow-hidden">
+                                        <div class="h-full bg-white" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medicine Not Found -->
+                <div class="w-full py-20 text-center" th:if="${medicine == null}">
+                    <div class="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mx-auto mb-8 shadow-inner">
+                        <i data-lucide="pill" class="w-12 h-12"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900">Product Entry Not Found</h2>
+                    <p class="text-slate-500 mt-3 text-lg font-medium">The medicine registry entry might have been archive or deleted.</p>
+                    <a href="/medicines"
+                        class="mt-10 inline-flex items-center gap-3 px-8 py-4 gradient-blue text-white rounded-2xl font-black shadow-xl shadow-blue-100 transition-all hover:opacity-90 active:scale-95">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        Return to Catalogue
+                    </a>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer th:replace="~{fragments/footer :: footer}" class="mt-auto"></footer>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

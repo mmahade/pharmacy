@@ -13,6 +13,8 @@ public interface PurchaseReturnRepository extends JpaRepository<PurchaseReturn, 
 
     Optional<PurchaseReturn> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
 
+    long countByPharmacy(Pharmacy pharmacy);
+
     List<PurchaseReturn> findByPurchaseOrder_PharmacyAndReturnDateBetweenOrderByReturnDateDesc(Pharmacy pharmacy,
             LocalDate start, LocalDate end);
 

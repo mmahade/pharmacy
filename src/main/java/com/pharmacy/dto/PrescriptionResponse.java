@@ -14,5 +14,6 @@ public record PrescriptionResponse(
         LocalDate prescriptionDate,
         PrescriptionStatus status,
         BigDecimal totalAmount,
+        BigDecimal amountPaid,
         List<PrescriptionItemResponse> items) {
 }

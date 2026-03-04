@@ -1,5 +1,6 @@
 package com.pharmacy.service;
 
+import com.pharmacy.dto.PrescriptionCompleteRequest;
 import com.pharmacy.dto.PrescriptionItemRequest;
 import com.pharmacy.dto.PrescriptionItemResponse;
 import com.pharmacy.dto.PrescriptionRequest;
@@ -41,6 +42,14 @@ public class PrescriptionService {
                 .toList();
     }
 
+    public List<PrescriptionResponse> searchPrescriptions(AppUserPrincipal principal, String query) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        return prescriptionRepository.searchByPharmacy(pharmacy, query)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public PrescriptionResponse getPrescription(AppUserPrincipal principal, Long id) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         Prescription prescription = prescriptionRepository.findByIdAndPharmacy(id, pharmacy)
@@ -57,11 +66,10 @@ public class PrescriptionService {
         Prescription prescription = new Prescription();
         prescription.setPharmacy(pharmacy);
         prescription.setCreatedBy(currentUser);
-        prescription.setPrescriptionNumber(nextPrescriptionNumber(pharmacy.getName()));
+        prescription.setPrescriptionNumber(nextPrescriptionNumber(pharmacy));
         prescription.setPatientName(request.patientName().trim());
         prescription.setDoctorName(request.doctorName().trim());
-        prescription
-                .setPrescriptionDate(request.prescriptionDate() == null ? LocalDate.now() : request.prescriptionDate());
+        prescription.setPrescriptionDate(request.prescriptionDate() == null ? LocalDate.now() : request.prescriptionDate());
         prescription.setStatus(request.status());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -84,20 +92,26 @@ public class PrescriptionService {
             prescription.getItems().add(item);
         }
         prescription.setTotalAmount(totalAmount);
-        return toResponse(prescriptionRepository.save(prescription));
+        Prescription saved = prescriptionRepository.save(prescription);
+
+        if (saved.getStatus() == PrescriptionStatus.COMPLETED) {
+            createSaleFromPrescription(principal, saved, 
+                request.paymentMethod() != null ? request.paymentMethod() : PaymentMethod.CASH,
+                request.amountPaid() != null ? request.amountPaid() : totalAmount,
+                request.paymentReference(),
+                request.dueDate());
+        }
+
+        return toResponse(saved);
     }
 
     /**
-     * Marks prescription as COMPLETED and deducts quantities from inventory (full
-     * lifecycle).
-     * Idempotent: if already COMPLETED, returns current state without deducting
-     * again.
+     * Marks prescription as COMPLETED and deducts quantities from inventory.
      */
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
-    public PrescriptionResponse completePrescription(AppUserPrincipal principal, Long prescriptionId) {
+    public PrescriptionResponse completePrescription(AppUserPrincipal principal, Long prescriptionId, PrescriptionCompleteRequest request) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-        UserAccount currentUser = tenantAccessService.currentUser(principal);
         Prescription prescription = prescriptionRepository.findByIdAndPharmacy(prescriptionId, pharmacy)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found"));
 
@@ -105,6 +119,7 @@ public class PrescriptionService {
             return toResponse(prescription);
         }
 
+        // Validate stock for all items first
         for (PrescriptionItem item : prescription.getItems()) {
             Medicine medicine = item.getMedicine();
             int available = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine)
@@ -115,8 +130,18 @@ public class PrescriptionService {
                                 + ", available " + available);
             }
         }
+
         prescription.setStatus(PrescriptionStatus.COMPLETED);
         prescriptionRepository.save(prescription);
+
+        createSaleFromPrescription(principal, prescription, request.paymentMethod(), request.amountPaid(), request.paymentReference(), request.dueDate());
+
+        return toResponse(prescription);
+    }
+
+    private void createSaleFromPrescription(AppUserPrincipal principal, Prescription prescription, PaymentMethod method, BigDecimal amountPaid, String reference, LocalDate dueDate) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        UserAccount currentUser = tenantAccessService.currentUser(principal);
 
         SaleTransaction sale = new SaleTransaction();
         sale.setPharmacy(pharmacy);
@@ -124,28 +149,32 @@ public class PrescriptionService {
         sale.setPrescription(prescription);
         sale.setSaleNumber(nextSaleNumber(pharmacy.getName()));
         sale.setSaleDate(LocalDate.now());
-        sale.setPaymentMethod(PaymentMethod.CASH);
+        sale.setPaymentMethod(method);
         sale.setTotal(prescription.getTotalAmount());
-        sale.setAmountPaid(prescription.getTotalAmount());
+        sale.setAmountPaid(amountPaid != null ? amountPaid : BigDecimal.ZERO);
+        sale.setDueDate(dueDate);
+        
         List<String> summaryParts = new ArrayList<>();
         for (PrescriptionItem pi : prescription.getItems()) {
             Medicine medicine = pi.getMedicine();
             List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
             int remaining = pi.getQuantity();
+            
             SaleItem si = new SaleItem();
             si.setSale(sale);
             si.setMedicine(medicine);
             si.setQuantity(pi.getQuantity());
             si.setUnitPrice(pi.getUnitPrice());
             si.setLineTotal(pi.getLineTotal());
+            
             for (StockBatch batch : batches) {
-                if (remaining <= 0)
-                    break;
+                if (remaining <= 0) break;
                 int take = Math.min(remaining, batch.getQuantity());
-                if (take <= 0)
-                    continue;
+                if (take <= 0) continue;
+                
                 batch.setQuantity(batch.getQuantity() - take);
                 stockBatchRepository.save(batch);
+                
                 SaleItemAllocation alloc = new SaleItemAllocation();
                 alloc.setSaleItem(si);
                 alloc.setStockBatch(batch);
@@ -157,14 +186,17 @@ public class PrescriptionService {
             summaryParts.add(medicine.getName() + " x " + pi.getQuantity());
         }
         sale.setItemsSummary(String.join(", ", summaryParts));
-        SalePayment payment = new SalePayment();
-        payment.setSale(sale);
-        payment.setAmount(prescription.getTotalAmount());
-        payment.setPaymentMethod(PaymentMethod.CASH);
-        sale.getPayments().add(payment);
-        saleTransactionRepository.save(sale);
 
-        return toResponse(prescription);
+        if (sale.getAmountPaid().compareTo(BigDecimal.ZERO) > 0) {
+            SalePayment payment = new SalePayment();
+            payment.setSale(sale);
+            payment.setAmount(sale.getAmountPaid());
+            payment.setPaymentMethod(method);
+            payment.setReference(reference);
+            sale.getPayments().add(payment);
+        }
+        
+        saleTransactionRepository.save(sale);
     }
 
     private String nextSaleNumber(String pharmacyName) {
@@ -176,13 +208,9 @@ public class PrescriptionService {
         return "S-" + pharmacyCode + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
     }
 
-    private String nextPrescriptionNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String pharmacyCode = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (pharmacyCode.length() > 4) {
-            pharmacyCode = pharmacyCode.substring(0, 4);
-        }
-        return "RX-" + pharmacyCode + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String nextPrescriptionNumber(Pharmacy pharmacy) {
+        long count = prescriptionRepository.countByPharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
     private PrescriptionResponse toResponse(Prescription prescription) {
@@ -195,6 +223,10 @@ public class PrescriptionService {
                         pi.getUnitPrice(),
                         pi.getLineTotal()))
                 .toList();
+        BigDecimal amountPaid = saleTransactionRepository.findByPrescription(prescription)
+                .map(SaleTransaction::getAmountPaid)
+                .orElse(BigDecimal.ZERO);
+
         return new PrescriptionResponse(
                 prescription.getId(),
                 prescription.getPrescriptionNumber(),
@@ -203,6 +235,7 @@ public class PrescriptionService {
                 prescription.getPrescriptionDate(),
                 prescription.getStatus(),
                 prescription.getTotalAmount(),
+                amountPaid,
                 items);
     }
 }

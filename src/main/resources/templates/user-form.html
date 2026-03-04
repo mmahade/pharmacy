@@ -395,7 +395,15 @@
                                 text: 'The member account has been successfully synchronized.',
                                 showConfirmButton: false,
                                 timer: 2000,
-                                customClass: { popup: 'rounded-[2rem]' }
+                                customClass: {
+                                    popup: 'swal2-premium-popup animate-premium-in shadow-emerald-200/50',
+                                    title: 'swal2-premium-title',
+                                    htmlContainer: 'swal2-premium-content',
+                                    icon: 'premium-icon-bounce text-emerald-500'
+                                },
+                                showClass: {
+                                    popup: 'animate-premium-in'
+                                }
                             }).then(() => {
                                 window.location.href = '/users';
                             });
@@ -405,7 +413,12 @@
                                 title: 'Entry Error',
                                 text: error.message || 'Validation failed. Please verify credentials.',
                                 icon: 'error',
-                                customClass: { popup: 'rounded-[2rem]' }
+                                customClass: {
+                                    popup: 'swal2-premium-popup animate-premium-in shadow-rose-200/50',
+                                    title: 'swal2-premium-title',
+                                    htmlContainer: 'swal2-premium-content',
+                                    confirmButton: 'swal2-premium-confirm bg-rose-600 shadow-rose-200 hover:bg-rose-700'
+                                }
                             });
                         }
                     } catch (e) {
@@ -413,7 +426,12 @@
                             title: 'Network Fail',
                             text: 'Unable to communicate with the registry system.',
                             icon: 'error',
-                            customClass: { popup: 'rounded-[2rem]' }
+                            customClass: {
+                                popup: 'swal2-premium-popup animate-premium-in shadow-rose-200/50',
+                                title: 'swal2-premium-title',
+                                htmlContainer: 'swal2-premium-content',
+                                confirmButton: 'swal2-premium-confirm bg-rose-600 shadow-rose-200 hover:bg-rose-700'
+                            }
                         });
                     } finally {
                         this.loading = false;
