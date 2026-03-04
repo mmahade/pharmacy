@@ -3,6 +3,7 @@ package com.pharmacy.repository;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.SaleTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -35,4 +36,16 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
                 .map(SaleTransaction::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    @org.springframework.data.jpa.repository.Query("SELECT " +
+            "si.medicine.name AS medicineName, " +
+            "SUM(si.quantity) AS totalQuantity, " +
+            "SUM(si.lineTotal) AS totalRevenue " +
+            "FROM SaleItem si " +
+            "WHERE si.sale.pharmacy = :pharmacy " +
+            "GROUP BY si.medicine.id, si.medicine.name " +
+            "ORDER BY SUM(si.quantity) DESC")
+    List<TopSellingMedicineProjection> findTopSellingMedicines(
+            @org.springframework.data.repository.query.Param("pharmacy") Pharmacy pharmacy,
+            org.springframework.data.domain.Pageable pageable);
 }

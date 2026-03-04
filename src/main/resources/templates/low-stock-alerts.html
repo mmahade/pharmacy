@@ -5,10 +5,22 @@
 <head>
     <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
     <title>Low Stock Alerts - MediCare</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
-    <div layout:fragment="content" class="p-6 space-y-6">
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+    <div layout:fragment="content" class="p-6 w-full space-y-6">
         <!-- Page Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -91,6 +103,17 @@
                 </div>
             </div>
         </div>
+
+        <th:block layout:fragment="extra-js">
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                // Ensure Lucide icons render inside this page content
+                document.addEventListener('DOMContentLoaded', () => {
+                    lucide.createIcons();
+                });
+                /*]]>*/
+            </script>
+        </th:block>
     </div>
 
     <th:block layout:fragment="extra-css">
@@ -101,6 +124,7 @@
             }
         </style>
     </th:block>
+</div>
 </body>
 
 </html>

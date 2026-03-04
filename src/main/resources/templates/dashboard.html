@@ -377,67 +377,30 @@
                                 <i data-lucide="trending-up" class="w-5 h-5"></i>
                                 Top Selling Medicines
                             </h3>
-                            <div class="space-y-5">
-                                <div>
+
+                            <div th:if="${summary.topSellingMedicines != null and !summary.topSellingMedicines.isEmpty()}"
+                                class="space-y-5">
+                                <div th:each="med, iterStat : ${summary.topSellingMedicines}">
                                     <div class="flex items-center justify-between text-sm mb-2">
-                                        <span class="font-medium">Paracetamol 500mg</span>
-                                        <span class="text-gray-600">234 units</span>
+                                        <span class="font-medium" th:text="${med.medicineName}">Paracetamol 500mg</span>
+                                        <span class="text-gray-600" th:text="${med.totalQuantity} + ' units'">234
+                                            units</span>
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-blue-500" style="width: 100%"></div>
+                                            <div class="h-full bg-blue-500"
+                                                th:style="'width: ' + (${iterStat.first} ? 100 : (${med.totalQuantity} * 100.0 / ${summary.topSellingMedicines[0].totalQuantity})) + '%'">
+                                            </div>
                                         </div>
-                                        <span class="text-sm font-medium text-green-600">$2,340</span>
+                                        <span class="text-sm font-medium text-green-600"
+                                            th:text="'$' + ${#numbers.formatDecimal(med.totalRevenue, 1, 2)}">$2,340</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <div class="flex items-center justify-between text-sm mb-2">
-                                        <span class="font-medium">Amoxicillin 500mg</span>
-                                        <span class="text-gray-600">189 units</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-blue-500" style="width: 81%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-green-600">$3,780</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between text-sm mb-2">
-                                        <span class="font-medium">Ibuprofen 400mg</span>
-                                        <span class="text-gray-600">156 units</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-blue-500" style="width: 67%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-green-600">$1,872</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between text-sm mb-2">
-                                        <span class="font-medium">Omeprazole 20mg</span>
-                                        <span class="text-gray-600">145 units</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-blue-500" style="width: 62%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-green-600">$2,175</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between text-sm mb-2">
-                                        <span class="font-medium">Metformin 500mg</span>
-                                        <span class="text-gray-600">123 units</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-blue-500" style="width: 53%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-green-600">$1,845</span>
-                                    </div>
-                                </div>
+                            </div>
+
+                            <div th:if="${summary.topSellingMedicines == null or summary.topSellingMedicines.isEmpty()}"
+                                class="text-center text-sm text-gray-500 py-6">
+                                No sales data available.
                             </div>
                         </div>
                     </div>

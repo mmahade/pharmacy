@@ -173,36 +173,50 @@
                     <div class="flex-1 overflow-y-auto p-8 space-y-4">
                         <template x-for="(item, index) in cart" :key="item.id">
                             <div
-                                class="group p-5 bg-slate-50 border border-slate-100 rounded-3xl transition-all hover:bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/50">
-                                <div class="flex items-start justify-between mb-4">
-                                    <div>
-                                        <h4 class="font-bold text-slate-900 leading-tight mb-1" x-text="item.name"></h4>
-                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
-                                            x-text="formatCurrency(item.price) + ' / unit'"></p>
+                                class="group relative bg-white border border-slate-200 hover:border-blue-300 rounded-2xl transition-all hover:shadow-lg hover:shadow-blue-900/5 overflow-hidden">
+
+                                <!-- Delete Button (Visible on hover) -->
+                                <button @click="removeFromCart(index)"
+                                    class="absolute top-3 right-3 p-1.5 text-slate-300 hover:text-white hover:bg-rose-500 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                                    title="Remove Item">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+
+                                <div class="p-4 flex gap-4">
+                                    <!-- Item Details -->
+                                    <div class="flex-1 min-w-0 pr-6">
+                                        <h4 class="font-bold text-slate-800 text-sm leading-tight truncate mb-1"
+                                            x-text="item.name"></h4>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-slate-400"
+                                                x-text="formatCurrency(item.price)"></span>
+                                            <span
+                                                class="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1.5 py-0.5 bg-slate-50 rounded-md">Each</span>
+                                        </div>
                                     </div>
-                                    <button @click="removeFromCart(index)"
-                                        class="p-2 text-slate-300 hover:text-rose-500 transition-colors">
-                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <div
-                                        class="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
-                                        <button @click="updateQuantity(index, -1)"
-                                            class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
-                                            <i data-lucide="minus" class="w-4 h-4 text-slate-400"></i>
-                                        </button>
-                                        <input type="number" x-model.number="item.quantity"
-                                            @input="validateQuantity(index)"
-                                            class="w-12 text-center font-bold text-slate-900 outline-none bg-transparent">
-                                        <button @click="updateQuantity(index, 1)"
-                                            class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
-                                            <i data-lucide="plus" class="w-4 h-4 text-slate-400"></i>
-                                        </button>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-lg font-black text-slate-900"
-                                            x-text="formatCurrency(item.price * item.quantity)"></span>
+
+                                    <!-- Controls and Total -->
+                                    <div class="flex flex-col items-end justify-between gap-3">
+                                        <div class="text-right mt-0.5">
+                                            <span class="text-base font-black text-blue-600 tracking-tight"
+                                                x-text="formatCurrency(item.price * item.quantity)"></span>
+                                        </div>
+
+                                        <!-- Quantity Control -->
+                                        <div
+                                            class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 w-24">
+                                            <button @click="updateQuantity(index, -1)"
+                                                class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm rounded-md transition-all active:scale-95">
+                                                <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                            <input type="number" x-model.number="item.quantity"
+                                                @input="validateQuantity(index)"
+                                                class="w-full text-center text-xs font-bold text-slate-700 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-sm">
+                                            <button @click="updateQuantity(index, 1)"
+                                                class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm rounded-md transition-all active:scale-95">
+                                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

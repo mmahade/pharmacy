@@ -1,10 +1,6 @@
 package com.pharmacy.service;
 
-import com.pharmacy.dto.PurchaseOrderItemRequest;
-import com.pharmacy.dto.PurchaseOrderRequest;
-import com.pharmacy.dto.PurchaseOrderPaymentRequest;
-import com.pharmacy.dto.PurchaseOrderResponse;
-import com.pharmacy.dto.ReceivePurchaseOrderRequest;
+import com.pharmacy.dto.*;
 import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PurchaseOrderRepository;
@@ -176,22 +172,32 @@ public class PurchaseOrderService {
                                 + line.getQuantityOrdered() + " for " + line.getMedicine().getName());
             }
             line.setQuantityReceived(newReceived);
+
             String batchNum = lineReq.batchNumber() != null && !lineReq.batchNumber().isBlank()
                     ? lineReq.batchNumber().trim()
-                    : ("B-" + line.getMedicine().getName().replaceAll("[^A-Za-z0-9]", "").substring(0,
-                            Math.min(10, line.getMedicine().getName().length())) + "-"
-                            + System.currentTimeMillis() % 100000);
+                    : null;
+
+            if (batchNum == null) {
+                String sanitizedName = line.getMedicine().getName().replaceAll("[^A-Za-z0-9]", "");
+                if (sanitizedName.isEmpty()) {
+                    sanitizedName = "MED";
+                }
+                int prefixLength = Math.min(10, sanitizedName.length());
+                String prefix = sanitizedName.substring(0, prefixLength);
+                batchNum = "B-" + prefix + "-" + (System.currentTimeMillis() % 100000);
+            }
             line.setBatchNumber(batchNum);
             Medicine medicine = line.getMedicine();
             LocalDate targetExpiry = lineReq.expiryDate() != null ? lineReq.expiryDate()
                     : line.getPurchaseOrder().getOrderDate().plusYears(2);
 
+            String finalBatchNum = batchNum;
             StockBatch batch = stockBatchRepository.findByMedicineAndExpiryDate(medicine, targetExpiry)
-                    .orElseGet(() -> stockBatchRepository.findByMedicineAndBatchNumber(medicine, batchNum)
+                    .orElseGet(() -> stockBatchRepository.findByMedicineAndBatchNumber(medicine, finalBatchNum)
                             .orElseGet(() -> {
                                 StockBatch b = new StockBatch();
                                 b.setMedicine(medicine);
-                                b.setBatchNumber(batchNum);
+                                b.setBatchNumber(finalBatchNum);
                                 b.setExpiryDate(targetExpiry);
                                 b.setQuantity(0);
                                 b.setUnitCostPrice(line.getUnitCostPrice());
@@ -219,7 +225,7 @@ public class PurchaseOrderService {
 
     private PurchaseOrderResponse toResponse(PurchaseOrder po) {
         var items = po.getItems().stream()
-                .map(i -> new com.pharmacy.dto.PurchaseOrderItemResponse(
+                .map(i -> new PurchaseOrderItemResponse(
                         i.getId(),
                         i.getMedicine().getId(),
                         i.getMedicine().getName(),

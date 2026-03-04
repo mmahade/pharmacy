@@ -14,11 +14,18 @@ public record DashboardSummaryResponse(
                 List<MedicineResponse> lowStock,
                 List<ExpiryAlertItem> expiringSoon,
                 List<PrescriptionResponse> recentPrescriptions,
-                List<SaleResponse> recentSales) {
+                List<SaleResponse> recentSales,
+                List<TopSellingMedicine> topSellingMedicines) {
 
         public record DailyRevenue(
                         String date,
                         BigDecimal amount) {
+        }
+
+        public record TopSellingMedicine(
+                        String medicineName,
+                        Long totalQuantity,
+                        BigDecimal totalRevenue) {
         }
 
         /**

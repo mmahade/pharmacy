@@ -3,7 +3,6 @@ package com.pharmacy.service;
 import com.pharmacy.dto.DashboardSummaryResponse;
 import com.pharmacy.dto.PrescriptionResponse;
 import com.pharmacy.dto.SaleResponse;
-import com.pharmacy.entity.Medicine;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
 import com.pharmacy.repository.MedicineRepository;
@@ -85,6 +84,15 @@ public class DashboardService {
                                 .limit(10)
                                 .toList();
 
+                List<DashboardSummaryResponse.TopSellingMedicine> topSellingMedicines = saleTransactionRepository
+                                .findTopSellingMedicines(pharmacy, org.springframework.data.domain.PageRequest.of(0, 5))
+                                .stream()
+                                .map(p -> new DashboardSummaryResponse.TopSellingMedicine(
+                                                p.getMedicineName(),
+                                                p.getTotalQuantity(),
+                                                p.getTotalRevenue()))
+                                .toList();
+
                 return new DashboardSummaryResponse(
                                 totalMedicines,
                                 prescriptionsCount,
@@ -96,6 +104,7 @@ public class DashboardService {
                                 lowStockMeds,
                                 expiringSoon,
                                 recentPrescriptions,
-                                recentSales);
+                                recentSales,
+                                topSellingMedicines);
         }
 }

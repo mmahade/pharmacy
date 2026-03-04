@@ -6,78 +6,158 @@
     <link rel="icon" type="image/png" th:href="@{/favicon/capsules.png}" />
     <title>Expiry Alerts - MediCare</title>
     <link rel="icon" type="image/png" th:href="@{/favicon/drugstore.png}">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
-    <div layout:fragment="content" class="p-6 space-y-6">
+<div class="flex min-h-screen bg-slate-150">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+
+    <div layout:fragment="content" class="p-6 md:p-8 w-full space-y-6 bg-slate-50 min-h-[calc(100vh-4rem)]">
         <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">Expiry Alerts</h2>
-                <p class="text-gray-500 text-sm">Monitoring batches expiring within the next 30 days.</p>
+        <div th:with="urgentAlerts=${expiryAlerts.?[daysUntilExpiry &lt;= 7]},
+                      upcomingAlerts=${expiryAlerts.?[daysUntilExpiry &gt; 7]}">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-white shadow-md">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Expiry Alerts</h2>
+                        <p class="text-slate-500 text-sm font-medium">
+                            Monitoring medicine batches expiring within the next <span class="font-semibold">30
+                                days</span>.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-sm min-w-[110px]">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total
+                            Alerts</span>
+                        <span class="text-xl font-black text-slate-900" th:text="${expiryAlerts.size()}">0</span>
+                    </div>
+                    <div class="px-4 py-2 bg-red-50 rounded-2xl border border-red-100 shadow-sm min-w-[110px]">
+                        <span class="text-[10px] font-black text-red-500 uppercase tracking-widest block">Urgent
+                            (&lt;= 7d)</span>
+                        <span class="text-base font-black text-red-700" th:text="${urgentAlerts.size()}">0</span>
+                    </div>
+                    <div class="px-4 py-2 bg-amber-50 rounded-2xl border border-amber-100 shadow-sm min-w-[110px]">
+                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block">Upcoming
+                            (&gt; 7d)</span>
+                        <span class="text-base font-black text-amber-700" th:text="${upcomingAlerts.size()}">0</span>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="px-4 py-2 bg-white rounded-xl border border-gray-200 shadow-sm">
-                    <span class="text-xs text-gray-500 block">Total Alerts</span>
-                    <span class="text-lg font-bold text-gray-900" th:text="${expiryAlerts.size()}">0</span>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-500">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-100">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span class="font-semibold text-red-700">Urgent: expires in 7 days or less</span>
+                </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-100">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span class="font-semibold text-amber-700">Upcoming: expires in 8–30 days</span>
                 </div>
             </div>
         </div>
 
         <!-- Alert List -->
         <div class="grid gap-4">
-            <div th:each="alert : ${expiryAlerts}"
-                class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-                <div class="flex items-center gap-5">
-                    <div th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'"
-                        class="w-14 h-14 rounded-2xl flex items-center justify-center">
-                        <i data-lucide="clock" class="w-7 h-7"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-bold text-lg text-gray-900" th:text="${alert.medicineName}">Medicine Name
-                            </h4>
-                            <span th:if="${alert.daysUntilExpiry <= 7}"
-                                class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Urgent</span>
+            <!-- Alerts -->
+            <div th:if="${!#lists.isEmpty(expiryAlerts)}" class="grid gap-4">
+                <div th:each="alert : ${expiryAlerts}"
+                    class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4 group hover:shadow-md hover:border-blue-100 transition-all">
+                    <div class="flex items-start gap-5">
+                        <div th:classappend="${alert.daysUntilExpiry &lt;= 7} ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'"
+                            class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="w-7 h-7"></i>
                         </div>
-                        <p class="text-sm text-gray-600 mt-1">
-                            Batch: <span class="font-mono font-bold" th:text="${alert.batchNumber}">BATCH-001</span> |
-                            Quantity: <span class="font-bold" th:text="${alert.quantity}">0</span>
-                        </p>
-                        <div class="flex items-center gap-2 mt-2">
-                            <span class="text-xs text-gray-500">Expires on:</span>
-                            <span class="text-xs font-bold"
-                                th:classappend="${alert.daysUntilExpiry <= 7} ? 'text-red-600' : 'text-amber-600'"
-                                th:text="${#temporals.format(alert.expiryDate, 'dd MMM yyyy')}">Date</span>
-                            <span class="text-[10px] text-gray-400">•</span>
-                            <span class="text-xs font-bold text-gray-700"
-                                th:text="${alert.daysUntilExpiry} + ' days left'">0 days left</span>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h4 class="font-bold text-lg text-slate-900" th:text="${alert.medicineName}">
+                                    Medicine Name
+                                </h4>
+                                <span th:if="${alert.daysUntilExpiry &lt;= 7}"
+                                    class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                    Urgent
+                                </span>
+                                <span th:if="${alert.daysUntilExpiry &gt; 7}"
+                                    class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                    Upcoming
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mt-1">
+                                Batch:
+                                <span class="font-mono font-bold" th:text="${alert.batchNumber}">BATCH-001</span>
+                                <span class="mx-1 text-slate-300">•</span>
+                                Quantity:
+                                <span class="font-bold" th:text="${alert.quantity}">0</span>
+                            </p>
+                            <div class="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                                <span class="text-slate-500">Expires on</span>
+                                <span class="font-bold"
+                                    th:classappend="${alert.daysUntilExpiry &lt;= 7} ? 'text-red-600' : 'text-amber-600'"
+                                    th:text="${#temporals.format(alert.expiryDate, 'dd MMM yyyy')}">Date</span>
+                                <span class="text-slate-300">•</span>
+                                <span class="font-bold text-slate-700"
+                                    th:text="${alert.daysUntilExpiry} + ' days left'">0 days left</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button
-                        class="px-6 py-2.5 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors">Details</button>
-                    <button
-                        class="px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200">Take
-                        Action</button>
+                    <div class="flex items-center gap-3 md:self-start md:mt-0">
+                        <button type="button"
+                            class="px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-xs md:text-sm font-bold hover:bg-slate-100 transition-colors inline-flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                            Details
+                        </button>
+                        <button type="button"
+                            class="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs md:text-sm font-bold hover:bg-slate-800 transition-colors shadow-md shadow-slate-300 inline-flex items-center gap-2">
+                            <i data-lucide="stethoscope" class="w-4 h-4"></i>
+                            Take Action
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Empty State -->
             <div th:if="${#lists.isEmpty(expiryAlerts)}"
-                class="bg-white border-2 border-dashed border-gray-200 rounded-[2.5rem] p-20 text-center">
-                <div class="flex flex-col items-center gap-4">
+                class="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-12 md:p-20 text-center">
+                <div class="flex flex-col items-center gap-4 max-w-md mx-auto">
                     <div class="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
                         <i data-lucide="check-circle" class="w-10 h-10"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">All batches are safe!</h3>
-                        <p class="text-gray-500">No medicines are expiring within the next 30 days.</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-slate-900">All batches are safe!</h3>
+                        <p class="text-slate-500 text-sm md:text-base">
+                            No medicines are expiring within the next 30 days. Inventory is currently within a safe
+                            window.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <th:block layout:fragment="extra-js">
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                // Ensure Lucide icons render inside this page content
+                document.addEventListener('DOMContentLoaded', () => {
+                    lucide.createIcons();
+                });
+                /*]]>*/
+            </script>
+        </th:block>
     </div>
 
     <th:block layout:fragment="extra-css">
@@ -88,6 +168,7 @@
             }
         </style>
     </th:block>
+</div>
 </body>
 
 </html>
