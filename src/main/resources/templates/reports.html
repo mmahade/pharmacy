@@ -14,12 +14,13 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
 </head>
 
 <body>
 <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <div th:replace="~{fragments/sidebar :: sidebar('report')}"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
     <div layout:fragment="content" class="p-6 md:p-10 space-y-8 max-w-7xl mx-auto"
         x-data="{ activeTab: window.location.hash ? window.location.hash.substring(1) : 'all' }"
         x-init="$watch('activeTab', value => { window.location.hash = value })">

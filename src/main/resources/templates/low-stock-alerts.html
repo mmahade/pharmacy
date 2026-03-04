@@ -14,12 +14,13 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
 </head>
 
 <body>
 <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar('low-stock-alerts')}"></div>
     <div layout:fragment="content" class="p-6 w-full space-y-6">
         <!-- Page Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -116,14 +117,7 @@
         </th:block>
     </div>
 
-    <th:block layout:fragment="extra-css">
-        <style>
-            .active {
-                background-color: #eff6ff !important;
-                color: #1d4ed8 !important;
-            }
-        </style>
-    </th:block>
+    
 </div>
 </body>
 

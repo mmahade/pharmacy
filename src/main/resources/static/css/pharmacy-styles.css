@@ -1124,3 +1124,35 @@ select.input {
 .disabled\:bg-gray-300:disabled {
   background-color: var(--gray-300);
 }
+/* ===================================
+   SIDEBAR STYLES
+   =================================== */
+.sidebar-item {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar-item:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  transform: translateX(4px);
+}
+
+.sidebar-item.active {
+  background-color: var(--blue-50) !important;
+  color: var(--blue-600) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px 0 rgba(59, 130, 246, 0.1) !important;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  height: 80%;
+  width: 4px;
+  background: currentColor;
+  border-radius: 0 4px 4px 0;
+}

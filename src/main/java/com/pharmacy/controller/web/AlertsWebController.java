@@ -20,6 +20,7 @@ public class AlertsWebController {
     public String showAlerts(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
         var expiryAlerts = inventoryService.getExpiryAlerts(principal, 30);
         model.addAttribute("expiryAlerts", expiryAlerts);
+        model.addAttribute("activePage", "expiry-alerts");
 
         var medicines = inventoryService.listMedicines(principal);
         var lowStockCount = medicines.stream().filter(m -> m.totalStock() <= m.minStock()).count();
@@ -36,6 +37,7 @@ public class AlertsWebController {
                 .filter(m -> m.totalStock() <= m.minStock())
                 .toList();
         model.addAttribute("lowStockMedicines", lowStockMedicines);
+        model.addAttribute("activePage", "low-stock-alerts");
         return "low-stock-alerts";
     }
 }

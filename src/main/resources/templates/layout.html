@@ -239,21 +239,10 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
 
-        .sidebar-item {
-            transition: all 0.2s;
-        }
-
-        .sidebar-item:hover {
-            background-color: var(--muted);
-        }
-
-        .sidebar-item.active {
-            background-color: var(--accent);
-            color: var(--primary);
-        }
+        
     </style>
 
-    <th:block layout:fragment="extra-css"></th:block>
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
 </head>
 
 <body class="bg-gray-50">

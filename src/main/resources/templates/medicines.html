@@ -63,16 +63,14 @@
             background-color: #f3f4f6;
         }
 
-        .sidebar-item.active {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-        }
+        
 
         .glass {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(10px);
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
 </head>
 
 <body class="bg-gray-50">
@@ -160,48 +158,60 @@
 
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Medicines</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${totalMedicines}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Active items</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-blue">
-                            <i data-lucide="pill" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Low Stock</p>
-                            <h3 class="text-2xl font-bold text-red-600 mt-1" th:text="${lowStockCount}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Need reordering</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-orange">
-                            <i data-lucide="alert-triangle" class="w-5 h-5 text-white"></i>
+                    <div class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6 flex items-start justify-between">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Medicines</h3>
+                                <div class="text-3xl font-black text-slate-800" th:text="${totalMedicines}">0</div>
+                                <p class="text-xs text-gray-400 mt-1 font-medium">Active items</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="pill" class="w-7 h-7"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Units</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${totalStockUnits}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Total in stock</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-green">
-                            <i data-lucide="package" class="w-5 h-5 text-white"></i>
+                    <div class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100 cursor-pointer" onclick="window.location.href='/alerts/low-stock'">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6 flex items-start justify-between">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Low Stock</h3>
+                                <div class="text-3xl font-black text-red-600" th:text="${lowStockCount}">0</div>
+                                <p class="text-xs text-gray-400 mt-1 font-medium">Need reordering</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Inventory Value</p>
-                            <h3 class="text-2xl font-bold text-blue-600 mt-1"
-                                th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</h3>
-                            <p class="text-xs text-gray-500 mt-1">Estimated value</p>
+                    <div class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6 flex items-start justify-between">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Units</h3>
+                                <div class="text-3xl font-black text-slate-800" th:text="${totalStockUnits}">0</div>
+                                <p class="text-xs text-gray-400 mt-1 font-medium">Total in stock</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="package" class="w-7 h-7"></i>
+                            </div>
                         </div>
-                        <div class="p-2 rounded-lg gradient-purple">
-                            <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
+                    </div>
+
+                    <div class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                        <div class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="p-6 flex items-start justify-between">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Inventory Value</h3>
+                                <div class="text-3xl font-black text-blue-600"
+                                    th:text="${'$' + #numbers.formatDecimal(totalValue, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                                <p class="text-xs text-gray-400 mt-1 font-medium">Estimated value</p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                <i data-lucide="dollar-sign" class="w-7 h-7"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
