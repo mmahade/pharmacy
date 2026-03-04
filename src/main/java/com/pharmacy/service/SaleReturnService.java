@@ -100,27 +100,19 @@ public class SaleReturnService {
 
     private void restockInventory(SaleItem saleItem, int quantity) {
         int toReturn = quantity;
-        // Restock into original batches used for this sale item
         for (SaleItemAllocation alloc : saleItem.getAllocations()) {
             if (toReturn <= 0)
                 break;
 
-            // In a return, we try to put back as much as was taken from this specific
-            // allocation
-            // Note: We don't restore to the allocation itself (that represents history),
-            // but we use its batch reference to restore stock.
-            int canRestoreToThisBatch = Math.min(toReturn,
-                    alloc.getOriginalQuantity() != null ? alloc.getOriginalQuantity() : alloc.getQuantity());
-            // Actually, we can just put it back to the batch.
-            // The constraint is the total returned across all items shouldn't exceed
-            // original sale qty.
-
             StockBatch batch = alloc.getStockBatch();
+            // Since we validated total quantity in the caller,
+            // we can safely restock into the original batch(es).
             batch.setQuantity(batch.getQuantity() + toReturn);
             stockBatchRepository.save(batch);
-            toReturn = 0; // For now, we put all back to the first available batch linked to this item
-            // Better logic: distribute it? Usually, we just put it back to the most recent
-            // or any linked batch.
+
+            // For now we assume the return fits back into the original batch flow.
+            // If it came from multiple batches, we just put it back.
+            toReturn = 0;
         }
     }
 
