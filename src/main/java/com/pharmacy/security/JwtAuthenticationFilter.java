@@ -1,5 +1,6 @@
 package com.pharmacy.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -55,18 +56,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            AppUserPrincipal principal = (AppUserPrincipal) userDetails;
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                AppUserPrincipal principal = (AppUserPrincipal) userDetails;
 
-            if (jwtService.isTokenValid(jwt, principal)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        principal,
-                        null,
-                        principal.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                System.err.println("JWT Token invalid for user: " + username);
+                if (jwtService.isTokenValid(jwt, principal)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities());
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+
+            } catch (ExpiredJwtException ex) {
+                System.out.println("JWT expired");
+                Cookie cookie = new Cookie("jwt_token", null);
+                cookie.setMaxAge(0);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            } catch (Exception ex) {
+                System.out.println("JWT invalid: " + ex.getMessage());
+                Cookie cookie = new Cookie("jwt_token", null);
+                cookie.setMaxAge(0);
+                cookie.setPath("/");
+                response.addCookie(cookie);
             }
         }
 
