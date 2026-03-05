@@ -17,27 +17,53 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-        .input-focus {
-            transition: all 0.3s ease;
-        }
-
-        .input-focus:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            background-color: white;
+        * {
+            font-family: 'Inter', sans-serif;
         }
 
         [x-cloak] {
             display: none !important;
         }
 
-        /* Custom Scrollbar */
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .gradient-green {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .gradient-orange {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        /* Med card hover */
+        .med-card {
+            transition: all 0.2s ease;
+        }
+
+        .med-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgb(59 130 246 / 0.15);
+            border-color: #93c5fd;
+        }
+
+        /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
 
         ::-webkit-scrollbar-track {
@@ -52,11 +78,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #cbd5e1;
         }
+
+        /* Step transition */
+        .step-panel {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Toast */
+        #posToast {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
     </style>
 </head>
 
-<body class="bg-[#f8fafc] text-slate-900 antialiased overflow-hidden" x-data="posSystem()"
-    x-init="initData(initialMedicines)">
+<body class="bg-gray-50 text-slate-900 antialiased" x-data="posSystem()" x-init="initData(initialMedicines)">
 
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
@@ -64,85 +99,115 @@
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col h-screen overflow-hidden">
-            <!-- Navbar -->
+
+            <!-- Header -->
             <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                 <div class="flex h-16 items-center gap-4 px-6">
-                    <!-- Title & Search -->
                     <div class="flex-1 flex items-center gap-6">
-                        <div class="hidden lg:block">
-                            <h2 class="text-xl font-black tracking-tight text-slate-900 leading-none">POS</h2>
+                        <!-- Title -->
+                        <div class="hidden lg:flex items-center gap-3">
+                            <h2 class="text-xl font-bold tracking-tight text-slate-900">Point of Sale</h2>
+                            <!-- Step Indicator -->
+                            <div class="flex items-center gap-1.5 ml-2">
+                                <span
+                                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all"
+                                    :class="step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'">
+                                    <span>1</span>
+                                    <span x-show="step === 1">Cart</span>
+                                </span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-gray-300"></i>
+                                <span
+                                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all"
+                                    :class="step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'">
+                                    <span>2</span>
+                                    <span x-show="step === 2">Payment</span>
+                                </span>
+                            </div>
                         </div>
-                        
-                        <div class="relative group max-w-md w-full">
+
+                        <!-- Search -->
+                        <div class="relative max-w-md w-full" x-show="step === 1">
                             <i data-lucide="search"
-                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                             <input type="text" x-model="searchQuery" @input.debounce.300ms="searchMedicinesServer()"
-                                placeholder="Search medications..."
-                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
+                                placeholder="Search medicines by name or category..."
+                                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm">
                             <div x-show="searching" class="absolute right-3 top-1/2 -translate-y-1/2">
                                 <svg class="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
                                 </svg>
                             </div>
                         </div>
-                    </div>
 
+                        <!-- Back to cart button (shown in step 2) -->
+                        <button x-show="step === 2" @click="step = 1"
+                            class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            Back to Cart
+                        </button>
+                    </div>
                     <div th:replace="~{fragments/navbar :: right_items}"></div>
                 </div>
             </header>
 
-            <main class="flex-1 flex overflow-hidden">
-                <!-- Left Side: Product Selection -->
-                <div class="flex-1 flex flex-col p-8 space-y-6 overflow-hidden">
-                    <div class="flex items-center justify-between">
+            <!-- ═══════════════════════════════════════════════
+                 STEP 1: CART BUILDER
+                 ═══════════════════════════════════════════════ -->
+            <main class="flex-1 flex overflow-hidden step-panel" x-show="step === 1">
+
+                <!-- Left: Medicine Grid -->
+                <div class="flex-1 flex flex-col overflow-hidden p-6">
+                    <div class="flex items-center justify-between mb-4">
                         <div>
-                            <p class="text-slate-500 font-medium">Select medications to add to cart.</p>
+                            <p class="text-gray-500 text-sm">Select medicines to add to the cart.</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Inventory
-                                Status</span>
-                            <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Live
+                                Inventory</span>
+                            <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
                         </div>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <!-- Medicine Cards Grid -->
+                    <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                         <template x-for="medicine in medicines" :key="medicine.id">
                             <button @click="addToCart(medicine)"
-                                class="group p-5 bg-white border border-slate-200 rounded-2xl text-left hover:border-blue-500 hover:shadow-xl transition-all active:scale-[0.98] relative overflow-hidden">
+                                class="med-card group card border border-slate-100 overflow-hidden relative text-left p-0 cursor-pointer active:scale-[0.98]">
+                                <!-- Hover bottom bar -->
                                 <div
-                                    class="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110 group-hover:bg-blue-50">
+                                    class="absolute inset-x-0 bottom-0 h-0.5 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 </div>
-
-                                <div class="relative">
-                                    <div class="flex items-start justify-between mb-4">
+                                <div class="p-5">
+                                    <div class="flex items-start justify-between mb-3">
                                         <div
-                                            class="p-3 bg-slate-50 rounded-2xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                            class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                                             <i data-lucide="pill" class="w-6 h-6"></i>
                                         </div>
                                         <div class="text-right">
-                                            <span
-                                                class="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors"
+                                            <span class="text-xl font-black text-slate-800"
                                                 x-text="formatCurrency(medicine.price)"></span>
-                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                Unit Price</p>
+                                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                                                / unit</p>
                                         </div>
                                     </div>
-                                    <h3 class="font-bold text-slate-800 text-lg mb-1 leading-tight"
-                                        x-text="medicine.name"></h3>
-                                    <p class="text-xs font-medium text-slate-400 mb-4" x-text="medicine.category"></p>
-
-                                    <div class="flex items-center justify-between pt-4 border-t border-slate-50">
-                                        <div class="flex flex-col">
+                                    <h3 class="font-bold text-slate-800 leading-tight mb-0.5" x-text="medicine.name">
+                                    </h3>
+                                    <p class="text-xs font-medium text-gray-400 mb-4" x-text="medicine.category"></p>
+                                    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                        <div>
                                             <span
-                                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Stock</span>
-                                            <span class="text-sm font-bold"
-                                                :class="medicine.totalStock <= 10 ? 'text-rose-500' : 'text-slate-700'"
-                                                x-text="(medicine.totalStock || 0) + ' ' + (medicine.unit || 'units')"></span>
+                                                class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Stock</span>
+                                            <p class="text-sm font-bold"
+                                                :class="medicine.totalStock <= 10 ? 'text-red-600' : 'text-gray-700'"
+                                                x-text="(medicine.totalStock || 0) + ' units'"></p>
                                         </div>
                                         <div
-                                            class="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                            <i data-lucide="plus" class="w-5 h-5"></i>
+                                            class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                            <i data-lucide="plus" class="w-4 h-4"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -150,235 +215,415 @@
                         </template>
 
                         <!-- Empty Results -->
-                        <div x-show="medicines.length === 0 && !searching" class="col-span-full py-20 text-center">
+                        <div x-show="medicines.length === 0 && !searching" class="col-span-full py-20 text-center card">
                             <div
-                                class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                                <i data-lucide="search-x" class="w-10 h-10"></i>
+                                class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                <i data-lucide="search-x" class="w-8 h-8"></i>
                             </div>
-                            <h3 class="text-xl font-bold text-slate-900">No medications found</h3>
-                            <p class="text-slate-400 mt-2">Try adjusting your search terms.</p>
+                            <h3 class="text-lg font-bold text-gray-900">No medicines found</h3>
+                            <p class="text-gray-400 text-sm mt-1">Try adjusting your search terms.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Side: Cart & Checkout -->
-                <div class="w-[450px] bg-white border-l border-slate-200 flex flex-col shadow-2xl">
-                    <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <!-- Right: Cart Panel -->
+                <div class="w-[420px] bg-white border-l border-gray-200 flex flex-col shadow-sm">
+
+                    <!-- Cart Header -->
+                    <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
                         <div class="flex items-center gap-3">
-                            <div
-                                class="h-10 w-10 rounded-xl gradient-blue text-white flex items-center justify-center shadow-md">
+                            <div class="w-10 h-10 rounded-xl gradient-blue text-white flex items-center justify-center">
                                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                             </div>
-                            <h2 class="text-xl font-bold text-slate-900">Current Order</h2>
+                            <div>
+                                <h2 class="text-base font-bold text-gray-900">Current Order</h2>
+                                <p class="text-xs text-gray-400 font-medium" x-text="cart.length + ' item(s) added'">
+                                </p>
+                            </div>
                         </div>
-                        <span
-                            class="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-black text-slate-500"
-                            x-text="cart.length + ' Items'"></span>
+                        <button @click="clearCart()" x-show="cart.length > 0"
+                            class="text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors">
+                            Clear All
+                        </button>
                     </div>
 
-                    <!-- Cart Items -->
-                    <div class="flex-1 overflow-y-auto p-8 space-y-4">
+                    <!-- Cart Items (scrollable) -->
+                    <div class="flex-1 overflow-y-auto p-4 space-y-3">
                         <template x-for="(item, index) in cart" :key="item.id">
                             <div
-                                class="group relative bg-white border border-slate-200 hover:border-blue-300 rounded-2xl transition-all hover:shadow-lg hover:shadow-blue-900/5 overflow-hidden">
+                                class="group flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/30 transition-all relative">
 
-                                <!-- Delete Button (Visible on hover) -->
-                                <button @click="removeFromCart(index)"
-                                    class="absolute top-3 right-3 p-1.5 text-slate-300 hover:text-white hover:bg-rose-500 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                                    title="Remove Item">
-                                    <i data-lucide="x" class="w-4 h-4"></i>
-                                </button>
-
-                                <div class="p-4 flex gap-4">
-                                    <!-- Item Details -->
-                                    <div class="flex-1 min-w-0 pr-6">
-                                        <h4 class="font-bold text-slate-800 text-sm leading-tight truncate mb-1"
-                                            x-text="item.name"></h4>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold text-slate-400"
-                                                x-text="formatCurrency(item.price)"></span>
-                                            <span
-                                                class="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1.5 py-0.5 bg-slate-50 rounded-md">Each</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Controls and Total -->
-                                    <div class="flex flex-col items-end justify-between gap-3">
-                                        <div class="text-right mt-0.5">
-                                            <span class="text-base font-black text-blue-600 tracking-tight"
-                                                x-text="formatCurrency(item.price * item.quantity)"></span>
-                                        </div>
-
-                                        <!-- Quantity Control -->
-                                        <div
-                                            class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 w-24">
-                                            <button @click="updateQuantity(index, -1)"
-                                                class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm rounded-md transition-all active:scale-95">
-                                                <i data-lucide="minus" class="w-3.5 h-3.5"></i>
-                                            </button>
-                                            <input type="number" x-model.number="item.quantity"
-                                                @input="validateQuantity(index)"
-                                                class="w-full text-center text-xs font-bold text-slate-700 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-sm">
-                                            <button @click="updateQuantity(index, 1)"
-                                                class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm rounded-md transition-all active:scale-95">
-                                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                                <!-- Medicine icon -->
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="pill" class="w-5 h-5"></i>
                                 </div>
+
+                                <!-- Details -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-gray-900 text-sm truncate" x-text="item.name"></p>
+                                    <p class="text-xs text-gray-400" x-text="formatCurrency(item.price) + ' / unit'">
+                                    </p>
+                                </div>
+
+                                <!-- Qty Controls -->
+                                <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+                                    <button @click="updateQuantity(index, -1)"
+                                        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm text-gray-500 hover:text-gray-800 transition-all">
+                                        <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <input type="number" x-model.number="item.quantity" @input="validateQuantity(index)"
+                                        class="w-8 text-center text-xs font-bold text-gray-800 bg-transparent outline-none">
+                                    <button @click="updateQuantity(index, 1)"
+                                        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm text-gray-500 hover:text-gray-800 transition-all">
+                                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Line total -->
+                                <div class="text-right w-16 flex-shrink-0">
+                                    <span class="text-sm font-bold text-blue-600"
+                                        x-text="formatCurrency(item.price * item.quantity)"></span>
+                                </div>
+
+                                <!-- Remove -->
+                                <button @click="removeFromCart(index)"
+                                    class="opacity-0 group-hover:opacity-100 p-1.5 text-gray-300 hover:text-white hover:bg-red-500 rounded-lg transition-all absolute -top-2 -right-2 shadow-sm">
+                                    <i data-lucide="x" class="w-3 h-3"></i>
+                                </button>
                             </div>
                         </template>
 
                         <!-- Empty Cart -->
                         <div x-show="cart.length === 0"
-                            class="h-full flex flex-col items-center justify-center text-center py-20">
+                            class="h-full flex flex-col items-center justify-center text-center py-16">
                             <div
-                                class="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6 text-slate-200">
-                                <i data-lucide="shopping-cart" class="w-12 h-12"></i>
+                                class="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 text-gray-200 border-2 border-dashed border-gray-200">
+                                <i data-lucide="shopping-cart" class="w-10 h-10"></i>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900">Cart is empty</h3>
-                            <p class="text-slate-400 text-sm mt-2 max-w-[200px]">Add medications from the inventory to
-                                start a sale.</p>
+                            <h3 class="text-base font-bold text-gray-800">Cart is empty</h3>
+                            <p class="text-gray-400 text-sm mt-1 max-w-[180px]">Click any medicine card to add it to
+                                your order.</p>
                         </div>
                     </div>
 
-                    <!-- Cart Footer / Summary -->
-                    <div class="p-8 bg-slate-50/50 border-t border-slate-100 space-y-6">
-                        <div class="space-y-3">
-                            <div class="flex justify-between text-sm font-medium">
-                                <span class="text-slate-500">Subtotal</span>
-                                <span class="text-slate-900" x-text="formatCurrency(calculateRawSubtotal())"></span>
-                            </div>
+                    <!-- Cart Summary & Confirm Button -->
+                    <div class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
 
-                            <!-- Discount Section -->
-                            <div class="space-y-3 pt-3 border-t border-slate-100">
-                                <div class="flex items-center justify-between gap-4">
-                                    <div class="flex-1">
-                                        <label
-                                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block text-left">Discount
-                                            %</label>
-                                        <div class="relative">
-                                            <input type="number" x-model.number="discountPercent"
-                                                @input="updateDiscountFromPercent()" step="0.01" min="0" max="100"
-                                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
-                                            <span
-                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1">
-                                        <label
-                                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block text-left">Discount
-                                            (TK)</label>
-                                        <div class="relative">
-                                            <span
-                                                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
-                                            <input type="number" x-model.number="discountAmount"
-                                                @input="updatePercentFromDiscount()" step="0.01" min="0"
-                                                class="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                                <span class="text-slate-500 text-sm font-medium">Payment Method</span>
-                                <select x-model="paymentMethod"
-                                    class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
-                                    <option value="CASH">Cash</option>
-                                    <option value="CREDIT_CARD">Card</option>
-                                    <option value="MOBILE_BANKING">Mobile Banking</option>
-                                </select>
-                            </div>
-                            <!-- New Fields for Partial Payment and Due Date -->
-                            <div class="pt-4 space-y-4 border-t border-slate-100">
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-slate-500 text-sm font-medium">Initial Payment</span>
-                                        <div class="relative w-32">
-                                            <span
-                                                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
-                                            <input type="number" x-model.number="initialPayment" step="0.01"
-                                                class="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
-                                        </div>
-                                    </div>
-                                    <template x-if="initialPayment < calculateSubtotal()">
-                                        <div
-                                            class="flex justify-between items-center animate-in fade-in slide-in-from-top-1">
-                                            <span class="text-slate-500 text-sm font-medium">Due Date</span>
-                                            <input type="date" x-model="dueDate"
-                                                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                            <div class="pt-4 border-t border-slate-200 flex justify-between items-end">
-                                <div>
-                                    <p
-                                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                                        Total Payable</p>
-                                    <h3 class="text-4xl font-black text-blue-600 tracking-tighter"
-                                        x-text="formatCurrency(calculateSubtotal())"></h3>
-                                </div>
-                                <div class="text-right">
+                        <!-- Discount Row -->
+                        <div class="flex items-center gap-3" x-show="cart.length > 0">
+                            <div class="flex-1">
+                                <label
+                                    class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Discount
+                                    %</label>
+                                <div class="relative">
+                                    <input type="number" x-model.number="discountPercent"
+                                        @input="updateDiscountFromPercent()" step="0.01" min="0" max="100"
+                                        class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300">
                                     <span
-                                        class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black tracking-widest"
-                                        x-text="'VAT INCL.'"></span>
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">%</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <label
+                                    class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Discount
+                                    ($)</label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                                    <input type="number" x-model.number="discountAmount"
+                                        @input="updatePercentFromDiscount()" step="0.01" min="0"
+                                        class="w-full pl-6 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Payment Reference -->
-                        <div class="pt-4 border-t border-slate-100">
-                            <label
-                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Payment
-                                Reference (Optional)</label>
-                            <input type="text" x-model="paymentReference" placeholder="Cheque #, Transaction ID..."
-                                class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20">
+                        <!-- Totals -->
+                        <div class="space-y-1.5" x-show="cart.length > 0">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Subtotal</span>
+                                <span class="font-semibold text-gray-800"
+                                    x-text="formatCurrency(calculateRawSubtotal())"></span>
+                            </div>
+                            <div class="flex justify-between text-sm" x-show="discountAmount > 0">
+                                <span class="text-gray-500">Discount</span>
+                                <span class="font-semibold text-red-600"
+                                    x-text="'- ' + formatCurrency(discountAmount)"></span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-gray-200">
+                                <span class="text-base font-bold text-gray-900">Total</span>
+                                <span class="text-xl font-black text-blue-600"
+                                    x-text="formatCurrency(calculateSubtotal())"></span>
+                            </div>
                         </div>
 
-                        <button @click="processCheckout" :disabled="cart.length === 0 || processing"
-                            class="btn btn-primary w-full py-5 rounded-[1.5rem] shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <template x-if="!processing">
-                                <span class="flex items-center gap-3">
-                                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-                                    Complete Transaction
-                                </span>
-                            </template>
-                            <template x-if="processing">
-                                <span class="flex items-center gap-3">
-                                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                            stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-                                    Processing...
-                                </span>
-                            </template>
+                        <!-- Confirm Cart Button → goes to Step 2 -->
+                        <button @click="goToPayment()" :disabled="cart.length === 0"
+                            class="w-full flex items-center justify-center gap-2 py-3 gradient-blue text-white font-bold rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            Confirm Cart &amp; Proceed to Payment
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
                         </button>
                     </div>
+
                 </div>
             </main>
+
+            <!-- ═══════════════════════════════════════════════
+                 STEP 2: PAYMENT
+                 ═══════════════════════════════════════════════ -->
+            <main class="flex-1 overflow-auto p-6 step-panel" x-show="step === 2" x-cloak>
+                <div class="max-w-5xl mx-auto space-y-6">
+
+                    <!-- Page Header -->
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight">Payment</h2>
+                        <p class="text-gray-600 mt-1">Review the order and complete payment.</p>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-3">
+
+                        <!-- Order Summary Table (2 cols) -->
+                        <div class="lg:col-span-2 space-y-5">
+
+                            <!-- Cart Review -->
+                            <div class="card border border-slate-100">
+                                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                                        Order Review
+                                    </h3>
+                                    <button @click="step = 1"
+                                        class="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                                        <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                                        Edit Cart
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-600">
+                                                    Medicine</th>
+                                                <th class="px-5 py-3 text-center text-xs font-medium text-gray-600">Qty
+                                                </th>
+                                                <th class="px-5 py-3 text-right text-xs font-medium text-gray-600">Unit
+                                                    Price</th>
+                                                <th class="px-5 py-3 text-right text-xs font-medium text-gray-600">Total
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(item, index) in cart" :key="item.id">
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                                    <td class="px-5 py-3">
+                                                        <div class="flex items-center gap-3">
+                                                            <div
+                                                                class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                                                <i data-lucide="pill" class="w-4 h-4"></i>
+                                                            </div>
+                                                            <span class="font-medium text-sm" x-text="item.name"></span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-5 py-3 text-center">
+                                                        <div
+                                                            class="flex items-center justify-center gap-1 bg-gray-100 rounded-lg p-0.5 w-fit mx-auto">
+                                                            <button @click="updateQuantity(index, -1)"
+                                                                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white text-gray-500 hover:text-gray-800 transition-all">
+                                                                <i data-lucide="minus" class="w-3 h-3"></i>
+                                                            </button>
+                                                            <span
+                                                                class="w-7 text-center text-xs font-bold text-gray-800"
+                                                                x-text="item.quantity"></span>
+                                                            <button @click="updateQuantity(index, 1)"
+                                                                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white text-gray-500 hover:text-gray-800 transition-all">
+                                                                <i data-lucide="plus" class="w-3 h-3"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-5 py-3 text-right text-sm text-gray-500"
+                                                        x-text="formatCurrency(item.price)"></td>
+                                                    <td class="px-5 py-3 text-right font-bold text-sm"
+                                                        x-text="formatCurrency(item.price * item.quantity)"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                        <tfoot class="bg-gray-50 border-t border-gray-200">
+                                            <tr x-show="discountAmount > 0">
+                                                <td colspan="3"
+                                                    class="px-5 py-3 text-right text-sm text-gray-500 font-medium">
+                                                    Subtotal</td>
+                                                <td class="px-5 py-3 text-right font-bold text-sm"
+                                                    x-text="formatCurrency(calculateRawSubtotal())"></td>
+                                            </tr>
+                                            <tr x-show="discountAmount > 0">
+                                                <td colspan="3"
+                                                    class="px-5 py-2 text-right text-sm text-red-500 font-medium">
+                                                    Discount</td>
+                                                <td class="px-5 py-2 text-right font-bold text-sm text-red-600"
+                                                    x-text="'- ' + formatCurrency(discountAmount)"></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3"
+                                                    class="px-5 py-4 text-right text-base font-bold text-gray-900">Total
+                                                    Payable</td>
+                                                <td class="px-5 py-4 text-right text-xl font-black text-blue-600"
+                                                    x-text="formatCurrency(calculateSubtotal())"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details (1 col) -->
+                        <div class="space-y-5">
+
+                            <!-- Payment Method Card -->
+                            <div class="card border border-slate-100">
+                                <div class="p-5 border-b border-gray-100">
+                                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                                        Payment Details
+                                    </h3>
+                                </div>
+                                <div class="p-5 space-y-4">
+
+                                    <!-- Method -->
+                                    <div>
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Payment
+                                            Method</label>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button @click="paymentMethod = 'CASH'"
+                                                :class="paymentMethod === 'CASH' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'"
+                                                class="border-2 rounded-xl p-3 text-center transition-all">
+                                                <i data-lucide="banknote" class="w-5 h-5 mx-auto mb-1"></i>
+                                                <span class="text-xs font-bold">Cash</span>
+                                            </button>
+                                            <button @click="paymentMethod = 'CREDIT_CARD'"
+                                                :class="paymentMethod === 'CREDIT_CARD' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'"
+                                                class="border-2 rounded-xl p-3 text-center transition-all">
+                                                <i data-lucide="credit-card" class="w-5 h-5 mx-auto mb-1"></i>
+                                                <span class="text-xs font-bold">Card</span>
+                                            </button>
+                                            <button @click="paymentMethod = 'MOBILE_BANKING'"
+                                                :class="paymentMethod === 'MOBILE_BANKING' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'"
+                                                class="border-2 rounded-xl p-3 text-center transition-all">
+                                                <i data-lucide="smartphone" class="w-5 h-5 mx-auto mb-1"></i>
+                                                <span class="text-xs font-bold">Mobile</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Initial Payment -->
+                                    <div>
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Amount
+                                            Received</label>
+                                        <div class="relative">
+                                            <span
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
+                                            <input type="number" x-model.number="initialPayment" step="0.01"
+                                                placeholder="0.00"
+                                                class="w-full pl-7 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300">
+                                        </div>
+                                        <!-- Change calculation -->
+                                        <div x-show="initialPayment > calculateSubtotal() && calculateSubtotal() > 0"
+                                            class="mt-2 px-3 py-2 bg-green-50 border border-green-100 rounded-lg flex items-center justify-between">
+                                            <span class="text-xs font-semibold text-green-700">Change</span>
+                                            <span class="text-sm font-black text-green-700"
+                                                x-text="formatCurrency(initialPayment - calculateSubtotal())"></span>
+                                        </div>
+                                        <!-- Due amount -->
+                                        <div x-show="initialPayment > 0 && initialPayment < calculateSubtotal()"
+                                            class="mt-2 px-3 py-2 bg-orange-50 border border-orange-100 rounded-lg flex items-center justify-between">
+                                            <span class="text-xs font-semibold text-orange-700">Remaining Due</span>
+                                            <span class="text-sm font-black text-orange-700"
+                                                x-text="formatCurrency(calculateSubtotal() - initialPayment)"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Due Date (only if partial) -->
+                                    <div x-show="initialPayment > 0 && initialPayment < calculateSubtotal()">
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Due
+                                            Date</label>
+                                        <input type="date" x-model="dueDate"
+                                            class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300">
+                                    </div>
+
+                                    <!-- Payment Reference -->
+                                    <div>
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Reference
+                                            (Optional)</label>
+                                        <input type="text" x-model="paymentReference"
+                                            placeholder="Cheque #, Transaction ID..."
+                                            class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 placeholder:text-gray-300">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Complete Sale Button -->
+                            <button @click="processCheckout()" :disabled="cart.length === 0 || processing"
+                                class="w-full flex items-center justify-center gap-2 py-3.5 gradient-blue text-white font-bold rounded-xl shadow-md shadow-blue-200 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                                <template x-if="!processing">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                        Complete Sale
+                                    </span>
+                                </template>
+                                <template x-if="processing">
+                                    <span class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        Processing...
+                                    </span>
+                                </template>
+                            </button>
+
+                            <a href="/sales"
+                                class="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-gray-500 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
         </div>
     </div>
 
-    <!-- Success Modal -->
+    <!-- ═══════════════════════════════════════════
+         SUCCESS MODAL
+         ═══════════════════════════════════════════ -->
     <div x-show="showSuccess" x-cloak
-        class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white rounded-[3rem] p-12 max-w-sm w-full text-center shadow-2xl animate-premium-in"
-            @click.away="window.location.href = '/sales'">
+        class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/50 backdrop-blur-sm">
+        <div class="card p-10 max-w-sm w-full text-center" @click.away="window.location.href = '/sales'">
             <div
-                class="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner premium-icon-bounce">
-                <i data-lucide="check-circle" class="w-12 h-12"></i>
+                class="w-20 h-20 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i data-lucide="check-circle" class="w-10 h-10"></i>
             </div>
-            <h3 class="text-3xl font-black text-slate-900 mb-4">Sale Completed!</h3>
-            <p class="text-slate-500 font-medium mb-10 leading-relaxed">The transaction has been recorded and stock
-                levels updated.</p>
-            <button @click="window.location.href = '/sales'"
-                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/20">
-                Back to Sales
-            </button>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Sale Completed!</h3>
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">Transaction recorded and stock levels updated
+                successfully.</p>
+            <div class="space-y-3">
+                <button @click="window.location.href = '/sales/new'"
+                    class="w-full py-3 gradient-blue text-white rounded-xl font-semibold text-sm hover:opacity-90 active:scale-95 transition-all shadow-sm">
+                    New Sale
+                </button>
+                <button @click="window.location.href = '/sales'"
+                    class="w-full py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all">
+                    View All Sales
+                </button>
+            </div>
         </div>
     </div>
 
@@ -402,6 +647,7 @@
                 processing: false,
                 searching: false,
                 showSuccess: false,
+                step: 1,  // 1 = cart, 2 = payment
 
                 initData(data) {
                     this.allMedicines = data;
@@ -409,14 +655,18 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
+                goToPayment() {
+                    if (this.cart.length === 0) return;
+                    this.step = 2;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
                 async searchMedicinesServer() {
                     if (this.searchQuery.trim().length === 0) {
-                        // Restore the full cached medicine list without reloading
                         this.medicines = this.allMedicines;
                         this.$nextTick(() => lucide.createIcons());
                         return;
                     }
-
                     this.searching = true;
                     try {
                         const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.searchQuery)}`);
@@ -460,6 +710,12 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
+                clearCart() {
+                    this.cart = [];
+                    this.discountPercent = 0;
+                    this.discountAmount = 0;
+                },
+
                 updateQuantity(index, delta) {
                     const item = this.cart[index];
                     const newQty = item.quantity + delta;
@@ -472,7 +728,6 @@
                     const item = this.cart[index];
                     if (item.quantity > item.stockQuantity) {
                         item.quantity = item.stockQuantity;
-                        alert('Max available stock reached');
                     } else if (item.quantity < 1) {
                         item.quantity = 1;
                     }
@@ -502,15 +757,11 @@
                 },
 
                 formatCurrency(val) {
-                    return new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                    }).format(val);
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
                 },
 
                 async processCheckout() {
                     if (this.cart.length === 0) return;
-
                     this.processing = true;
 
                     const payload = {
