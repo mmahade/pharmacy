@@ -6,13 +6,12 @@
                 Low Stock Alerts
             </h3>
             <span th:if="${count != null and count > 0}"
-                class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
-                th:text="${count}">0</span>
+                class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full" th:text="${count}">0</span>
         </div>
 
         <!-- Low Stock List -->
         <div th:if="${items != null and !items.isEmpty()}" class="space-y-3">
-            <div th:each="item : ${items}"
+            <div th:each="item, iterStat : ${items}" th:if="${iterStat.index < 5}"
                 class="p-3 bg-orange-50 border border-orange-200 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
@@ -22,11 +21,16 @@
                             Minimum: <span th:text="${item.minStock}">0</span>
                         </div>
                     </div>
-                    <span
-                        class="px-2 py-1 text-xs font-medium border border-orange-600 text-orange-600 rounded"
+                    <span class="px-2 py-1 text-xs font-medium border border-orange-600 text-orange-600 rounded"
                         th:text="${item.totalStock} + ' left'">0 left</span>
                 </div>
             </div>
+
+            <a th:if="${items.size() > 5}" href="/alerts/low-stock"
+                class="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-sm font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-dashed border-orange-200 group">
+                See all low stock items (<span th:text="${items.size() - 5}">0</span> more)
+                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </a>
         </div>
 
         <!-- Empty State -->

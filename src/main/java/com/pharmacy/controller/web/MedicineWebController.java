@@ -35,7 +35,52 @@ public class MedicineWebController {
             medicines = inventoryService.listMedicines(principal);
         }
 
-        model.addAttribute("medicines", medicines);
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+
+        int size = 9;
+        int totalItems = medicines.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+        if (totalPages == 0)
+            totalPages = 1;
+        if (page > totalPages)
+            page = totalPages;
+        if (page < 1)
+            page = 1;
+
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, totalItems);
+
+        List<MedicineResponse> paginatedMedicines;
+        if (fromIndex < totalItems && fromIndex >= 0) {
+            paginatedMedicines = medicines.subList(fromIndex, toIndex);
+        } else {
+            paginatedMedicines = List.of();
+        }
+
+        model.addAttribute("medicines", paginatedMedicines);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
+
+        int windowStart = Math.max(1, page - 2);
+        int windowEnd = Math.min(totalPages, page + 2);
+        if (windowEnd - windowStart < 4 && totalPages >= 5) {
+            if (windowStart == 1)
+                windowEnd = 5;
+            else
+                windowStart = totalPages - 4;
+        }
+
+        model.addAttribute("windowStart", windowStart);
+        model.addAttribute("windowEnd", windowEnd);
 
         // Add statistics
         var stats = inventoryService.getInventoryStats(principal);
@@ -56,16 +101,17 @@ public class MedicineWebController {
     }
 
     @GetMapping("/add")
-    public String showAddForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model, HttpServletRequest request) {
+    public String showAddForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model,
+            HttpServletRequest request) {
         model.addAttribute("requestURI", request.getRequestURI());
-        
+
         // Add statistics for the navbar badge
         var stats = inventoryService.getInventoryStats(principal);
         model.addAttribute("lowStockCount", stats.lowStockCount());
-        
+
         // Add isEdit flag to avoid template exceptions
         model.addAttribute("isEdit", false);
-        
+
         return "medicine-form";
     }
 
@@ -75,7 +121,7 @@ public class MedicineWebController {
             Model model,
             HttpServletRequest request) {
         model.addAttribute("requestURI", request.getRequestURI());
-        
+
         MedicineResponse medicine = inventoryService.getMedicine(principal, id);
         model.addAttribute("medicine", medicine);
         model.addAttribute("isEdit", true);
@@ -93,7 +139,7 @@ public class MedicineWebController {
             Model model,
             HttpServletRequest request) {
         model.addAttribute("requestURI", request.getRequestURI());
-        
+
         MedicineResponse medicine = inventoryService.getMedicine(principal, id);
         model.addAttribute("medicine", medicine);
 
