@@ -9,13 +9,10 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -24,6 +21,10 @@
 
         * {
             font-family: 'Inter', sans-serif;
+        }
+
+        [x-cloak] {
+            display: none !important;
         }
 
         .gradient-blue {
@@ -74,196 +75,259 @@
                                 class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
-                    <div th:replace="~{fragments/navbar :: navbar}"></div>
+                    <div th:replace="~{fragments/navbar :: right_items}"></div>
                 </div>
             </header>
 
             <!-- Main Content Area -->
-            <main class="flex-1 overflow-auto p-6 space-y-6">
-                <!-- Page Header -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                    <div>
-                        <a href="/dashboard"
-                            class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mb-2">
-                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                            Back to Dashboard
+            <main class="flex-1 overflow-auto">
+                <div class="p-6 space-y-6">
+
+                    <!-- Page Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-tight">Staff Management</h2>
+                            <p class="text-gray-600 mt-1">Coordinate your pharmacy team and system access permissions.
+                            </p>
+                        </div>
+                        <a href="/users/new"
+                            class="inline-flex items-center px-6 py-3 gradient-blue hover:opacity-90 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 gap-2">
+                            <i data-lucide="user-plus" class="w-5 h-5"></i>
+                            Add Member
                         </a>
-                        <h2 class="text-3xl font-bold tracking-tight">Staff Management</h2>
-                        <p class="text-gray-600 mt-1">Coordinate your pharmacy team and system access permissions.</p>
-                    </div>
-                    <a href="/users/new"
-                        class="inline-flex items-center px-6 py-3 gradient-blue hover:opacity-90 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 gap-2">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i>
-                        Add Member
-                    </a>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Staff</p>
-                            <h3 class="text-2xl font-bold mt-1" th:text="${users.size()}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Pharmacy wide</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-blue">
-                            <i data-lucide="users" class="w-5 h-5 text-white"></i>
-                        </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Active Accounts</p>
-                            <h3 class="text-2xl font-bold text-green-600 mt-1" th:text="${users.?[active].size()}">0
-                            </h3>
-                            <p class="text-xs text-gray-500 mt-1">Currently enabled</p>
+                    <!-- Stats Grid — dashboard card pattern -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                        <!-- Total Staff -->
+                        <div
+                            class="card overflow-hidden group cursor-default hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total
+                                            Staff</span>
+                                        <div class="text-2xl font-black text-slate-800 mt-1" th:text="${users.size()}">0
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                        <i data-lucide="users" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Pharmacy wide</p>
+                            </div>
                         </div>
-                        <div class="p-2 rounded-lg gradient-green">
-                            <i data-lucide="user-check" class="w-5 h-5 text-white"></i>
+
+                        <!-- Active Accounts -->
+                        <div
+                            class="card overflow-hidden group cursor-default hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <span
+                                            class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active
+                                            Accounts</span>
+                                        <div class="text-2xl font-black text-slate-800 mt-1"
+                                            th:text="${users.?[active].size()}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Currently enabled</p>
+                            </div>
+                        </div>
+
+                        <!-- System Admins -->
+                        <div
+                            class="card overflow-hidden group cursor-default hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <span
+                                            class="text-sm font-semibold text-gray-500 uppercase tracking-wider">System
+                                            Admins</span>
+                                        <div class="text-2xl font-black text-slate-800 mt-1"
+                                            th:text="${users.?[role.name() == 'ADMIN'].size()}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                        <i data-lucide="shield" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Total administrators</p>
+                            </div>
+                        </div>
+
+                        <!-- Pharmacists -->
+                        <div
+                            class="card overflow-hidden group cursor-default hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <span
+                                            class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pharmacists</span>
+                                        <div class="text-2xl font-black text-slate-800 mt-1"
+                                            th:text="${users.?[role.name() == 'PHARMACIST'].size()}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                        <i data-lucide="pill" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Qualified staff</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">System Admins</p>
-                            <h3 class="text-2xl font-bold text-purple-600 mt-1"
-                                th:text="${users.?[role.name() == 'ADMIN'].size()}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Total administrators</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-purple">
-                            <i data-lucide="shield" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-
-                    <div class="card p-6 flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Pharmacists</p>
-                            <h3 class="text-2xl font-bold text-orange-600 mt-1"
-                                th:text="${users.?[role.name() == 'PHARMACIST'].size()}">0</h3>
-                            <p class="text-xs text-gray-500 mt-1">Qualified staff</p>
-                        </div>
-                        <div class="p-2 rounded-lg gradient-orange">
-                            <i data-lucide="pill" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filter & Search Bar -->
-                <div class="card p-4 flex flex-col md:flex-row items-center gap-4">
-                    <div class="flex items-center gap-2 w-full md:w-auto">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-2">Role
-                            Filter:</label>
+                    <!-- Filter Bar -->
+                    <div class="card p-4 flex items-center gap-4">
+                        <i data-lucide="filter" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Role:</label>
                         <select x-model="roleFilter"
-                            class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-gray-700 transition-all">
+                            class="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-gray-700">
                             <option value="ALL">All Roles</option>
                             <option value="ADMIN">Administrator</option>
                             <option value="PHARMACIST">Pharmacist</option>
                             <option value="STAFF">Regular Staff</option>
                         </select>
                     </div>
-                </div>
 
-                <!-- Users List -->
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/50 border-b border-gray-200">
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Staff
-                                        Member</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Role
-                                    </th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                        Status</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                        Contact</th>
-                                    <th
-                                        class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr th:each="user : ${users}" x-show="matchesFilter($el)"
-                                    th:data-name="${user.fullName.toLowerCase()}"
-                                    th:data-email="${user.email.toLowerCase()}" th:data-role="${user.role}"
-                                    class="hover:bg-blue-50/30 transition-colors group">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm"
-                                                th:classappend="${user.role.name() == 'ADMIN' ? 'gradient-purple' : (user.role.name() == 'PHARMACIST' ? 'gradient-blue' : 'bg-gray-400')}">
-                                                <span th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+                    <!-- Users Table -->
+                    <div class="card overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                                Staff Members
+                            </h3>
+                            <span class="text-xs text-gray-400 font-medium"
+                                th:text="${users.size()} + ' total members'"></span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-6 py-3 text-xs font-medium text-gray-600">Staff Member</th>
+                                        <th class="px-6 py-3 text-xs font-medium text-gray-600">Role</th>
+                                        <th class="px-6 py-3 text-xs font-medium text-gray-600">Status</th>
+                                        <th class="px-6 py-3 text-xs font-medium text-gray-600">Contact</th>
+                                        <th class="px-6 py-3 text-xs font-medium text-gray-600 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="user : ${users}" x-show="matchesFilter($el)"
+                                        th:data-name="${user.fullName.toLowerCase()}"
+                                        th:data-email="${user.email.toLowerCase()}" th:data-role="${user.role}"
+                                        class="border-b border-gray-100 hover:bg-gray-50 transition-colors group">
+
+                                        <!-- Staff Member -->
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm"
+                                                    th:classappend="${user.role.name() == 'ADMIN' ? 'gradient-purple' : (user.role.name() == 'PHARMACIST' ? 'gradient-blue' : 'bg-gray-400')}">
+                                                    <span th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-900 text-sm"
+                                                        th:text="${user.fullName}">Name</p>
+                                                    <p class="text-xs text-gray-500" th:text="${user.email}">
+                                                        email@example.com</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p class="font-semibold text-gray-900" th:text="${user.fullName}">Name
-                                                </p>
-                                                <p class="text-xs text-gray-500" th:text="${user.email}">
-                                                    email@example.com</p>
+                                        </td>
+
+                                        <!-- Role -->
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                                                th:classappend="${user.role.name() == 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-100' : (user.role.name() == 'PHARMACIST' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-gray-50 text-gray-600 border-gray-100')}"
+                                                th:text="${user.role}">ROLE</span>
+                                        </td>
+
+                                        <!-- Status -->
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-1.5 h-1.5 rounded-full"
+                                                    th:classappend="${user.active ? 'bg-green-500' : 'bg-gray-300'}">
+                                                </div>
+                                                <span class="text-sm font-medium"
+                                                    th:classappend="${user.active ? 'text-gray-900' : 'text-gray-400'}"
+                                                    th:text="${user.active ? 'Active' : 'Disabled'}">Status</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
-                                            th:classappend="${user.role.name() == 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-100' : (user.role.name() == 'PHARMACIST' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-gray-50 text-gray-600 border-gray-100')}"
-                                            th:text="${user.role}">ROLE</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-1.5 h-1.5 rounded-full"
-                                                th:classappend="${user.active ? 'bg-green-500' : 'bg-gray-300'}"></div>
-                                            <span class="text-sm font-medium"
-                                                th:classappend="${user.active ? 'text-gray-900' : 'text-gray-400'}"
-                                                th:text="${user.active ? 'Active' : 'Disabled'}">Status</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600 font-medium"
-                                        th:text="${user.phoneNumber ?: 'No number'}">
-                                        +1 234 567 890
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <a th:href="@{'/users/edit/' + ${user.id}}"
-                                                class="p-2 text-gray-400 hover:text-blue-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"
-                                                title="Edit Details">
-                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                            </a>
-                                            <button th:onclick="'toggleStatus(' + ${user.id} + ')'"
-                                                class="p-2 rounded-lg transition-all"
-                                                th:classappend="${user.active ? 'text-gray-400 hover:text-red-500 hover:bg-red-50' : 'text-gray-400 hover:text-green-500 hover:bg-green-50'}"
-                                                th:title="${user.active ? 'Disable Account' : 'Enable Account'}">
-                                                <i th:data-lucide="${user.active ? 'user-minus' : 'user-check'}"
-                                                    class="w-4 h-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        </td>
 
-                                <!-- Empty State -->
-                                <tr th:if="${#lists.isEmpty(users)}">
-                                    <td colspan="5" class="px-6 py-12 text-center">
-                                        <div class="flex flex-col items-center justify-center text-gray-400">
-                                            <i data-lucide="users" class="w-12 h-12 mb-2 opacity-20"></i>
-                                            <p class="text-lg font-bold">No staff members found</p>
-                                            <p class="text-sm">Your pharmacy team list is currently empty.</p>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        <!-- Contact -->
+                                        <td class="px-6 py-4 text-sm text-gray-600 font-medium"
+                                            th:text="${user.phoneNumber ?: 'No number'}">+1 234 567 890</td>
 
-                                <!-- Search No Results -->
-                                <tr x-show="!hasResults" x-cloak>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-400">
-                                        <i data-lucide="search-x" class="w-12 h-12 mx-auto mb-2 opacity-20"></i>
-                                        <p class="text-lg font-bold">No matches found</p>
-                                        <p class="text-sm">Try adjusting your search query or filter.</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                        <!-- Actions -->
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <a th:href="@{'/users/edit/' + ${user.id}}"
+                                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    title="Edit Details">
+                                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                                </a>
+                                                <button th:onclick="'toggleStatus(' + ${user.id} + ')'"
+                                                    class="p-2 rounded-lg transition-all"
+                                                    th:classappend="${user.active ? 'text-gray-400 hover:text-red-500 hover:bg-red-50' : 'text-gray-400 hover:text-green-500 hover:bg-green-50'}"
+                                                    th:title="${user.active ? 'Disable Account' : 'Enable Account'}">
+                                                    <i th:data-lucide="${user.active ? 'user-minus' : 'user-check'}"
+                                                        class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Empty State -->
+                                    <tr th:if="${#lists.isEmpty(users)}">
+                                        <td colspan="5" class="px-6 py-16 text-center">
+                                            <div class="flex flex-col items-center text-gray-400">
+                                                <div
+                                                    class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                                    <i data-lucide="users" class="w-7 h-7 opacity-40"></i>
+                                                </div>
+                                                <p class="text-base font-bold">No staff members found</p>
+                                                <p class="text-sm mt-1">Your pharmacy team list is currently empty.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Search No Results -->
+                                    <tr x-show="!hasResults" x-cloak>
+                                        <td colspan="5" class="px-6 py-16 text-center text-gray-400">
+                                            <div
+                                                class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <i data-lucide="search-x" class="w-7 h-7 opacity-40"></i>
+                                            </div>
+                                            <p class="text-base font-bold">No matches found</p>
+                                            <p class="text-sm mt-1">Try adjusting your search query or filter.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+
                 </div>
 
                 <!-- Footer -->
-                <div class="pt-6 border-t border-gray-200">
+                <div class="mt-8 bg-white/50 border-t border-slate-200">
                     <div th:replace="~{fragments/footer :: footer}"></div>
                 </div>
             </main>
@@ -287,30 +351,23 @@
                     const query = this.searchQuery.toLowerCase();
                     const qMatch = name.includes(query) || email.includes(query);
                     const rMatch = this.roleFilter === 'ALL' || role === this.roleFilter;
-
                     const isVisible = qMatch && rMatch;
 
-                    // We'll update the global hasResults flag after Alpine's reactive loop
-                    this.$nextTick(() => {
-                        this.updateResultsStatus();
-                    });
-
+                    this.$nextTick(() => this.updateResultsStatus());
                     return isVisible;
                 },
 
                 updateResultsStatus() {
                     const rows = document.querySelectorAll('tbody tr[data-name]');
                     let visibleCount = 0;
-                    rows.forEach(r => {
-                        if (r.style.display !== 'none') visibleCount++;
-                    });
+                    rows.forEach(r => { if (r.style.display !== 'none') visibleCount++; });
                     this.hasResults = visibleCount > 0;
                 }
             }
         }
 
         async function toggleStatus(userId) {
-            const { value: confirm } = await Swal.fire({
+            const { value: confirmed } = await Swal.fire({
                 title: 'Change Access?',
                 text: "Are you sure you want to change this user's account status?",
                 icon: 'warning',
@@ -326,13 +383,12 @@
                 }
             });
 
-            if (confirm) {
+            if (confirmed) {
                 try {
                     const response = await fetch(`/api/users/${userId}/toggle-status`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' }
                     });
-
                     if (response.ok) {
                         window.location.reload();
                     } else {
