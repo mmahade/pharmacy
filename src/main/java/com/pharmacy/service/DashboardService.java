@@ -36,8 +36,8 @@ public class DashboardService {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
                 LocalDate today = LocalDate.now();
 
-                long totalMedicines = medicineRepository.countByPharmacy(pharmacy);
-                long prescriptionsCount = prescriptionRepository.countByPharmacy(pharmacy);
+                long totalMedicines = medicineRepository.countByPharmacyId(pharmacy.getId());
+                long prescriptionsCount = prescriptionRepository.countByPharmacyId(pharmacy.getId());
                 
                 BigDecimal todaySales = saleTransactionRepository.totalForDay(pharmacy, today);
                 BigDecimal todayReturns = saleReturnRepository.totalForDay(pharmacy, today);

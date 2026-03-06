@@ -13,7 +13,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
 
     List<Prescription> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
 
-    long countByPharmacy(Pharmacy pharmacy);
+    long countByPharmacyId(long pharmacy);
 
     List<Prescription> findTop5ByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
 

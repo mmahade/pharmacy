@@ -29,7 +29,8 @@ public class InventoryService {
 
         public List<MedicineResponse> listMedicines(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-                return medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy)
+                List<Medicine> listOfMedicines = medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
+                return medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId())
                                 .stream()
                                 .map(this::toResponse)
                                 .toList();
@@ -213,7 +214,7 @@ public class InventoryService {
 
         public InventoryStatsResponse getInventoryStats(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-                List<Medicine> medicines = medicineRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy);
+                List<Medicine> medicines = medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
 
                 long totalMedicines = medicines.size();
                 long lowStockCount = 0;

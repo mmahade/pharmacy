@@ -19,7 +19,15 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "medicines")
+@Table(
+        name = "medicines",
+        indexes = {
+                @Index(name = "idx_medicine_pharmacy", columnList = "pharmacy_id"),
+                @Index(name = "idx_pharmacy_medicine_name", columnList = "pharmacy_id,name"),
+                @Index(name = "idx_pharmacy_generic_name", columnList = "pharmacy_id,generic_name"),
+                @Index(name = "idx_pharmacy_category", columnList = "pharmacy_id,category")
+        }
+)
 public class Medicine {
 
     @Id
@@ -55,6 +63,9 @@ public class Medicine {
 
     @Column(nullable = false)
     private Instant createdAt;
+
+    @Column(name = "pharmacy_id", insertable = false, updatable = false)
+    private Long pharmacyId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "pharmacy_id", nullable = false)

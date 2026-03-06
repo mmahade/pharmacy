@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface MedicineRepository extends JpaRepository<Medicine, Long> {
     Optional<Medicine> findByIdAndPharmacy(Long id, Pharmacy pharmacy);
 
-    List<Medicine> findByPharmacyOrderByCreatedAtDesc(Pharmacy pharmacy);
+    List<Medicine> findByPharmacyIdOrderByCreatedAtDesc(long pharmacyId);
 
     @org.springframework.data.jpa.repository.Query("SELECT m FROM Medicine m WHERE m.pharmacy = :pharmacy AND (" +
             "LOWER(m.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -23,5 +23,5 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
                                    @org.springframework.data.repository.query.Param("search") String search,
                                    Pageable pageable);
 
-    long countByPharmacy(Pharmacy pharmacy);
+    long countByPharmacyId(long pharmacyId);
 }

@@ -209,7 +209,7 @@ public class PrescriptionService {
     }
 
     private String nextPrescriptionNumber(Pharmacy pharmacy) {
-        long count = prescriptionRepository.countByPharmacy(pharmacy);
+        long count = prescriptionRepository.countByPharmacyId(pharmacy.getId());
         return String.valueOf(count + 1);
     }
 
