@@ -149,4 +149,15 @@ public class MedicineWebController {
 
         return "medicine-detail";
     }
+
+    @GetMapping("/master-search")
+    public String masterSearch(@RequestParam(name = "q", defaultValue = "") String q, Model model) {
+        if (q.length() >= 2) {
+            var results = inventoryService.searchMasterMedicines(q);
+            model.addAttribute("masterResults", results);
+        } else {
+            model.addAttribute("masterResults", List.of());
+        }
+        return "medicine-form :: masterSearchQueryResults";
+    }
 }

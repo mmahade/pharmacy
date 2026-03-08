@@ -1,13 +1,16 @@
 package com.pharmacy.service;
 
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.pharmacy.dto.*;
 import com.pharmacy.entity.Medicine;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
 import com.pharmacy.repository.MedicineRepository;
+import com.pharmacy.repository.BdMedicineRepository;
 import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,11 +28,13 @@ public class InventoryService {
 
         private final MedicineRepository medicineRepository;
         private final StockBatchRepository stockBatchRepository;
+        private final BdMedicineRepository bdMedicineRepository;
         private final TenantAccessService tenantAccessService;
 
         public List<MedicineResponse> listMedicines(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-                List<Medicine> listOfMedicines = medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
+                List<Medicine> listOfMedicines = medicineRepository
+                                .findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
                 return medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId())
                                 .stream()
                                 .map(this::toResponse)
@@ -46,6 +51,20 @@ public class InventoryService {
                                 pharmacy, query.trim(), page)
                                 .stream()
                                 .map(this::toResponse)
+                                .toList();
+        }
+
+        public List<BdMedicineResponse> searchMasterMedicines(String query) {
+                if (query == null || query.isBlank()) {
+                        return List.of();
+                }
+                var page = PageRequest.of(0, 25);
+                return bdMedicineRepository.searchMedicines(query.trim(), page)
+                                .stream()
+                                .map(m -> new BdMedicineResponse(
+                                                m.getId(), m.getName(), m.getGenericName(),
+                                                m.getCategory(), m.getManufacturer(),
+                                                m.getDosageForm(), m.getStrength(), m.getDescription()))
                                 .toList();
         }
 
@@ -106,7 +125,8 @@ public class InventoryService {
 
                 String providedBatchNumber = request.batchNumber() != null ? request.batchNumber().trim() : "";
 
-                // Logic: 1. Try to find by Medicine + Expiry Date (Consolidation prioritized by USER)
+                // Logic: 1. Try to find by Medicine + Expiry Date (Consolidation prioritized by
+                // USER)
                 // 2. Fallback to Medicine + Batch Number (if provided)
                 // 3. Create New (Generate Batch Number if needed)
                 StockBatch batch = stockBatchRepository
@@ -139,9 +159,11 @@ public class InventoryService {
                                                         }
                                                 })
                                                 .orElse(1); // Start from 1 for new medicines
-                                
+
                                 // Double check if this number already exists (human safety)
-                                while (stockBatchRepository.findByMedicineAndBatchNumber(medicine, String.valueOf(nextSerial)).isPresent()) {
+                                while (stockBatchRepository
+                                                .findByMedicineAndBatchNumber(medicine, String.valueOf(nextSerial))
+                                                .isPresent()) {
                                         nextSerial++;
                                 }
                                 finalBatchNum = String.valueOf(nextSerial);
