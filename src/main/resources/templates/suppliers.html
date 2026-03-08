@@ -124,7 +124,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="search" class="text-gray-400 w-5 h-5"></i>
                             </div>
-                            <input type="text" id="searchInput" oninput="filterTable()"
+                            <input type="text" id="searchInput" name="q" th:value="${searchQuery}"
                                 class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Search suppliers by name, email, or contact person...">
                         </div>
@@ -145,7 +145,7 @@
                                         <th class="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100 text-sm">
+                                <tbody class="divide-y divide-gray-100 text-sm" id="supplierTableContent" th:fragment="supplierTableContent">
                                     <tr th:each="supplier : ${suppliers}"
                                         class="hover:bg-blue-50/50 transition-colors group supplier-row">
                                         <td class="px-6 py-4 font-medium" th:text="${'SUP-' + supplier.id}"></td>
@@ -372,31 +372,43 @@
             document.body.style.overflow = '';
         }
 
-        // Search Filter Logic
-        function filterTable() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const rows = document.querySelectorAll('.supplier-row');
-            let visibleCount = 0;
+        // Search Filter Logic (Refactored to Server-Side)
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout = null;
 
-            rows.forEach(row => {
-                const name = row.querySelector('.supplier-name').textContent.toLowerCase();
-                const contact = row.querySelector('.supplier-contact').textContent.toLowerCase();
-                const email = row.querySelector('.supplier-email').textContent.toLowerCase();
-
-                if (name.includes(filter) || contact.includes(filter) || email.includes(filter)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+        if (searchInput) {
+            searchInput.addEventListener('input', function (e) {
+                const query = e.target.value;
+                if (searchTimeout) clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
             });
+        }
 
-            const noResultsRow = document.getElementById('noResultsRow');
-            if (visibleCount === 0 && rows.length > 0) {
-                noResultsRow.classList.remove('hidden');
-            } else {
-                noResultsRow.classList.add('hidden');
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`/suppliers?q=${encodeURIComponent(query)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    const html = await response.text();
+                    const container = document.getElementById('supplierTableContent');
+                    if (container) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        const newContent = tempDiv.querySelector('#supplierTableContent');
+                        if (newContent) {
+                            container.innerHTML = newContent.innerHTML;
+                        } else {
+                            container.innerHTML = html;
+                        }
+                        lucide.createIcons();
+                    }
+                }
+            } catch (error) {
+                console.error('Supplier search failed:', error);
             }
         }
     </script>

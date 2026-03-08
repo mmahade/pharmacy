@@ -28,6 +28,13 @@ public class SupplierController {
         return supplierService.list(principal);
     }
 
+    @Operation(summary = "Search suppliers", description = "Typeahead search for suppliers.")
+    @GetMapping("/search")
+    public List<SupplierResponse> search(@AuthenticationPrincipal AppUserPrincipal principal,
+                                         @RequestParam(name = "q", defaultValue = "") String q) {
+        return supplierService.search(principal, q);
+    }
+
     @Operation(summary = "Get supplier", description = "Returns the details of a single supplier.")
     @GetMapping("/{id}")
     public SupplierResponse get(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id) {

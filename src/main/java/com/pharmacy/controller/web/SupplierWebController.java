@@ -23,13 +23,27 @@ public class SupplierWebController {
     private final SupplierService supplierService;
 
     @GetMapping
-    public String listSuppliers(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        List<SupplierResponse> suppliers = supplierService.list(principal);
+    public String listSuppliers(@AuthenticationPrincipal AppUserPrincipal principal,
+                                @RequestParam(name = "q", required = false) String query,
+                                Model model,
+                                jakarta.servlet.http.HttpServletRequest request) {
+        List<SupplierResponse> suppliers;
+        if (query != null && !query.isEmpty()) {
+            suppliers = supplierService.search(principal, query);
+            model.addAttribute("searchQuery", query);
+        } else {
+            suppliers = supplierService.list(principal);
+        }
+
         model.addAttribute("suppliers", suppliers);
         model.addAttribute("activePage", "suppliers");
 
         if (!model.containsAttribute("supplierRequest")) {
             model.addAttribute("supplierRequest", new SupplierRequest("", "", "", "", ""));
+        }
+
+        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+            return "suppliers :: supplierTableContent";
         }
 
         return "suppliers";

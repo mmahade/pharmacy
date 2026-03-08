@@ -22,6 +22,17 @@ public class SupplierService {
     private final SupplierRepository supplierRepository;
     private final TenantAccessService tenantAccessService;
 
+    public List<SupplierResponse> search(AppUserPrincipal principal, String query) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        return supplierRepository.searchSuppliers(pharmacy, query.trim())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public List<SupplierResponse> list(AppUserPrincipal principal) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         return supplierRepository.findByPharmacyOrderByNameAsc(pharmacy)
