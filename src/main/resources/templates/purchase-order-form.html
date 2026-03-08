@@ -10,6 +10,9 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -41,8 +44,6 @@
         .sidebar-item:hover {
             background-color: #f3f4f6;
         }
-
-        
     </style>
     <link rel="stylesheet" th:href="@{/css/pharmacy-styles.css}">
 </head>
@@ -53,7 +54,7 @@
         <div th:replace="~{fragments/sidebar :: sidebar('purchase-orders')}"></div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col" x-data="poForm()">
             <!-- Header -->
             <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                 <div class="flex h-16 items-center gap-4 px-6">
@@ -113,22 +114,61 @@
                     <div class="card p-6 border border-gray-200">
                         <h2 class="text-xl font-bold text-gray-900 mb-6">Supplier Information</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="supplierId" class="block text-sm font-medium text-gray-700 mb-2">
+                            <div class="relative" x-data="{ 
+                                    open: false, 
+                                    search: '', 
+                                    list: [],
+                                    loading: false,
+                                    async fetchSuppliers() {
+                                        if (this.search.length < 2) {
+                                            this.list = [];
+                                            return;
+                                        }
+                                        this.loading = true;
+                                        try {
+                                            const response = await fetch(`/api/suppliers/search?q=${encodeURIComponent(this.search)}`);
+                                            if (response.ok) {
+                                                this.list = await response.json();
+                                            }
+                                        } catch (e) { console.error(e); }
+                                        finally { this.loading = false; }
+                                    }
+                                }">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier <span class="text-red-500">*</span>
                                 </label>
-                                <select id="supplierId" name="supplierId" required
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="" disabled selected>Select a supplier</option>
-                                    <option th:each="supplier : ${suppliers}" th:value="${supplier.id}"
-                                        th:text="${supplier.name}">Supplier Name</option>
-                                </select>
+                                <input type="hidden" name="supplierId" :value="formData.supplierId" required>
+                                <div class="relative">
+                                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <input type="text" 
+                                        x-model="search"
+                                        @input.debounce.300ms="fetchSuppliers()"
+                                        @focus="open = true"
+                                        @click.away="open = false"
+                                        placeholder="Search for a supplier..."
+                                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    
+                                    <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                </div>
+                                <div x-show="open && (list.length > 0 || loading)" x-cloak class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <template x-for="supplier in list" :key="supplier.id">
+                                        <div @click="formData.supplierId = supplier.id; search = supplier.name; open = false"
+                                            class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm">
+                                            <span x-text="supplier.name"></span>
+                                        </div>
+                                    </template>
+                                    <div x-show="!loading && search.length >= 2 && list.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">
+                                        No suppliers found...
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label for="orderDate" class="block text-sm font-medium text-gray-700 mb-2">
                                     Order Date <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" id="orderDate" name="orderDate" required
+                                <input type="date" id="orderDate" name="orderDate" x-model="formData.orderDate" required
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                             </div>
                         </div>
@@ -146,53 +186,96 @@
                         </div>
 
                         <div id="itemsContainer" class="space-y-4">
-                            <!-- Initial Item Row -->
-                            <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg relative"
-                                data-index="0">
-                                <div class="md:col-span-5">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Medication</label>
-                                    <select name="items[0].medicineId" required onchange="updateRowTotal(this)"
-                                        class="medicine-select w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option value="" disabled selected>Select medication</option>
-                                        <option th:each="med : ${medicines}" th:value="${med.id}" th:text="${med.name}">
-                                            Med Name
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                                    <input type="number" name="items[0].quantityOrdered" required min="1"
-                                        onchange="updateRowTotal(this)" onkeyup="updateRowTotal(this)"
-                                        class="qty-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="0" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price ($)</label>
-                                    <input type="number" name="items[0].unitCostPrice" required min="0" step="0.01"
-                                        onchange="updateRowTotal(this)" onkeyup="updateRowTotal(this)"
-                                        class="price-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="0.00" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
-                                    <div
-                                        class="row-total px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg font-medium text-gray-900">
-                                        $0.00
+                            <!-- Alpine Item Rows -->
+                            <template x-for="(item, index) in formData.items" :key="index">
+                                <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg relative"
+                                    :data-index="index">
+                                    <div class="md:col-span-5 relative" x-data="{ 
+                                            open: false, 
+                                            search: '', 
+                                            list: [], 
+                                            loading: false,
+                                            async fetchMedicines() {
+                                                if (this.search.length < 2) {
+                                                    this.list = [];
+                                                    return;
+                                                }
+                                                this.loading = true;
+                                                try {
+                                                    const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.search)}`);
+                                                    if (response.ok) {
+                                                        this.list = await response.json();
+                                                    }
+                                                } catch (e) { console.error(e); }
+                                                finally { this.loading = false; }
+                                            }
+                                        }">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Medication</label>
+                                        <input type="hidden" :name="`items[${index}].medicineId`" :value="item.medicineId" required>
+                                        <div class="relative">
+                                            <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                            <input type="text" 
+                                                x-model="search"
+                                                @input.debounce.300ms="fetchMedicines()"
+                                                @focus="open = true"
+                                                @click.away="open = false"
+                                                placeholder="Search medication..."
+                                                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            
+                                            <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            </div>
+                                        </div>
+                                        <div x-show="open && (list.length > 0 || loading)" x-cloak class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto p-1">
+                                            <template x-for="med in list" :key="med.id">
+                                                <div @click="item.medicineId = med.id; search = med.name; open = false; if(med.price) item.price = med.price"
+                                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm rounded-md group">
+                                                    <div class="flex items-center justify-between">
+                                                        <span x-text="med.name" class="font-medium text-gray-900"></span>
+                                                        <i data-lucide="plus-circle" class="w-4 h-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <div x-show="!loading && search.length >= 2 && list.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">
+                                                No medications found...
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                        <input type="number" :name="`items[${index}].quantityOrdered`" x-model.number="item.quantity" required min="1"
+                                            class="qty-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="0" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price ($)</label>
+                                        <input type="number" :name="`items[${index}].unitCostPrice`" x-model.number="item.price" required min="0" step="0.01"
+                                            class="price-input w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="0.00" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
+                                        <div
+                                            class="row-total px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg font-medium text-gray-900"
+                                            x-text="'$' + (item.quantity * item.price).toFixed(2)">
+                                            $0.00
+                                        </div>
+                                    </div>
+                                    <div class="md:col-span-1 flex items-end">
+                                        <button type="button" @click="removeItem(index)" :disabled="formData.items.length === 1"
+                                            class="remove-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="md:col-span-1 flex items-end">
-                                    <button type="button" onclick="removeItemRow(this)"
-                                        class="remove-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            </template>
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-gray-200">
                             <div class="flex justify-between items-center">
                                 <span class="text-lg font-semibold text-gray-900">Gross Total:</span>
-                                <span id="grandTotal" class="text-2xl font-bold text-gray-900">$0.00</span>
+                                <span id="grandTotal" class="text-2xl font-bold text-gray-900" 
+                                    x-text="'$' + formData.items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)">$0.00</span>
                             </div>
                         </div>
                     </div>
@@ -235,6 +318,33 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
+        function poForm() {
+            return {
+                formData: {
+                    supplierId: '',
+                    orderDate: new Date().toISOString().split('T')[0],
+                    notes: '',
+                    items: [
+                        { medicineId: '', quantity: 0, price: 0 }
+                    ]
+                },
+                init() {
+                    // Lucide icons need re-init after Alpine renders
+                    this.$watch('formData.items', () => {
+                        this.$nextTick(() => lucide.createIcons());
+                    });
+                },
+                addItem() {
+                    this.formData.items.push({ medicineId: '', quantity: 0, price: 0 });
+                },
+                removeItem(index) {
+                    if (this.formData.items.length > 1) {
+                        this.formData.items.splice(index, 1);
+                    }
+                }
+            }
+        }
+
         // User menu toggle
         const userMenuBtn = document.getElementById('userMenuBtn');
         const userMenu = document.getElementById('userMenu');
@@ -251,102 +361,7 @@
                 }
             });
         }
-
-        let itemIndex = 0;
-
-        function addItemRow() {
-            itemIndex++;
-            const container = document.getElementById('itemsContainer');
-            const firstRow = container.querySelector('.item-row');
-            const newRow = firstRow.cloneNode(true);
-
-            newRow.setAttribute('data-index', itemIndex);
-
-            // Update names and clear values
-            const selectElement = newRow.querySelector('.medicine-select');
-            selectElement.name = 'items[' + itemIndex + '].medicineId';
-            selectElement.value = '';
-
-            const qtyInput = newRow.querySelector('.qty-input');
-            qtyInput.name = 'items[' + itemIndex + '].quantityOrdered';
-            qtyInput.value = '';
-
-            const priceInput = newRow.querySelector('.price-input');
-            priceInput.name = 'items[' + itemIndex + '].unitCostPrice';
-            priceInput.value = '';
-
-            newRow.querySelector('.row-total').innerText = '$0.00';
-
-            // Enable remove button just in case
-            newRow.querySelector('.remove-btn').disabled = false;
-
-            container.appendChild(newRow);
-            updateRemoveButtons();
-            updateGrandTotal();
-
-            // create lucide icons in new element
-            lucide.createIcons();
-        }
-
-        function removeItemRow(btn) {
-            const container = document.getElementById('itemsContainer');
-            if (container.children.length > 1) {
-                btn.closest('.item-row').remove();
-                updateRemoveButtons();
-                reindexRows();
-                updateGrandTotal();
-            }
-        }
-
-        function updateRemoveButtons() {
-            const rows = document.querySelectorAll('.item-row');
-            const removeBtns = document.querySelectorAll('.remove-btn');
-            if (rows.length === 1) {
-                removeBtns[0].disabled = true;
-                removeBtns[0].classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                removeBtns.forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                });
-            }
-        }
-
-        function reindexRows() {
-            const rows = document.querySelectorAll('.item-row');
-            itemIndex = 0;
-            rows.forEach((row, index) => {
-                row.querySelector('.medicine-select').name = 'items[' + index + '].medicineId';
-                row.querySelector('.qty-input').name = 'items[' + index + '].quantityOrdered';
-                row.querySelector('.price-input').name = 'items[' + index + '].unitCostPrice';
-                itemIndex = index;
-            });
-        }
-
-        function updateRowTotal(element) {
-            const row = element.closest('.item-row');
-            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-            const total = qty * price;
-            row.querySelector('.row-total').innerText = '$' + total.toFixed(2);
-            updateGrandTotal();
-        }
-
-        function updateGrandTotal() {
-            let grandTotal = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                grandTotal += (qty * price);
-            });
-            document.getElementById('grandTotal').innerText = '$' + grandTotal.toFixed(2);
-        }
-
-        // Initialization defaults
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('orderDate').valueAsDate = new Date();
-            updateRemoveButtons();
-        });
+    </script>
     </script>
 </body>
 

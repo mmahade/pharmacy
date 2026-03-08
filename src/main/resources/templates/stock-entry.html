@@ -111,21 +111,61 @@
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                                    <div class="md:col-span-2 space-y-3">
+                                    <div class="md:col-span-2 space-y-3" x-data="{ 
+                                            open: false, 
+                                            search: '', 
+                                            medicines: [], 
+                                            selectedId: '',
+                                            loading: false,
+                                            async fetchMedicines() {
+                                                if (this.search.length < 2) {
+                                                    this.medicines = [];
+                                                    return;
+                                                }
+                                                this.loading = true;
+                                                try {
+                                                    const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.search)}`);
+                                                    if (response.ok) {
+                                                        this.medicines = await response.json();
+                                                    }
+                                                } catch (e) { console.error(e); }
+                                                finally { this.loading = false; }
+                                            }
+                                        }">
                                         <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
                                             Select Medicine
                                             <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative group/select">
-                                            <select name="medicineId" id="medicineId" required
-                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
-                                                <option value="" disabled selected>Choose a medicine...</option>
-                                                <option th:each="m : ${medicines}" th:value="${m.id}"
-                                                    th:text="${m.name} + ' (' + ${m.category} + ')'"></option>
-                                            </select>
-                                            <div
-                                                class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                                            <input type="hidden" name="medicineId" :value="selectedId" required>
+                                            <div class="relative">
+                                                <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                                                <input type="text" 
+                                                    x-model="search"
+                                                    @input.debounce.300ms="fetchMedicines()"
+                                                    @focus="open = true"
+                                                    @click.away="open = false"
+                                                    placeholder="Search for a medicine..."
+                                                    class="w-full pl-14 pr-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus font-medium text-slate-800 focus:bg-white transition-all">
+                                                
+                                                <div x-show="loading" class="absolute right-5 top-1/2 -translate-y-1/2">
+                                                    <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                            </div>
+                                            <div x-show="open && (medicines.length > 0 || loading)" x-cloak class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto p-2">
+                                                <template x-for="m in medicines" :key="m.id">
+                                                    <div @click="selectedId = m.id; search = m.name; open = false"
+                                                        class="px-5 py-3 hover:bg-blue-50 cursor-pointer text-sm rounded-xl transition-colors flex items-center justify-between group">
+                                                        <div>
+                                                            <span class="font-bold text-slate-900" x-text="m.name"></span>
+                                                            <span class="text-xs text-slate-400 ml-2" x-text="'(' + m.category + ')'"></span>
+                                                        </div>
+                                                        <i data-lucide="plus-circle" class="w-4 h-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                    </div>
+                                                </template>
+                                                <div x-show="!loading && search.length >= 2 && medicines.length === 0" class="px-5 py-3 text-sm text-slate-500 italic">
+                                                    No medicines found...
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

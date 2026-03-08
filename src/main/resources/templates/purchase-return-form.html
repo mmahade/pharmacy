@@ -42,7 +42,7 @@
             background-color: #f3f4f6;
         }
 
-        
+
 
         .input-focus:focus {
             border-color: #3b82f6;
@@ -128,15 +128,53 @@
                                     Supplier Information
                                 </h2>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 relative" x-data="{ 
+                                            open: false, 
+                                            search: '', 
+                                            list: [],
+                                            loading: false,
+                                            async fetchSuppliers() {
+                                                if (this.search.length < 2) {
+                                                    this.list = [];
+                                                    return;
+                                                }
+                                                this.loading = true;
+                                                try {
+                                                    const response = await fetch(`/api/suppliers/search?q=${encodeURIComponent(this.search)}`);
+                                                    if (response.ok) {
+                                                        this.list = await response.json();
+                                                    }
+                                                } catch (e) { console.error(e); }
+                                                finally { this.loading = false; }
+                                            }
+                                        }">
                                         <label class="block text-sm font-medium text-gray-700">Supplier <span
                                                 class="text-red-500">*</span></label>
-                                        <select x-model="formData.supplierId" required
-                                            class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                            <option value="">Select a supplier</option>
-                                            <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}">
-                                            </option>
-                                        </select>
+                                        <div class="relative">
+                                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                            <input type="text" 
+                                                x-model="search"
+                                                @input.debounce.300ms="fetchSuppliers()"
+                                                @focus="open = true"
+                                                @click.away="open = false"
+                                                placeholder="Search supplier..."
+                                                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            
+                                            <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            </div>
+                                        </div>
+                                        <div x-show="open && (list.length > 0 || loading)" x-cloak class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            <template x-for="s in list" :key="s.id">
+                                                <div @click="formData.supplierId = s.id; search = s.name; open = false"
+                                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                                                    x-text="s.name">
+                                                </div>
+                                            </template>
+                                            <div x-show="!loading && search.length >= 2 && list.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">
+                                                No suppliers found...
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="block text-sm font-medium text-gray-700">Return Date <span
@@ -172,17 +210,59 @@
                                         <div
                                             class="item-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg relative">
                                             <!-- Medicine -->
-                                            <div class="md:col-span-3">
+                                            <div class="md:col-span-3 relative" x-data="{ 
+                                                    open: false, 
+                                                    search: '', 
+                                                    list: [],
+                                                    loading: false,
+                                                    async fetchMedicines() {
+                                                        if (this.search.length < 2) {
+                                                            this.list = [];
+                                                            return;
+                                                        }
+                                                        this.loading = true;
+                                                        try {
+                                                            const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.search)}`);
+                                                            if (response.ok) {
+                                                                this.list = await response.json();
+                                                            }
+                                                        } catch (e) { console.error(e); }
+                                                        finally { this.loading = false; }
+                                                    }
+                                                }">
                                                 <label
                                                     class="block text-sm font-medium text-gray-700 mb-2">Medication</label>
-                                                <select x-model="item.medicineId" @change="onMedicineChange(index)"
-                                                    required
-                                                    class="medicine-select w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                    <option value="" disabled selected>Select medication</option>
-                                                    <option th:each="m : ${medicines}" th:value="${m.id}"
-                                                        th:data-price="${m.price}"
-                                                        th:text="|${m.name} (${m.genericName})|"></option>
-                                                </select>
+                                                <div class="relative">
+                                                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                                    <input type="text" 
+                                                        x-model="search"
+                                                        @input.debounce.300ms="fetchMedicines()"
+                                                        @focus="open = true"
+                                                        @click.away="open = false"
+                                                        placeholder="Search medication..."
+                                                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    
+                                                    <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                                        <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    </div>
+                                                </div>
+                                                <div x-show="open && (list.length > 0 || loading)" x-cloak class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto p-1">
+                                                    <template x-for="m in list" :key="m.id">
+                                                        <div @click="item.medicineId = m.id; search = m.name; open = false; onMedicineSelected(index, m)"
+                                                            class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm rounded-md group">
+                                                            <div class="flex items-center justify-between">
+                                                                <div>
+                                                                    <span class="font-bold text-gray-900" x-text="m.name"></span>
+                                                                    <span class="text-xs text-gray-400 block" x-text="m.genericName"></span>
+                                                                </div>
+                                                                <i data-lucide="plus-circle" class="w-4 h-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                    <div x-show="!loading && search.length >= 2 && list.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">
+                                                        No medications found...
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <!-- Batch Selection -->
@@ -338,9 +418,7 @@
                     this.formData.items.push({ medicineId: '', batchId: '', quantity: 1, unitPrice: 0.00, availableStock: 0, availableBatches: [], batchesLoading: false });
                     this.$nextTick(() => lucide.createIcons());
                 },
-                async onMedicineChange(index) {
-                    const select = event.target;
-                    const selectedOption = select.options[select.selectedIndex];
+                async onMedicineSelected(index, med) {
                     const item = this.formData.items[index];
 
                     // Reset item dependent fields
@@ -348,13 +426,13 @@
                     item.availableStock = 0;
                     item.availableBatches = [];
 
-                    if (selectedOption && selectedOption.value) {
-                        item.unitPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                    if (med && med.id) {
+                        item.unitPrice = med.price || 0;
 
                         // Fetch batches
                         item.batchesLoading = true;
                         try {
-                            const response = await fetch(`/api/medicines/${item.medicineId}/batches`);
+                            const response = await fetch(`/api/medicines/${med.id}/batches`);
                             if (response.ok) {
                                 const batches = await response.json();
                                 item.availableBatches = batches.filter(b => b.quantity > 0);
