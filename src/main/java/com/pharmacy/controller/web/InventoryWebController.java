@@ -26,12 +26,15 @@ public class InventoryWebController {
 
         var stats = inventoryService.getInventoryStats(principal);
         model.addAttribute("totalMedicines", stats.totalMedicines());
-        model.addAttribute("lowStockCount", stats.lowStockCount());
+        model.addAttribute("lowStockCount", inventoryService.countLowStockMedicines(principal));
+        model.addAttribute("outOfStockCount", inventoryService.countOutOfStockMedicines(principal));
         model.addAttribute("totalStockUnits", stats.totalStockUnits());
         model.addAttribute("totalValue", stats.totalValue());
 
-        var lowStockMedicines = inventoryService.getBelowThresholdMedicinesPaginated(principal, 0, 100).getContent();
+        var lowStockMedicines = inventoryService.getLowStockMedicinesPaginated(principal, 0, 10).getContent();
+        var outOfStockMedicines = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 10).getContent();
         model.addAttribute("lowStockMedicines", lowStockMedicines);
+        model.addAttribute("outOfStockMedicines", outOfStockMedicines);
 
         model.addAttribute("activePage", "inventory");
         return "inventory";
