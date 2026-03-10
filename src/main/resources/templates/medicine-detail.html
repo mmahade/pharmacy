@@ -137,7 +137,7 @@
                                 <p class="text-xs text-gray-500 mt-1 font-medium">Units in inventory</p>
                                 <div class="flex items-center gap-1 mt-4">
                                     <span class="px-2 py-1 rounded-md bg-gray-100 text-xs font-bold text-gray-600"
-                                        th:text="'Min: ' + ${medicine.minStock}">Min: 20</span>
+                                        th:text="'Min Stock: ' + ${medicine.minStock}">Min Stock: 20</span>
                                 </div>
                             </div>
                         </div>
@@ -380,7 +380,7 @@
                                                 th:text="${medicine.dosageForm != null ? medicine.dosageForm : '—'}">Tablet</span>
                                         </div>
                                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                                            <span class="text-sm text-gray-500 font-medium">Min. Threshold</span>
+                                            <span class="text-sm text-gray-500 font-medium">Minimum Stock</span>
                                             <span class="text-sm font-semibold text-slate-800"
                                                 th:text="${medicine.minStock}">20</span>
                                         </div>
