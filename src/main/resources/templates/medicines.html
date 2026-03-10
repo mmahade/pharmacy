@@ -201,9 +201,9 @@
                 <!-- Alerts Section -->
                 <div class="grid gap-6 md:grid-cols-2">
 
-                    <!-- Low Stock Alerts -->
+                    <!-- Stock Alerts -->
                     <div
-                        th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockMedicines != null ? lowStockMedicines.size() : 0}, ${lowStockMedicines})}">
+                        th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockCount}, ${outOfStockCount}, ${lowStockMedicines}, ${outOfStockMedicines})}">
                     </div>
 
                     <!-- Expiry Alerts -->
@@ -266,7 +266,7 @@
                             All Medicines
                         </h3>
                         <span class="text-sm text-gray-500 font-medium"
-                            th:text="${#lists.size(medicines)} + ' items found'">0 items found</span>
+                            th:text="${totalItems} + ' items found'">0 items found</span>
                     </div>
 
                     <!-- Grid -->
@@ -355,10 +355,10 @@
                                 <p class="text-sm text-gray-500">
                                     Showing
                                     <span class="font-medium text-gray-900"
-                                        th:text="${(currentPage - 1) * 9 + 1}">1</span>
+                                        th:text="${(currentPage - 1) * pageSize + 1}">1</span>
                                     to
                                     <span class="font-medium text-gray-900"
-                                        th:text="${(currentPage * 9) > totalItems ? totalItems : (currentPage * 9)}">9</span>
+                                        th:text="${(currentPage * pageSize) > totalItems ? totalItems : (currentPage * pageSize)}">9</span>
                                     of
                                     <span class="font-medium text-gray-900" th:text="${totalItems}">97</span>
                                     results

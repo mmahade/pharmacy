@@ -25,50 +25,30 @@ public class MedicineWebController {
     @GetMapping
     public String listMedicines(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "9") int size,
             Model model,
             HttpServletRequest request) {
-        List<MedicineResponse> medicines;
+
+        if (page < 1) page = 1;
+
+        org.springframework.data.domain.Page<MedicineResponse> medicinePage;
         if (query != null && !query.isEmpty()) {
-            medicines = inventoryService.searchMedicines(principal, query);
+            medicinePage = inventoryService.searchMedicinesPaginated(principal, query, page - 1, size);
             model.addAttribute("searchQuery", query);
         } else {
-            medicines = inventoryService.listMedicines(principal);
+            medicinePage = inventoryService.listMedicinesPaginated(principal, page - 1, size);
         }
 
-        int page = 1;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.isEmpty()) {
-            try {
-                page = Integer.parseInt(pageParam);
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
+        int totalPages = medicinePage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        if (page > totalPages) page = totalPages;
 
-        int size = 9;
-        int totalItems = medicines.size();
-        int totalPages = (int) Math.ceil((double) totalItems / size);
-        if (totalPages == 0)
-            totalPages = 1;
-        if (page > totalPages)
-            page = totalPages;
-        if (page < 1)
-            page = 1;
-
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, totalItems);
-
-        List<MedicineResponse> paginatedMedicines;
-        if (fromIndex < totalItems && fromIndex >= 0) {
-            paginatedMedicines = medicines.subList(fromIndex, toIndex);
-        } else {
-            paginatedMedicines = List.of();
-        }
-
-        model.addAttribute("medicines", paginatedMedicines);
+        model.addAttribute("medicines", medicinePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalItems", totalItems);
+        model.addAttribute("totalItems", medicinePage.getTotalElements());
+        model.addAttribute("pageSize", size);
 
         int windowStart = Math.max(1, page - 2);
         int windowEnd = Math.min(totalPages, page + 2);
@@ -90,8 +70,11 @@ public class MedicineWebController {
         model.addAttribute("totalValue", stats.totalValue());
 
         // Add alerts and detailed stock info
+        model.addAttribute("lowStockCount", inventoryService.countLowStockMedicines(principal));
+        model.addAttribute("outOfStockCount", inventoryService.countOutOfStockMedicines(principal));
+        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicinesPaginated(principal, 0, 5));
+        model.addAttribute("outOfStockMedicines", inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5));
         model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
-        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicinesPaginated(principal, 0, 100));
 
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
             return "medicines :: medicineList";

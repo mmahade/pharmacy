@@ -33,13 +33,25 @@ public class InventoryService {
         private final TenantAccessService tenantAccessService;
 
         public List<MedicineResponse> listMedicines(AppUserPrincipal principal) {
+                // Fetch first 100 as a reasonable default for legacy non-paginated callers
+                return listMedicinesPaginated(principal, 0, 100).getContent();
+        }
+
+        public org.springframework.data.domain.Page<MedicineResponse> listMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-                List<Medicine> listOfMedicines = medicineRepository
-                                .findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
-                return medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId())
-                                .stream()
-                                .map(this::toResponse)
-                                .toList();
+                var pageable = PageRequest.of(page, size);
+                return medicineRepository.findByPharmacyId(pharmacy.getId(), pageable)
+                                .map(this::toResponse);
+        }
+
+        public org.springframework.data.domain.Page<MedicineResponse> searchMedicinesPaginated(AppUserPrincipal principal, String query, int page, int size) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                if (query == null || query.isBlank()) {
+                        return org.springframework.data.domain.Page.empty();
+                }
+                var pageable = PageRequest.of(page, size);
+                return medicineRepository.searchMedicines(pharmacy, query.trim(), pageable)
+                                .map(this::toResponse);
         }
 
         public List<MedicineResponse> searchMedicines(AppUserPrincipal principal, String query) {
@@ -47,7 +59,7 @@ public class InventoryService {
                 if (query == null || query.isBlank()) {
                         return List.of();
                 }
-                var page = PageRequest.of(0, 25);
+                var page = PageRequest.of(0, 100); // Increased limit slightly for legacy callers if any
                 return medicineRepository.searchMedicines(
                                 pharmacy, query.trim(), page)
                                 .stream()
@@ -301,30 +313,16 @@ public class InventoryService {
 
         public InventoryStatsResponse getInventoryStats(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-                List<Medicine> medicines = medicineRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacy.getId());
 
-                long totalMedicines = medicines.size();
-                long lowStockCount = 0;
-                long totalStockUnits = 0;
-                java.math.BigDecimal totalValue = java.math.BigDecimal.ZERO;
+                long totalMedicines = medicineRepository.countByPharmacyId(pharmacy.getId());
+                long lowStockCount = countLowStockMedicines(principal);
 
-                for (Medicine medicine : medicines) {
-                        List<StockBatch> batches = stockBatchRepository.findByMedicineOrderByExpiryDateAsc(medicine);
-                        int stock = batches.stream()
-                                        .filter(b -> b.getExpiryDate() != null
-                                                        && !b.getExpiryDate().isBefore(LocalDate.now()))
-                                        .mapToInt(StockBatch::getQuantity).sum();
-                        totalStockUnits += stock;
+                List<Object[]> aggregation = medicineRepository.getInventoryAggregation(pharmacy);
+                Object[] row = (aggregation != null && !aggregation.isEmpty()) ? aggregation.get(0) : new Object[] { 0L, java.math.BigDecimal.ZERO };
 
-                        if (stock <= medicine.getMinStock()) {
-                                lowStockCount++;
-                        }
-
-                        if (medicine.getPrice() != null) {
-                                totalValue = totalValue
-                                                .add(medicine.getPrice().multiply(java.math.BigDecimal.valueOf(stock)));
-                        }
-                }
+                // Handle the case where the query returns a single array or a list containing one array
+                Long totalStockUnits = row[0] != null ? ((Number) row[0]).longValue() : 0L;
+                java.math.BigDecimal totalValue = row[1] != null ? (java.math.BigDecimal) row[1] : java.math.BigDecimal.ZERO;
 
                 return new InventoryStatsResponse(totalMedicines, lowStockCount, totalStockUnits, totalValue);
         }
