@@ -146,6 +146,7 @@
                     </div>
 
                     <form id="addMedicineForm" class="space-y-8">
+                        <input type="hidden" name="bdMedicineId" id="bdMedicineId" th:value="${medicine?.bdMedicineId}">
                         <div class="grid grid-cols-1 gap-8">
 
                             <!-- Section: Primary Information -->
@@ -175,23 +176,21 @@
                                                 Medicine Name
                                                 <span class="text-red-500">*</span>
                                             </label>
-                                            <input type="text" name="name" required th:value="${medicine?.name}"
-                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                placeholder="e.g. Paracetamol Extra 500mg">
+                                            <input type="text" id="display_name" readonly th:value="${medicine?.name}"
+                                                class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium"
+                                                placeholder="Select from Master Database...">
                                         </div>
 
                                         <div class="space-y-3">
                                             <label class="text-sm font-bold text-slate-700">Generic Formula Name</label>
-                                            <input type="text" name="genericName" th:value="${medicine?.genericName}"
-                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                placeholder="e.g. Acetaminophen">
+                                            <input type="text" id="display_genericName" readonly th:value="${medicine?.genericName}"
+                                                class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium">
                                         </div>
 
                                         <div class="md:col-span-2 space-y-3">
                                             <label class="text-sm font-bold text-slate-700">Detailed Description</label>
-                                            <textarea name="description" rows="3" th:text="${medicine?.description}"
-                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium resize-none"
-                                                placeholder="Add specific storage instructions, side effects, or a general product description..."></textarea>
+                                            <textarea id="display_description" rows="3" readonly th:text="${medicine?.description}"
+                                                class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium resize-none"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -214,40 +213,21 @@
 
                                     <div class="space-y-8">
                                         <div class="space-y-3">
-                                            <label class="text-sm font-bold text-slate-700">System Category <span class="text-red-500">*</span></label>
-                                            <div class="relative group/select">
-                                                <select name="category" required
-                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
-                                                    <option value="" disabled th:selected="${medicine == null}">Select Category</option>
-                                                    <option th:each="cat : ${ {'Analgesics', 'Antibiotics', 'Antipyretics', 'Antiseptics', 'Cardiovascular', 'Dermatological', 'Gastrointestinal', 'Respiratory', 'Vitamins', 'Hormones'} }"
-                                                            th:value="${cat}" th:text="${cat}" th:selected="${medicine?.category == cat}"></option>
-                                                </select>
-                                                <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
-                                                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
-                                                </div>
-                                            </div>
+                                            <label class="text-sm font-bold text-slate-700">System Category</label>
+                                            <input type="text" id="display_category" readonly th:value="${medicine?.category}"
+                                                class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium">
                                         </div>
 
                                         <div class="grid grid-cols-2 gap-6">
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Dosage Form</label>
-                                                <div class="relative group/select">
-                                                    <select name="dosageForm"
-                                                        class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus appearance-none cursor-pointer font-medium text-slate-800 focus:bg-white transition-all">
-                                                        <option value="" disabled th:selected="${medicine == null}">Form...</option>
-                                                        <option th:each="form : ${ {'Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Drops', 'Inhaler'} }"
-                                                                th:value="${form}" th:text="${form}" th:selected="${medicine?.dosageForm == form}"></option>
-                                                    </select>
-                                                    <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 transition-transform group-focus-within/select:rotate-180">
-                                                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
-                                                    </div>
-                                                </div>
+                                                <input type="text" id="display_dosageForm" readonly th:value="${medicine?.dosageForm}"
+                                                    class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium">
                                             </div>
                                             <div class="space-y-3">
                                                 <label class="text-sm font-bold text-slate-700">Strength</label>
-                                                <input type="text" name="strength" th:value="${medicine?.strength}"
-                                                    class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                    placeholder="500mg...">
+                                                <input type="text" id="display_strength" readonly th:value="${medicine?.strength}"
+                                                    class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium">
                                             </div>
                                         </div>
                                     </div>
@@ -267,10 +247,9 @@
 
                                     <div class="space-y-8">
                                         <div class="space-y-3">
-                                            <label class="text-sm font-bold text-slate-700">Primary Manufacturer <span class="text-red-500">*</span></label>
-                                            <input type="text" name="manufacturer" required th:value="${medicine?.manufacturer}"
-                                                class="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 placeholder:text-slate-400 font-medium"
-                                                placeholder="e.g. Global Pharma Distributors">
+                                            <label class="text-sm font-bold text-slate-700">Primary Manufacturer</label>
+                                            <input type="text" id="display_manufacturer" readonly th:value="${medicine?.manufacturer}"
+                                                class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-500 font-medium">
                                         </div>
 
                                         <div class="grid grid-cols-2 gap-6">
@@ -432,6 +411,7 @@
                 selectMedicineFromEvent(event) {
                     const item = event.currentTarget;
                     const med = {
+                        id: item.dataset.id,
                         name: item.dataset.name,
                         genericName: item.dataset.generic,
                         description: item.dataset.description,
@@ -445,44 +425,20 @@
                 selectMedicine(med) {
                     const form = document.getElementById('addMedicineForm');
                     
-                    const setValue = (name, value) => {
-                        const el = form.querySelector(`[name="${name}"]`);
-                        if (el && value) el.value = value;
+                    const setValue = (id, value) => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = value || '';
+                        if (el && el.tagName === 'TEXTAREA') el.textContent = value || '';
                     };
-
-                    setValue('name', med.name);
-                    setValue('genericName', med.genericName);
-                    setValue('description', med.description);
-                    setValue('manufacturer', med.manufacturer);
-                    setValue('strength', med.strength);
                     
-                    if (med.category) {
-                        const catEl = form.querySelector('[name="category"]');
-                        if (catEl) {
-                            const optionExists = Array.from(catEl.options).some(opt => opt.value === med.category);
-                            if (optionExists) {
-                                catEl.value = med.category;
-                            } else {
-                                const newOpt = new Option(med.category, med.category);
-                                catEl.add(newOpt);
-                                catEl.value = med.category;
-                            }
-                        }
-                    }
-
-                    if (med.dosageForm) {
-                        const dosageEl = form.querySelector('[name="dosageForm"]');
-                        if (dosageEl) {
-                            const optionExists = Array.from(dosageEl.options).some(opt => opt.value === med.dosageForm);
-                            if (optionExists) {
-                                dosageEl.value = med.dosageForm;
-                            } else {
-                                const newOpt = new Option(med.dosageForm, med.dosageForm);
-                                dosageEl.add(newOpt);
-                                dosageEl.value = med.dosageForm;
-                            }
-                        }
-                    }
+                    document.getElementById('bdMedicineId').value = med.id;
+                    setValue('display_name', med.name);
+                    setValue('display_genericName', med.genericName);
+                    setValue('display_description', med.description);
+                    setValue('display_manufacturer', med.manufacturer);
+                    setValue('display_strength', med.strength);
+                    setValue('display_category', med.category);
+                    setValue('display_dosageForm', med.dosageForm);
 
                     this.query = '';
                     this.resultsOpen = false;
