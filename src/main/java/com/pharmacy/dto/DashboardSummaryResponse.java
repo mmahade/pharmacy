@@ -12,6 +12,7 @@ public record DashboardSummaryResponse(
                 long lowStockCount,
                 long outOfStockCount,
                 List<MedicineResponse> lowStock,
+                List<MedicineResponse> outOfStock,
                 List<ExpiryAlertItem> expiringSoon,
                 List<PrescriptionResponse> recentPrescriptions,
                 List<SaleResponse> recentSales,

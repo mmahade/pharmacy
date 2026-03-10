@@ -1,44 +1,70 @@
-<div th:fragment="lowStockAlert(count, items)" class="card">
+<div th:fragment="lowStockAlert(lowCount, outCount, lowItems, outItems)" class="card">
     <div class="p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold flex items-center gap-2">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500"></i>
-                Low Stock Alerts
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+                Stock Alerts
             </h3>
-            <span th:if="${count != null and count > 0}"
-                class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full" th:text="${count}">0</span>
+            <div class="flex gap-2">
+                <span th:if="${outCount != null and outCount > 0}"
+                    class="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-200">
+                    <span th:text="${outCount}">0</span> Out
+                </span>
+                <span th:if="${lowCount != null and lowCount > 0}"
+                    class="px-2 py-1 text-xs font-bold bg-orange-100 text-orange-700 rounded-full border border-orange-200">
+                    <span th:text="${lowCount}">0</span> Low
+                </span>
+            </div>
         </div>
 
-        <!-- Low Stock List -->
-        <div th:if="${items != null and !items.isEmpty()}" class="space-y-3">
-            <div th:each="item, iterStat : ${items}" th:if="${iterStat.index < 5}"
-                class="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+        <!-- Alerts List -->
+        <div th:if="${(lowItems != null and !lowItems.isEmpty()) or (outItems != null and !outItems.isEmpty())}" class="space-y-3">
+            
+            <!-- Out of Stock Items (Critical) -->
+            <div th:each="item : ${outItems}"
+                class="p-3 bg-red-50 border border-red-100 rounded-xl relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
-                        <span class="font-medium text-gray-900" th:text="${item.name}">Medicine Name</span>
-                        <div class="text-xs text-gray-600 mt-1">
-                            Current: <span class="font-bold" th:text="${item.totalStock}">0</span> |
-                            Minimum: <span th:text="${item.minStock}">0</span>
-                        </div>
+                        <span class="font-bold text-slate-900" th:text="${item.name}">Medicine Name</span>
+                        <div class="text-[10px] uppercase font-bold text-red-500 mt-0.5 tracking-wider">Out of Stock</div>
                     </div>
-                    <span class="px-2 py-1 text-xs font-medium border border-orange-600 text-orange-600 rounded"
-                        th:text="${item.totalStock} + ' left'">0 left</span>
+                    <a th:href="@{'/inventory/stock-entry?medicineId=' + ${item.id}}" 
+                       class="px-2 py-1 text-[10px] font-black bg-red-500 text-white rounded shadow-sm uppercase hover:bg-red-600 transition-colors">Reorder</a>
                 </div>
             </div>
 
-            <a th:if="${items.size() > 5}" href="/alerts/low-stock"
-                class="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-sm font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-dashed border-orange-200 group">
-                See all low stock items (<span th:text="${items.size() - 5}">0</span> more)
+            <!-- Low Stock Items (Warning) -->
+            <div th:each="item : ${lowItems}"
+                class="p-3 bg-orange-50 border border-orange-100 rounded-xl relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"></div>
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <span class="font-bold text-slate-900" th:text="${item.name}">Medicine Name</span>
+                        <div class="text-[10px] font-medium text-slate-500 mt-0.5">
+                            Stock: <span class="font-bold text-orange-600" th:text="${item.totalStock}">0</span> 
+                            / Min: <span th:text="${item.minStock}">0</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 text-[10px] font-black border border-orange-500 text-orange-600 rounded uppercase">Low</span>
+                </div>
+            </div>
+
+            <a th:if="${lowCount + outCount > 5}" href="/alerts/low-stock"
+                class="flex items-center justify-center gap-2 w-full py-2.5 mt-2 text-sm font-bold text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-xl transition-all border border-dashed border-slate-200 group">
+                See all alerts (<span th:text="${lowCount + outCount}">0</span>)
                 <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </a>
         </div>
 
         <!-- Empty State -->
-        <div th:if="${items == null or items.isEmpty()}"
-            class="flex flex-col items-center justify-center py-4 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-            <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mb-2"></i>
-            <p class="text-sm font-medium text-gray-900">All stock levels good</p>
-            <p class="text-xs text-gray-500 mt-1">No medicines are below minimum stock.</p>
+        <div th:if="${(lowItems == null or lowItems.isEmpty()) and (outItems == null or outItems.isEmpty())}"
+            class="flex flex-col items-center justify-center py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3">
+                <i data-lucide="check" class="w-6 h-6"></i>
+            </div>
+            <p class="text-sm font-bold text-slate-800">All Levels Good</p>
+            <p class="text-xs text-slate-500 mt-1">No medicines need restocking currently.</p>
         </div>
     </div>
 </div>

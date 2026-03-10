@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -230,19 +231,68 @@ public class InventoryService {
         }
 
         /**
-         * Get all medicines that are low stock.
-         * A medicine is considered low stock if its total current stock is <= minStock.
+         * Counts all medicines that are in stock.
          */
+        public long countInStockMedicines(AppUserPrincipal principal) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.countInStockMedicines(pharmacy)
+                        .stream().filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+        }
+
+        /**
+         * Counts all medicines that are low stock.
+         */
+        public long countLowStockMedicines(AppUserPrincipal principal) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.countLowStockMedicines(pharmacy)
+                        .stream().filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+        }
+
+        /**
+         * Counts all medicines that are out of stock.
+         */
+        public long countOutOfStockMedicines(AppUserPrincipal principal) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.countOutOfStockMedicines(pharmacy)
+                        .stream().filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+        }
+
+        /**
+         * Get paginated medicines that are low stock.
+         */
+        public List<MedicineResponse> getLowStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.findLowStockMedicines(pharmacy, PageRequest.of(page, size))
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+        }
+
+        /**
+         * Get all medicines that are low stock.
+         * Deprecated for large datasets, use paginated version.
+         */
+        @Deprecated
         public List<MedicineResponse> getLowStockMedicines(AppUserPrincipal principal) {
-                return listMedicines(principal).stream()
-                                .filter(m -> "Low Stock".equals(m.status()))
-                                .toList();
+                return getLowStockMedicinesPaginated(principal, 0, 10);
+        }
+
+        /**
+         * Get paginated medicines that are out of stock.
+         */
+        public List<MedicineResponse> getOutOfStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.findOutOfStockMedicines(pharmacy, PageRequest.of(page, size))
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
         }
 
         /**
          * Get all medicines that are out of stock.
-         * A medicine is considered out of stock if its total current stock is <= 0.
+         * Deprecated for large datasets.
          */
+        @Deprecated
         public List<MedicineResponse> getOutOfStockMedicines(AppUserPrincipal principal) {
                 return listMedicines(principal).stream()
                                 .filter(m -> m.totalStock() <= 0)

@@ -1,6 +1,7 @@
 package com.pharmacy.service;
 
 import com.pharmacy.dto.DashboardSummaryResponse;
+import com.pharmacy.dto.MedicineResponse;
 import com.pharmacy.dto.PrescriptionResponse;
 import com.pharmacy.dto.SaleResponse;
 import com.pharmacy.entity.Pharmacy;
@@ -58,13 +59,13 @@ public class DashboardService {
                                         netDaily));
                 }
 
-                List<com.pharmacy.dto.MedicineResponse> allMeds = inventoryService.listMedicines(principal);
-                long inStockCount = allMeds.stream().filter(m -> "In Stock".equals(m.status())).count();
+                long inStockCount = inventoryService.countInStockMedicines(principal);
 
-                List<com.pharmacy.dto.MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicines(principal);
-                long lowStockCount = lowStockMeds.size();
+                List<MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicinesPaginated(principal, 0, 5);
+                long lowStockCount = inventoryService.countLowStockMedicines(principal);
 
-                long outOfStockCount = inventoryService.getOutOfStockMedicines(principal).size();
+                List<MedicineResponse> outOfStockMeds = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5);
+                long outOfStockCount = inventoryService.countOutOfStockMedicines(principal);
 
                 int expiryWindowDays = 30;
                 List<StockBatch> expiringBatches = stockBatchRepository
@@ -110,6 +111,7 @@ public class DashboardService {
                                 lowStockCount,
                                 outOfStockCount,
                                 lowStockMeds,
+                                outOfStockMeds,
                                 expiringSoon,
                                 recentPrescriptions,
                                 recentSales,

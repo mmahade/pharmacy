@@ -91,7 +91,7 @@ public class MedicineWebController {
 
         // Add alerts and detailed stock info
         model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
-        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicines(principal));
+        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicinesPaginated(principal, 0, 100));
 
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
             return "medicines :: medicineList";
