@@ -33,8 +33,8 @@ public class InventoryService {
         private final TenantAccessService tenantAccessService;
 
         public List<MedicineResponse> listMedicines(AppUserPrincipal principal) {
-                // Fetch first 100 as a reasonable default for legacy non-paginated callers
-                return listMedicinesPaginated(principal, 0, 100).getContent();
+                // Fetch first 500 as a reasonable default for legacy non-paginated callers
+                return listMedicinesPaginated(principal, 0, 500).getContent();
         }
 
         public org.springframework.data.domain.Page<MedicineResponse> listMedicinesPaginated(AppUserPrincipal principal, int page, int size) {

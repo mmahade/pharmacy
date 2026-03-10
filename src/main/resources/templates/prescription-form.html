@@ -372,15 +372,22 @@
                                   data-lucide="search"
                                   class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
                                 ></i>
-                                <input
-                                  type="text"
-                                  placeholder="Type to search medicine..."
-                                  x-model="item.searchText"
-                                  @focus="item.showDropdown = true"
-                                  @input="item.showDropdown = true"
-                                  class="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 font-medium"
-                                  :class="item.medicineId ? 'border-blue-200 bg-blue-50/30' : ''"
-                                />
+                                  <input
+                                    type="text"
+                                    placeholder="Type to search medicine..."
+                                    x-model="item.searchText"
+                                    @focus="item.showDropdown = true"
+                                    @input.debounce.300ms="searchServer(item.searchText); item.showDropdown = true"
+                                    class="w-full pl-12 pr-12 py-4 bg-white border border-slate-200 rounded-2xl outline-none input-focus text-slate-800 font-medium"
+                                    :class="item.medicineId ? 'border-blue-200 bg-blue-50/30' : ''"
+                                  />
+                                  <!-- Spinner -->
+                                  <div x-show="searching" class="absolute right-4 top-1/2 -translate-y-1/2">
+                                    <svg class="animate-spin h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                  </div>
                               </div>
 
                               <!-- Dropdown -->
@@ -868,6 +875,7 @@
           status: "PENDING",
           items: [],
           processing: false,
+          searching: false,
           errorMsg: "",
 
           // Payment Fields
@@ -883,13 +891,31 @@
           },
 
           filteredMedicines(text) {
-            if (!text) return this.medicines;
+            if (!text) return this.medicines.slice(0, 10);
             const q = text.toLowerCase();
             return this.medicines.filter(
               (m) =>
                 m.name.toLowerCase().includes(q) ||
                 m.category.toLowerCase().includes(q),
             );
+          },
+
+          async searchServer(text) {
+            if (!text || text.trim().length < 2) {
+              this.medicines = allMedicines;
+              return;
+            }
+            this.searching = true;
+            try {
+              const resp = await fetch(`/api/medicines/search?q=${encodeURIComponent(text)}`);
+              if (resp.ok) {
+                this.medicines = await resp.json();
+              }
+            } catch (e) {
+              console.error("Search failed", e);
+            } finally {
+              this.searching = false;
+            }
           },
 
           addRow() {

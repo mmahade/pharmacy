@@ -39,6 +39,23 @@ public class MedicineController {
         return inventoryService.searchMedicines(principal, q);
     }
 
+    @Operation(summary = "Paginated medicine list", description = "Returns a paged list of medicines.")
+    @GetMapping("/paged")
+    public org.springframework.data.domain.Page<MedicineResponse> listPaged(@AuthenticationPrincipal AppUserPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size) {
+        return inventoryService.listMedicinesPaginated(principal, page, size);
+    }
+
+    @Operation(summary = "Paginated medicine search", description = "Returns a paged list of medicines matching the query.")
+    @GetMapping("/search/paged")
+    public org.springframework.data.domain.Page<MedicineResponse> searchPaged(@AuthenticationPrincipal AppUserPrincipal principal,
+            @RequestParam(name = "q", defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size) {
+        return inventoryService.searchMedicinesPaginated(principal, q, page, size);
+    }
+
     /**
      * Batches expiring within N days (e.g. 30, 60, 90). Default 30.
      */

@@ -35,7 +35,8 @@ public class SalesWebController {
 
     @GetMapping("/new")
     public String showNewSaleForm(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        model.addAttribute("medicines", inventoryService.listMedicines(principal));
+        model.addAttribute("medicines", inventoryService.listMedicinesPaginated(principal, 0, 9).getContent());
+        model.addAttribute("totalItems", inventoryService.getInventoryStats(principal).totalMedicines());
         model.addAttribute("activePage", "pos");
         return "sale-form";
     }

@@ -236,27 +236,28 @@
                                 Showing <span class="font-bold text-gray-900"
                                     x-text="(currentPage - 1) * itemsPerPage + 1"></span> to
                                 <span class="font-bold text-gray-900"
-                                    x-text="Math.min(currentPage * itemsPerPage, medicines.length)"></span> of
-                                <span class="font-bold text-gray-900" x-text="medicines.length"></span> medicines
+                                    x-text="Math.min(currentPage * itemsPerPage, totalItems)"></span> of
+                                <span class="font-bold text-gray-900" x-text="totalItems"></span> medicines
                             </p>
                             <div class="flex items-center gap-2">
-                                <button @click="currentPage = Math.max(1, currentPage - 1)"
+                                <button @click="changePage(currentPage - 1)"
                                     :disabled="currentPage === 1"
                                     class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                                     <i data-lucide="chevron-left" class="w-4 h-4"></i>
                                 </button>
 
                                 <div class="flex items-center gap-1">
-                                    <template x-for="page in totalPages" :key="page">
-                                        <button @click="currentPage = page"
-                                            :class="currentPage === page ? 'bg-blue-50 text-blue-600 border-blue-200 font-bold' : 'text-gray-600 hover:bg-gray-50 border-transparent'"
+                                    <template x-for="(page, index) in getVisiblePages()" :key="index">
+                                        <button @click="page !== '...' && changePage(page)"
+                                            :class="page === '...' ? 'cursor-default text-gray-400 border-transparent' : (currentPage === page ? 'bg-blue-50 text-blue-600 border-blue-200 font-bold' : 'text-gray-600 hover:bg-gray-50 border-transparent')"
                                             class="w-8 h-8 rounded-lg border flex items-center justify-center text-sm transition-all"
+                                            :disabled="page === '...'"
                                             x-text="page">
                                         </button>
                                     </template>
                                 </div>
 
-                                <button @click="currentPage = Math.min(totalPages, currentPage + 1)"
+                                <button @click="changePage(currentPage + 1)"
                                     :disabled="currentPage === totalPages"
                                     class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                                     <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -670,15 +671,16 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const initialMedicines = /*[[${medicines}]]*/[];
+        const initialTotalItems = /*[[${totalItems}]]*/ 0;
         /*]]>*/
 
         function posSystem() {
             return {
                 medicines: [],
-                allMedicines: [],
                 searchQuery: '',
                 currentPage: 1,
                 itemsPerPage: 9,
+                totalItems: 0,
                 cart: [],
                 paymentMethod: 'CASH',
                 initialPayment: 0,
@@ -692,47 +694,78 @@
                 step: 1,  // 1 = cart, 2 = payment
 
                 initData(data) {
-                    this.allMedicines = data;
-                    this.medicines = data;
+                    this.medicines = data || [];
+                    this.totalItems = initialTotalItems || 0;
                     this.$nextTick(() => lucide.createIcons());
                 },
 
                 get paginatedMedicines() {
-                    const start = (this.currentPage - 1) * this.itemsPerPage;
-                    const end = start + this.itemsPerPage;
-                    return this.medicines.slice(start, end);
+                    return this.medicines;
                 },
 
                 get totalPages() {
-                    return Math.ceil(this.medicines.length / this.itemsPerPage);
+                   return Math.ceil(this.totalItems / this.itemsPerPage) || 1;
+                },
+
+                getVisiblePages() {
+                   const pages = [];
+                   const total = this.totalPages;
+                   const curr = this.currentPage;
+                   
+                   if (total <= 7) {
+                       for (let i = 1; i <= total; i++) pages.push(i);
+                   } else {
+                       pages.push(1);
+                       if (curr > 4) pages.push('...');
+                       
+                       const start = Math.max(2, curr - 2);
+                       const end = Math.min(total - 1, curr + 2);
+                       
+                       for (let i = start; i <= end; i++) pages.push(i);
+                       
+                       if (curr < total - 3) pages.push('...');
+                       pages.push(total);
+                   }
+                   return pages;
+                },
+
+                async changePage(p) {
+                   if (p < 1 || p > this.totalPages) return;
+                   this.currentPage = p;
+                   await this.fetchMedicinesFromServer();
+                },
+
+                async fetchMedicinesFromServer() {
+                    this.searching = true;
+                    try {
+                        const q = this.searchQuery.trim();
+                        let url = q.length > 0 
+                           ? `/api/medicines/search/paged?q=${encodeURIComponent(q)}&page=${this.currentPage - 1}&size=${this.itemsPerPage}`
+                           : `/api/medicines/paged?page=${this.currentPage - 1}&size=${this.itemsPerPage}`;
+                        
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.medicines = data.content;
+                            this.totalItems = data.totalElements;
+                        }
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                    } finally {
+                        this.searching = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                async searchMedicinesServer() {
+                    this.currentPage = 1;
+                    await this.fetchMedicinesFromServer();
                 },
 
                 goToPayment() {
                     if (this.cart.length === 0) return;
                     this.step = 2;
                     this.$nextTick(() => lucide.createIcons());
-                },
-
-                async searchMedicinesServer() {
-                    if (this.searchQuery.trim().length === 0) {
-                        this.medicines = this.allMedicines;
-                        this.currentPage = 1;
-                        this.$nextTick(() => lucide.createIcons());
-                        return;
-                    }
-                    this.searching = true;
-                    try {
-                        const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(this.searchQuery)}`);
-                        if (response.ok) {
-                            this.medicines = await response.json();
-                            this.currentPage = 1;
-                        }
-                    } catch (error) {
-                        console.error('Search error:', error);
-                    } finally {
-                        this.searching = false;
-                        this.$nextTick(() => lucide.createIcons());
-                    }
                 },
 
                 addToCart(medicine) {
