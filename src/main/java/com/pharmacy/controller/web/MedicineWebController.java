@@ -25,24 +25,21 @@ public class MedicineWebController {
     @GetMapping
     public String listMedicines(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "9") int size,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size,
             Model model,
             HttpServletRequest request) {
 
-        if (page < 1) page = 1;
-
         org.springframework.data.domain.Page<MedicineResponse> medicinePage;
         if (query != null && !query.isEmpty()) {
-            medicinePage = inventoryService.searchMedicinesPaginated(principal, query, page - 1, size);
+            medicinePage = inventoryService.searchMedicinesPaginated(principal, query, page, size);
             model.addAttribute("searchQuery", query);
         } else {
-            medicinePage = inventoryService.listMedicinesPaginated(principal, page - 1, size);
+            medicinePage = inventoryService.listMedicinesPaginated(principal, page, size);
         }
 
         int totalPages = medicinePage.getTotalPages();
         if (totalPages == 0) totalPages = 1;
-        if (page > totalPages) page = totalPages;
 
         model.addAttribute("medicines", medicinePage.getContent());
         model.addAttribute("currentPage", page);
@@ -50,13 +47,13 @@ public class MedicineWebController {
         model.addAttribute("totalItems", medicinePage.getTotalElements());
         model.addAttribute("pageSize", size);
 
-        int windowStart = Math.max(1, page - 2);
-        int windowEnd = Math.min(totalPages, page + 2);
+        int windowStart = Math.max(0, page - 2);
+        int windowEnd = Math.min(totalPages - 1, page + 2);
         if (windowEnd - windowStart < 4 && totalPages >= 5) {
-            if (windowStart == 1)
-                windowEnd = 5;
+            if (windowStart == 0)
+                windowEnd = 4;
             else
-                windowStart = totalPages - 4;
+                windowStart = totalPages - 5;
         }
 
         model.addAttribute("windowStart", windowStart);

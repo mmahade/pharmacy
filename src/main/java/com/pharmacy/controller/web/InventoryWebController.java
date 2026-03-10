@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/inventory")
@@ -17,9 +18,32 @@ public class InventoryWebController {
     private final InventoryService inventoryService;
 
     @GetMapping
-    public String listInventory(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        var medicines = inventoryService.listMedicines(principal);
-        model.addAttribute("medicines", medicines);
+    public String listInventory(
+            @AuthenticationPrincipal AppUserPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+        int pageSize = 5;
+        var medicinesPage = inventoryService.listMedicinesPaginated(principal, page, pageSize);
+        model.addAttribute("medicines", medicinesPage.getContent());
+        model.addAttribute("currentPage", page);
+        int totalPages = medicinesPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", medicinesPage.getTotalElements());
+        model.addAttribute("pageSize", pageSize);
+
+        int windowStart = Math.max(0, page - 2);
+        int windowEnd = Math.min(totalPages - 1, page + 2);
+        if (windowEnd - windowStart < 4 && totalPages >= 5) {
+            if (windowStart == 0)
+                windowEnd = 4;
+            else
+                windowStart = totalPages - 5;
+        }
+
+        model.addAttribute("windowStart", windowStart);
+        model.addAttribute("windowEnd", windowEnd);
 
         var expiryAlerts = inventoryService.getExpiryAlerts(principal, 30);
         model.addAttribute("expiryAlerts", expiryAlerts);
@@ -31,8 +55,8 @@ public class InventoryWebController {
         model.addAttribute("totalStockUnits", stats.totalStockUnits());
         model.addAttribute("totalValue", stats.totalValue());
 
-        var lowStockMedicines = inventoryService.getLowStockMedicinesPaginated(principal, 0, 10).getContent();
-        var outOfStockMedicines = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 10).getContent();
+        var lowStockMedicines = inventoryService.getLowStockMedicinesPaginated(principal, 0, 5).getContent();
+        var outOfStockMedicines = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5).getContent();
         model.addAttribute("lowStockMedicines", lowStockMedicines);
         model.addAttribute("outOfStockMedicines", outOfStockMedicines);
 

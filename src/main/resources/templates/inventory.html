@@ -251,59 +251,11 @@
 
                 <!-- Warnings Row (Dashboard Alert Panel Style) -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Stock Alerts (Standard Dashboard Fragment) -->
-                    <div th:replace="~{fragments/low-stock :: lowStockAlert(${lowStockCount}, ${outOfStockCount}, ${lowStockMedicines}, ${outOfStockMedicines})}"></div>
+                    <!-- Stock Alerts -->
+                    <div th:replace="~{fragments/stock-alerts :: stockAlerts(${lowStockCount}, ${outOfStockCount}, ${lowStockMedicines}, ${outOfStockMedicines})}"></div>
 
                     <!-- Expiry Alerts -->
-                    <div class="card">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold flex items-center gap-2">
-                                    <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
-                                    Expiring Soon (30 days)
-                                </h3>
-                                <span th:if="${expiryAlerts != null and !expiryAlerts.isEmpty()}"
-                                    class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
-                                    th:text="${expiryAlerts.size()}">0</span>
-                            </div>
-
-                            <!-- Expiry List -->
-                            <div th:if="${expiryAlerts != null and !expiryAlerts.isEmpty()}"
-                                class="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
-                                <div th:each="alert : ${expiryAlerts}"
-                                    th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-50 border-red-200' : (${alert.daysUntilExpiry <= 14} ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200')"
-                                    class="p-3 border rounded-lg">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div class="flex-1">
-                                            <div class="font-medium text-gray-900" th:text="${alert.medicineName}">
-                                                Medicine Name</div>
-                                            <div class="text-xs text-gray-600 mt-1">
-                                                Batch: <span class="font-mono"
-                                                    th:text="${alert.batchNumber}">BATCH-001</span> |
-                                                Qty: <span th:text="${alert.quantity}">0</span>
-                                            </div>
-                                            <div class="text-xs text-gray-600">
-                                                Expires: <span
-                                                    th:text="${#temporals.format(alert.expiryDate, 'MMM dd, yyyy')}">Date</span>
-                                            </div>
-                                        </div>
-                                        <span
-                                            th:classappend="${alert.daysUntilExpiry <= 7} ? 'bg-red-500 text-white' : 'border border-orange-600 text-orange-600'"
-                                            class="px-2 py-1 text-xs font-medium rounded"
-                                            th:text="${alert.daysUntilExpiry} + 'd'">0d</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty State -->
-                            <div th:if="${expiryAlerts == null or expiryAlerts.isEmpty()}"
-                                class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                                <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mb-2"></i>
-                                <p class="text-sm font-medium text-gray-900">No expiring items</p>
-                                <p class="text-xs text-gray-500 mt-1">All batches are well within their shelf life.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div th:replace="~{fragments/stock-alerts :: expiryAlerts(${expiryAlerts})}"></div>
                 </div>
 
                 <!-- Inventory Ledger (Dashboard Table Style) -->
@@ -313,7 +265,7 @@
                         <div>
                             <h3 class="text-lg font-bold text-gray-900">Inventory Ledger</h3>
                             <p class="text-xs text-gray-500 font-medium"
-                                th:text="${#lists.size(medicines)} + ' indexed items'">0 items</p>
+                                th:text="${totalItems} + ' indexed items'">0 items</p>
                         </div>
                         <div class="relative group">
                             <i data-lucide="filter"
@@ -376,9 +328,9 @@
                                             <div class="text-sm font-black text-gray-800" th:text="${med.totalStock}">0
                                             </div>
                                             <div class="progress-bar-container w-16">
-                                                <div class="progress-bar-fill"
+                                                <div class="progress-bar-fill transition-all duration-500"
                                                     th:classappend="${med.totalStock <= 0} ? 'bg-red-500' : (${med.totalStock <= med.minStock} ? 'bg-orange-500' : 'bg-emerald-500')"
-                                                    th:style="'width: ' + ${med.minStock > 0 ? T(java.lang.Math).min(100, (med.totalStock * 100 / (med.minStock * 2))) : (med.totalStock > 0 ? 100 : 0)} + '%'">
+                                                    th:style="|width: ${med.minStock > 0 ? (med.totalStock * 100 / (med.minStock * 2) > 100 ? 100 : (med.totalStock * 100 / (med.minStock * 2))) : (med.totalStock > 0 ? 100 : 0)}%|">
                                                 </div>
                                             </div>
                                         </div>
@@ -444,6 +396,68 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div th:if="${totalPages > 1}" class="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <p class="text-xs text-gray-500 font-medium">
+                            Showing <span class="font-bold text-gray-700" th:text="${currentPage * pageSize + 1}">1</span> 
+                            to <span class="font-bold text-gray-700" th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">5</span> 
+                            of <span class="font-bold text-gray-700" th:text="${totalItems}">0</span> entries
+                        </p>
+                        
+                        <div class="flex items-center gap-2">
+                            <a th:href="@{/inventory(page=0)}" 
+                               th:classappend="${currentPage == 0} ? 'opacity-50 pointer-events-none' : ''"
+                               class="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all text-gray-500">
+                                <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+                            </a>
+                            <a th:href="@{/inventory(page=${currentPage - 1})}"
+                               th:classappend="${currentPage == 0} ? 'opacity-50 pointer-events-none' : ''"
+                               class="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all text-gray-500">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </a>
+                            
+                            <div class="flex items-center gap-1">
+                                <!-- First Page & Ellipses -->
+                                <th:block th:if="${windowStart > 0}">
+                                    <a th:href="@{/inventory(page=0)}"
+                                       class="px-3 py-1 text-xs font-bold rounded-lg border border-gray-200 hover:bg-white transition-all text-gray-600">1</a>
+                                    <span class="text-gray-400 text-xs font-bold tracking-widest px-1">...</span>
+                                </th:block>
+
+                                <!-- Page Numbers -->
+                                <th:block th:each="i : ${#numbers.sequence(windowStart, windowEnd)}">
+                                    <a th:href="@{/inventory(page=${i})}"
+                                       th:text="${i + 1}"
+                                       th:classappend="${currentPage == i} ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'hover:bg-white text-gray-600 border-transparent hover:border-gray-200'"
+                                       class="px-3 py-1 text-xs font-bold rounded-lg border transition-all">
+                                        1
+                                    </a>
+                                </th:block>
+
+                                <!-- Last Page & Ellipses -->
+                                <th:block th:if="${windowEnd < totalPages - 1}">
+                                    <span class="text-gray-400 text-xs font-bold tracking-widest px-1">...</span>
+                                    <a th:href="@{/inventory(page=${totalPages - 1})}"
+                                       th:text="${totalPages}"
+                                       class="px-3 py-1 text-xs font-bold rounded-lg border border-gray-200 hover:bg-white transition-all text-gray-600">
+                                        10
+                                    </a>
+                                </th:block>
+                            </div>
+
+                            <a th:href="@{/inventory(page=${currentPage + 1})}"
+                               th:classappend="${currentPage + 1 >= totalPages} ? 'opacity-50 pointer-events-none' : ''"
+                               class="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all text-gray-500">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </a>
+                            <a th:href="@{/inventory(page=${totalPages - 1})}"
+                               th:classappend="${currentPage + 1 >= totalPages} ? 'opacity-50 pointer-events-none' : ''"
+                               class="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all text-gray-500">
+                                <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
