@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Medicine product (master): name, category, selling price, min stock for
- * alerts.
- * Actual inventory is held in {@link StockBatch} (same medicine can have
- * multiple
- * batches with different expiry dates).
+ * Medicine product (per pharmacy): links to the master BdMedicine catalog,
+ * plus pharmacy-specific selling price, min stock threshold, and batches.
+ * Actual inventory is held in {@link StockBatch}.
+ *
+ * NOTE: name, category, manufacturer, genericName, dosageForm, strength,
+ * description are stored in the {@link BdMedicine} master catalog.
+ * Access them via {@code getMasterMedicine()}.
  */
 @Getter
 @Setter
@@ -23,9 +25,7 @@ import java.util.List;
         name = "medicines",
         indexes = {
                 @Index(name = "idx_medicine_pharmacy", columnList = "pharmacy_id"),
-                @Index(name = "idx_pharmacy_medicine_name", columnList = "pharmacy_id,name"),
-                @Index(name = "idx_pharmacy_generic_name", columnList = "pharmacy_id,generic_name"),
-                @Index(name = "idx_pharmacy_category", columnList = "pharmacy_id,category")
+                @Index(name = "idx_pharmacy_medicine_name", columnList = "pharmacy_id,bd_medicine_id")
         }
 )
 public class Medicine {
@@ -35,31 +35,10 @@ public class Medicine {
     private Long id;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String category;
-
-    @Column(nullable = false)
-    private String manufacturer;
-
-    @Column(nullable = false)
     private Integer minStock;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
-
-    @Column
-    private String genericName;
-
-    @Column
-    private String dosageForm;
-
-    @Column
-    private String strength;
-
-    @Column(length = 1000)
-    private String description;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -71,6 +50,11 @@ public class Medicine {
     @JoinColumn(name = "pharmacy_id", nullable = false)
     private Pharmacy pharmacy;
 
+    /** Link to the shared BD medicine master catalog (added by V3 migration). */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "bd_medicine_id", nullable = false)
+    private BdMedicine masterMedicine;
+
     @OneToMany(mappedBy = "medicine")
     private List<StockBatch> batches = new ArrayList<>();
 
@@ -80,5 +64,37 @@ public class Medicine {
         if (minStock == null) {
             minStock = 20;
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Convenience delegators – read-through to BdMedicine master catalog
+    // -----------------------------------------------------------------------
+
+    public String getName() {
+        return masterMedicine != null ? masterMedicine.getName() : null;
+    }
+
+    public String getCategory() {
+        return masterMedicine != null ? masterMedicine.getCategory() : null;
+    }
+
+    public String getManufacturer() {
+        return masterMedicine != null ? masterMedicine.getManufacturer() : null;
+    }
+
+    public String getGenericName() {
+        return masterMedicine != null ? masterMedicine.getGenericName() : null;
+    }
+
+    public String getDosageForm() {
+        return masterMedicine != null ? masterMedicine.getDosageForm() : null;
+    }
+
+    public String getStrength() {
+        return masterMedicine != null ? masterMedicine.getStrength() : null;
+    }
+
+    public String getDescription() {
+        return masterMedicine != null ? masterMedicine.getDescription() : null;
     }
 }

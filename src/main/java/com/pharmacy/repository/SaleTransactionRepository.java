@@ -39,12 +39,12 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
     BigDecimal totalPendingBalance(Pharmacy pharmacy);
 
     @org.springframework.data.jpa.repository.Query("SELECT " +
-            "si.medicine.name AS medicineName, " +
+            "si.medicine.masterMedicine.name AS medicineName, " +
             "SUM(si.quantity) AS totalQuantity, " +
             "SUM(si.lineTotal) AS totalRevenue " +
             "FROM SaleItem si " +
             "WHERE si.sale.pharmacy = :pharmacy " +
-            "GROUP BY si.medicine.id, si.medicine.name " +
+            "GROUP BY si.medicine.id, si.medicine.masterMedicine.name " +
             "ORDER BY SUM(si.quantity) DESC")
     List<TopSellingMedicineProjection> findTopSellingMedicines(
             @org.springframework.data.repository.query.Param("pharmacy") Pharmacy pharmacy,

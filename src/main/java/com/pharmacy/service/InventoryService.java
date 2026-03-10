@@ -1,16 +1,16 @@
 package com.pharmacy.service;
 
-import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.pharmacy.dto.*;
+import com.pharmacy.entity.BdMedicine;
 import com.pharmacy.entity.Medicine;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
-import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.BdMedicineRepository;
+import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,17 +72,28 @@ public class InventoryService {
         @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
         public MedicineResponse createMedicine(AppUserPrincipal principal, MedicineRequest request) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+
+                // Find or create master BdMedicine record
+                BdMedicine master = bdMedicineRepository
+                                .findByNameIgnoreCaseAndManufacturerIgnoreCase(
+                                                request.name().trim(), request.manufacturer().trim())
+                                .orElseGet(() -> {
+                                        BdMedicine bd = new BdMedicine();
+                                        bd.setName(request.name().trim());
+                                        bd.setCategory(request.category() != null ? request.category().trim() : "General");
+                                        bd.setManufacturer(request.manufacturer().trim());
+                                        bd.setGenericName(request.genericName());
+                                        bd.setDosageForm(request.dosageForm());
+                                        bd.setStrength(request.strength());
+                                        bd.setDescription(request.description());
+                                        return bdMedicineRepository.save(bd);
+                                });
+
                 Medicine medicine = new Medicine();
                 medicine.setPharmacy(pharmacy);
-                medicine.setName(request.name().trim());
-                medicine.setCategory(request.category().trim());
-                medicine.setManufacturer(request.manufacturer().trim());
+                medicine.setMasterMedicine(master);
                 medicine.setMinStock(request.minStock());
                 medicine.setPrice(request.price());
-                medicine.setGenericName(request.genericName());
-                medicine.setDosageForm(request.dosageForm());
-                medicine.setStrength(request.strength());
-                medicine.setDescription(request.description());
                 return toResponse(medicineRepository.save(medicine));
         }
 
@@ -102,15 +113,19 @@ public class InventoryService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Medicine not found"));
 
-                medicine.setName(request.name().trim());
-                medicine.setCategory(request.category().trim());
-                medicine.setManufacturer(request.manufacturer().trim());
+                // Update master catalog details on the linked BdMedicine
+                BdMedicine master = medicine.getMasterMedicine();
+                master.setName(request.name().trim());
+                master.setCategory(request.category() != null ? request.category().trim() : master.getCategory());
+                master.setManufacturer(request.manufacturer().trim());
+                master.setGenericName(request.genericName());
+                master.setDosageForm(request.dosageForm());
+                master.setStrength(request.strength());
+                master.setDescription(request.description());
+                bdMedicineRepository.save(master);
+
                 medicine.setMinStock(request.minStock());
                 medicine.setPrice(request.price());
-                medicine.setGenericName(request.genericName());
-                medicine.setDosageForm(request.dosageForm());
-                medicine.setStrength(request.strength());
-                medicine.setDescription(request.description());
 
                 return toResponse(medicineRepository.save(medicine));
         }

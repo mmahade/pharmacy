@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface BdMedicineRepository extends JpaRepository<BdMedicine, Long> {
 
+    java.util.Optional<BdMedicine> findByNameIgnoreCaseAndManufacturerIgnoreCase(String name, String manufacturer);
+
     @Query("SELECT m FROM BdMedicine m WHERE " +
             "LOWER(m.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(m.genericName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
