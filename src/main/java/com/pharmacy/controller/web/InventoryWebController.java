@@ -30,7 +30,7 @@ public class InventoryWebController {
         model.addAttribute("totalStockUnits", stats.totalStockUnits());
         model.addAttribute("totalValue", stats.totalValue());
 
-        var lowStockMedicines = inventoryService.getLowStockMedicinesPaginated(principal, 0, 100);
+        var lowStockMedicines = inventoryService.getBelowThresholdMedicinesPaginated(principal, 0, 100).getContent();
         model.addAttribute("lowStockMedicines", lowStockMedicines);
 
         model.addAttribute("activePage", "inventory");

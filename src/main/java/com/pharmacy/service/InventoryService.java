@@ -11,6 +11,7 @@ import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -242,6 +243,17 @@ public class InventoryService {
                                 .toList();
         }
 
+        public Page<MedicineResponse> getBelowThresholdMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.findBelowThresholdMedicines(pharmacy, PageRequest.of(page, size))
+                                .map(this::toResponse);
+        }
+
+        public long countBelowThresholdMedicines(AppUserPrincipal principal) {
+                Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+                return medicineRepository.countBelowThresholdMedicines(pharmacy)
+                        .stream().filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+        }
         /**
          * Counts all medicines that are in stock.
          */
@@ -272,12 +284,10 @@ public class InventoryService {
         /**
          * Get paginated medicines that are low stock.
          */
-        public List<MedicineResponse> getLowStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
+        public Page<MedicineResponse> getLowStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
                 return medicineRepository.findLowStockMedicines(pharmacy, PageRequest.of(page, size))
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
+                                .map(this::toResponse);
         }
 
         /**
@@ -286,18 +296,16 @@ public class InventoryService {
          */
         @Deprecated
         public List<MedicineResponse> getLowStockMedicines(AppUserPrincipal principal) {
-                return getLowStockMedicinesPaginated(principal, 0, 10);
+                return getLowStockMedicinesPaginated(principal, 0, 10).getContent();
         }
 
         /**
          * Get paginated medicines that are out of stock.
          */
-        public List<MedicineResponse> getOutOfStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
+        public Page<MedicineResponse> getOutOfStockMedicinesPaginated(AppUserPrincipal principal, int page, int size) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
                 return medicineRepository.findOutOfStockMedicines(pharmacy, PageRequest.of(page, size))
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
+                                .map(this::toResponse);
         }
 
         /**
@@ -315,7 +323,7 @@ public class InventoryService {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
 
                 long totalMedicines = medicineRepository.countByPharmacyId(pharmacy.getId());
-                long lowStockCount = countLowStockMedicines(principal);
+                long lowStockCount = countBelowThresholdMedicines(principal);
 
                 List<Object[]> aggregation = medicineRepository.getInventoryAggregation(pharmacy);
                 Object[] row = (aggregation != null && !aggregation.isEmpty()) ? aggregation.get(0) : new Object[] { 0L, java.math.BigDecimal.ZERO };

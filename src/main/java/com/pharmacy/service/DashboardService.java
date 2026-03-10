@@ -61,10 +61,10 @@ public class DashboardService {
 
                 long inStockCount = inventoryService.countInStockMedicines(principal);
 
-                List<MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicinesPaginated(principal, 0, 5);
+                List<MedicineResponse> lowStockMeds = inventoryService.getLowStockMedicinesPaginated(principal, 0, 5).getContent();
                 long lowStockCount = inventoryService.countLowStockMedicines(principal);
 
-                List<MedicineResponse> outOfStockMeds = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5);
+                List<MedicineResponse> outOfStockMeds = inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5).getContent();
                 long outOfStockCount = inventoryService.countOutOfStockMedicines(principal);
 
                 int expiryWindowDays = 30;

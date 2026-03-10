@@ -65,15 +65,14 @@ public class MedicineWebController {
         // Add statistics
         var stats = inventoryService.getInventoryStats(principal);
         model.addAttribute("totalMedicines", stats.totalMedicines());
-        model.addAttribute("lowStockCount", stats.lowStockCount());
         model.addAttribute("totalStockUnits", stats.totalStockUnits());
         model.addAttribute("totalValue", stats.totalValue());
 
         // Add alerts and detailed stock info
         model.addAttribute("lowStockCount", inventoryService.countLowStockMedicines(principal));
         model.addAttribute("outOfStockCount", inventoryService.countOutOfStockMedicines(principal));
-        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicinesPaginated(principal, 0, 5));
-        model.addAttribute("outOfStockMedicines", inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5));
+        model.addAttribute("lowStockMedicines", inventoryService.getLowStockMedicinesPaginated(principal, 0, 5).getContent());
+        model.addAttribute("outOfStockMedicines", inventoryService.getOutOfStockMedicinesPaginated(principal, 0, 5).getContent());
         model.addAttribute("expiryAlerts", inventoryService.getExpiryAlerts(principal, 30));
 
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
