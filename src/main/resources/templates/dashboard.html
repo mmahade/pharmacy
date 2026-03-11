@@ -63,7 +63,7 @@
             background-color: #f3f4f6;
         }
 
-        
+
 
         .alert-critical {
             background-color: #fef2f2;
@@ -94,7 +94,7 @@
             <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                 <div class="flex h-16 items-center gap-4 px-6">
                     <div class="flex-1 flex items-center gap-4">
-                    <div class="flex-1"></div>
+                        <div class="flex-1"></div>
                     </div>
 
                     <div th:replace="~{fragments/navbar :: right_items}"></div>
@@ -111,92 +111,286 @@
                         </p>
                     </div>
 
-                    <!-- Summary Cards -->
-                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <!-- Summary Cards Grid -->
+                    <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <!-- Total Medicines -->
-                        <div class="card overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
-                            <!-- Hover decorative gradient -->
-                            <div class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div class="p-6">
-                                <div class="flex items-start justify-between mb-4">
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
                                     <div>
-                                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Medicines</span>
-                                        <div class="text-3xl font-black text-slate-800 mt-2" th:text="${summary.totalMedicines}">342</div>
+                                        <span
+                                            class="text-xs font-bold text-gray-400 uppercase tracking-widest">Medicines</span>
+                                        <div class="text-2xl font-black text-blue-600 mt-1"
+                                            th:text="${summary.totalMedicines}">0</div>
                                     </div>
-                                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                        <i data-lucide="pill" class="w-7 h-7"></i>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="pill" class="w-5 h-5"></i>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1 font-medium">Active inventory items</p>
-                                <div class="flex items-center gap-1 mt-4">
-                                    <span class="px-2 py-1 rounded-md bg-green-50 text-xs font-bold text-green-600">↑ +8.2%</span>
-                                    <span class="text-xs text-slate-400 font-medium ml-1">vs last week</span>
-                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Active inventory</p>
                             </div>
                         </div>
 
-                        <!-- Total Prescriptions -->
-                        <div class="card overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
-                            <!-- Hover decorative gradient -->
-                            <div class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div class="p-6">
-                                <div class="flex items-start justify-between mb-4">
+                        <!-- Total Sales Count -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
                                     <div>
-                                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Prescriptions</span>
-                                        <div class="text-3xl font-black text-slate-800 mt-2" th:text="${summary.prescriptionsCount}">128</div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total
+                                            Sales</span>
+                                        <div class="text-2xl font-black text-green-600 mt-1"
+                                            th:text="${summary.totalSalesCount}">0</div>
                                     </div>
-                                    <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                        <i data-lucide="file-text" class="w-7 h-7"></i>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1 font-medium">All time prescriptions</p>
-                                <div class="flex items-center gap-1 mt-4">
-                                    <span class="px-2 py-1 rounded-md bg-green-50 text-xs font-bold text-green-600">↑ +12.5%</span>
-                                    <span class="text-xs text-slate-400 font-medium ml-1">vs last week</span>
-                                </div>
+                                <p class="text-xs text-gray-500 font-medium">All time transactions</p>
                             </div>
                         </div>
 
-                        <!-- Today's Revenue -->
-                        <div class="card overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
-                            <!-- Hover decorative gradient -->
-                            <div class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div class="p-6">
-                                <div class="flex items-start justify-between mb-4">
+                        <!-- Purchase Orders -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
                                     <div>
-                                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Today's Revenue</span>
-                                        <div class="text-3xl font-black text-slate-800 mt-2">$<span th:text="${#numbers.formatDecimal(summary.todayRevenue, 1, 2)}">1,847.50</span></div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total
+                                            Purchase Orders</span>
+                                        <div class="text-2xl font-black text-purple-600 mt-1"
+                                            th:text="${summary.totalPurchaseOrderCount}">0</div>
                                     </div>
-                                    <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                        <i data-lucide="dollar-sign" class="w-7 h-7"></i>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="truck" class="w-5 h-5"></i>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1 font-medium">Today's total sales</p>
-                                <div class="flex items-center gap-1 mt-4">
-                                    <span class="px-2 py-1 rounded-md bg-green-50 text-xs font-bold text-green-600">↑ +23.1%</span>
-                                    <span class="text-xs text-slate-400 font-medium ml-1">vs last week</span>
-                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Supplier orders</p>
                             </div>
                         </div>
 
-                        <!-- Low Stock Alerts -->
-                        <div class="card overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
-                            <!-- Hover decorative gradient -->
-                            <div class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div class="p-6">
-                                <div class="flex items-start justify-between mb-4">
+                        <!-- Low Stock -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
                                     <div>
-                                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Low Stock Alerts</span>
-                                        <div class="text-3xl font-black text-slate-800 mt-2" th:text="${summary.lowStockCount}">5</div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Low
+                                            Stock</span>
+                                        <div class="text-2xl font-black text-orange-600 mt-1"
+                                            th:text="${summary.lowStockCount}">0</div>
                                     </div>
-                                    <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                        <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1 font-medium">Items need restocking</p>
-                                <div class="flex items-center gap-1 mt-4">
-                                    <span class="px-2 py-1 rounded-md bg-orange-50 text-xs font-bold text-orange-600">Action Required</span>
+                                <p class="text-xs text-gray-500 font-medium">Needs restocking</p>
+                            </div>
+                        </div>
+
+                        <!-- Out of Stock -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Out of
+                                            Stock</span>
+                                        <div class="text-2xl font-black text-red-600 mt-1"
+                                            th:text="${summary.outOfStockCount}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                                    </div>
                                 </div>
+                                <p class="text-xs text-gray-500 font-medium text-red-500">Urgent action</p>
+                            </div>
+                        </div>
+
+                        <!-- Sales Returns -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total
+                                            Sales Returns</span>
+                                        <div class="text-2xl font-black text-orange-600 mt-1"
+                                            th:text="${summary.totalSalesReturnCount}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">From customers</p>
+                            </div>
+                        </div>
+
+                        <!-- Purchase Returns -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total
+                                            Purchase Returns</span>
+                                        <div class="text-2xl font-black text-pink-600 mt-1"
+                                            th:text="${summary.totalPurchaseReturnCount}">0</div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="undo-2" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">To suppliers</p>
+                            </div>
+                        </div>
+
+                        <!-- Sales Due -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sales
+                                            Due</span>
+                                        <div class="text-2xl font-black text-blue-600 mt-1">৳<span
+                                                th:text="${#numbers.formatDecimal(summary.totalSalesDue, 1, 0)}">0</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="landmark" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Receivables</p>
+                            </div>
+                        </div>
+
+                        <!-- Purchase Due -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Purchase
+                                            Due</span>
+                                        <div class="text-2xl font-black text-pink-600 mt-1">৳<span
+                                                th:text="${#numbers.formatDecimal(summary.totalPurchaseDue, 1, 0)}">0</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Payables</p>
+                            </div>
+                        </div>
+
+                        <!-- Today's Sales Amount -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Today's
+                                            Sales</span>
+                                        <div class="text-2xl font-black text-blue-700 mt-1">৳<span
+                                                th:text="${#numbers.formatDecimal(summary.todaySalesAmount, 1, 0)}">0</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Gross revenue today</p>
+                            </div>
+                        </div>
+
+                        <!-- Today's Purchase Amount -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Today's
+                                            Purchase</span>
+                                        <div class="text-2xl font-black text-pink-700 mt-1">৳<span
+                                                th:text="${#numbers.formatDecimal(summary.todayPurchaseAmount, 1, 0)}">0</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-pink-50 text-pink-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Stock investment today</p>
+                            </div>
+                        </div>
+
+                        <!-- Today's Profit -->
+                        <div
+                            class="card overflow-hidden group hover:-translate-y-1 transition-all duration-300 relative border border-slate-100">
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Today's
+                                            Profit</span>
+                                        <div class="text-2xl font-black text-green-600 mt-1">৳<span
+                                                th:text="${#numbers.formatDecimal(summary.todayProfit, 1, 0)}">0</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 font-medium">Net profit (Sales - Cost)</p>
                             </div>
                         </div>
                     </div>
@@ -205,46 +399,58 @@
                     <div class="card">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <a href="/sales/new"
                                     class="group flex flex-col items-center gap-3 p-5 border border-slate-100 rounded-2xl hover:shadow-xl hover:-translate-y-1 hover:border-blue-100 transition-all duration-300 relative overflow-hidden bg-white">
-                                    <div class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <div
+                                        class="absolute inset-x-0 bottom-0 h-1 gradient-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                                         <i data-lucide="shopping-cart" class="w-7 h-7"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors uppercase tracking-wider">New Sale</span>
+                                    <span
+                                        class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors uppercase tracking-wider">New
+                                        Sale</span>
                                 </a>
                                 <a href="/medicines/add"
                                     class="group flex flex-col items-center gap-3 p-5 border border-slate-100 rounded-2xl hover:shadow-xl hover:-translate-y-1 hover:border-green-100 transition-all duration-300 relative overflow-hidden bg-white">
-                                    <div class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <div
+                                        class="absolute inset-x-0 bottom-0 h-1 gradient-green opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                                         <i data-lucide="plus" class="w-7 h-7"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-green-600 transition-colors uppercase tracking-wider">Add Medicine</span>
+                                    <span
+                                        class="text-xs font-bold text-slate-700 group-hover:text-green-600 transition-colors uppercase tracking-wider">Add
+                                        Medicine</span>
                                 </a>
                                 <a href="/prescriptions/new"
                                     class="group flex flex-col items-center gap-3 p-5 border border-slate-100 rounded-2xl hover:shadow-xl hover:-translate-y-1 hover:border-purple-100 transition-all duration-300 relative overflow-hidden bg-white">
-                                    <div class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <div
+                                        class="absolute inset-x-0 bottom-0 h-1 gradient-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                                         <i data-lucide="file-text" class="w-7 h-7"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-purple-600 transition-colors uppercase tracking-wider">New Prescription</span>
+                                    <span
+                                        class="text-xs font-bold text-slate-700 group-hover:text-purple-600 transition-colors uppercase tracking-wider">New
+                                        Prescription</span>
                                 </a>
                                 <a href="/inventory/stock-entry"
                                     class="group flex flex-col items-center gap-3 p-5 border border-slate-100 rounded-2xl hover:shadow-xl hover:-translate-y-1 hover:border-orange-100 transition-all duration-300 relative overflow-hidden bg-white">
-                                    <div class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <div
+                                        class="absolute inset-x-0 bottom-0 h-1 gradient-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                                         <i data-lucide="package" class="w-7 h-7"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600 transition-colors uppercase tracking-wider">Stock Entry</span>
-                                </a>
-                                <a href="/customers/new"
-                                    class="group flex flex-col items-center gap-3 p-5 border border-slate-100 rounded-2xl hover:shadow-xl hover:-translate-y-1 hover:border-pink-100 transition-all duration-300 relative overflow-hidden bg-white">
-                                    <div class="absolute inset-x-0 bottom-0 h-1 gradient-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="w-14 h-14 rounded-2xl bg-pink-50 text-pink-600 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
-                                        <i data-lucide="users" class="w-7 h-7"></i>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-pink-600 transition-colors uppercase tracking-wider">Add Customer</span>
+                                    <span
+                                        class="text-xs font-bold text-slate-700 group-hover:text-orange-600 transition-colors uppercase tracking-wider">Stock
+                                        Entry</span>
                                 </a>
                             </div>
                         </div>
@@ -301,7 +507,9 @@
                     <!-- Alerts Section -->
                     <div class="grid gap-6 md:grid-cols-2">
                         <!-- Low Stock Alerts -->
-                        <div th:replace="~{fragments/stock-alerts :: stockAlerts(${summary.lowStockCount}, ${summary.outOfStockCount}, ${summary.lowStock}, ${summary.outOfStock})}"></div>
+                        <div
+                            th:replace="~{fragments/stock-alerts :: stockAlerts(${summary.lowStockCount}, ${summary.outOfStockCount}, ${summary.lowStock}, ${summary.outOfStock})}">
+                        </div>
 
                         <!-- Expiring Soon -->
                         <div th:replace="~{fragments/stock-alerts :: expiryAlerts(${summary.expiringSoon})}"></div>
@@ -330,7 +538,7 @@
                                             </div>
                                         </div>
                                         <span class="text-sm font-medium text-green-600"
-                                            th:text="'$' + ${#numbers.formatDecimal(med.totalRevenue, 1, 2)}">$2,340</span>
+                                            th:text="'৳' + ${#numbers.formatDecimal(med.totalRevenue, 1, 2)}">৳2,340</span>
                                     </div>
                                 </div>
                             </div>
@@ -388,7 +596,7 @@
                                                                 'px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded')"
                                                     th:text="${prescription.status}">Completed</span>
                                             </td>
-                                            <td class="px-4 py-3 text-right font-medium">$<span
+                                            <td class="px-4 py-3 text-right font-medium">৳<span
                                                     th:text="${#numbers.formatDecimal(prescription.totalAmount, 1, 2)}">145.50</span>
                                             </td>
                                             <td class="px-4 py-3 text-right">
@@ -451,7 +659,7 @@
                                                     th:class="${sale.paymentMethod != null and sale.paymentMethod.name() == 'CASH'} ? 'px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded' : (${sale.paymentMethod != null and sale.paymentMethod.name() == 'CREDIT_CARD'} ? 'px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded' : 'px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded')"
                                                     th:text="${sale.paymentMethod}">Card</span>
                                             </td>
-                                            <td class="px-4 py-3 text-right font-medium">$<span
+                                            <td class="px-4 py-3 text-right font-medium">৳<span
                                                     th:text="${#numbers.formatDecimal(sale.totalAmount, 1, 2)}">45.99</span>
                                             </td>
                                             <td class="px-4 py-3">
@@ -517,7 +725,7 @@
                     tooltip: {
                         callbacks: {
                             label: function (context) {
-                                return 'Revenue: $' + context.parsed.y.toFixed(2);
+                                return 'Revenue: ৳' + context.parsed.y.toFixed(2);
                             }
                         }
                     }
@@ -527,7 +735,7 @@
                         beginAtZero: true,
                         ticks: {
                             callback: function (value) {
-                                return '$' + value;
+                                return '৳' + value;
                             }
                         }
                     }

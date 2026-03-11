@@ -19,6 +19,16 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     List<PurchaseOrder> findByPharmacyAndOrderDateBetweenOrderByOrderDateDesc(Pharmacy pharmacy, LocalDate start,
             LocalDate end);
 
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(p.totalAmount - p.amountPaid) FROM PurchaseOrder p WHERE p.pharmacy = :pharmacy")
+    java.math.BigDecimal totalPendingBalance(@org.springframework.data.repository.query.Param("pharmacy") Pharmacy pharmacy);
+
+    long countByPharmacy(Pharmacy pharmacy);
+
     @org.springframework.data.jpa.repository.Query("SELECT SUM(p.totalAmount) FROM PurchaseOrder p WHERE p.pharmacy = :pharmacy AND p.orderDate BETWEEN :start AND :end")
     java.math.BigDecimal totalForRange(Pharmacy pharmacy, java.time.LocalDate start, java.time.LocalDate end);
+
+    default java.math.BigDecimal totalForDay(Pharmacy pharmacy, java.time.LocalDate date) {
+        java.math.BigDecimal total = totalForRange(pharmacy, date, date);
+        return total != null ? total : java.math.BigDecimal.ZERO;
+    }
 }

@@ -6,11 +6,7 @@ import com.pharmacy.dto.PrescriptionResponse;
 import com.pharmacy.dto.SaleResponse;
 import com.pharmacy.entity.Pharmacy;
 import com.pharmacy.entity.StockBatch;
-import com.pharmacy.repository.MedicineRepository;
-import com.pharmacy.repository.PrescriptionRepository;
-import com.pharmacy.repository.SaleReturnRepository;
-import com.pharmacy.repository.SaleTransactionRepository;
-import com.pharmacy.repository.StockBatchRepository;
+import com.pharmacy.repository.*;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +28,8 @@ public class DashboardService {
         private final SaleReturnRepository saleReturnRepository;
         private final PrescriptionService prescriptionService;
         private final SalesService salesService;
+        private final PurchaseOrderRepository purchaseOrderRepository;
+        private final PurchaseReturnRepository purchaseReturnRepository;
 
         public DashboardSummaryResponse summary(AppUserPrincipal principal) {
                 Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
@@ -102,6 +100,22 @@ public class DashboardService {
                                                 p.getTotalRevenue()))
                                 .toList();
 
+                long totalSalesCount = saleTransactionRepository.countByPharmacy(pharmacy);
+                long totalSalesReturnCount = saleReturnRepository.countBySale_Pharmacy(pharmacy);
+                long totalPurchaseOrderCount = purchaseOrderRepository.countByPharmacy(pharmacy);
+                long totalPurchaseReturnCount = purchaseReturnRepository.countByPharmacy(pharmacy);
+                
+                BigDecimal totalSalesDue = saleTransactionRepository.totalPendingBalance(pharmacy);
+                if (totalSalesDue == null) totalSalesDue = BigDecimal.ZERO;
+                
+                BigDecimal totalPurchaseDue = purchaseOrderRepository.totalPendingBalance(pharmacy);
+                if (totalPurchaseDue == null) totalPurchaseDue = BigDecimal.ZERO;
+
+                BigDecimal todaySalesAmount = saleTransactionRepository.totalForDay(pharmacy, java.time.LocalDate.now());
+                BigDecimal todayPurchaseAmount = purchaseOrderRepository.totalForDay(pharmacy, java.time.LocalDate.now());
+                BigDecimal todayCogs = saleTransactionRepository.calculateCogsForDay(pharmacy, java.time.LocalDate.now());
+                BigDecimal todayProfit = todaySalesAmount.subtract(todayCogs);
+
                 return new DashboardSummaryResponse(
                                 totalMedicines,
                                 prescriptionsCount,
@@ -115,6 +129,15 @@ public class DashboardService {
                                 expiringSoon,
                                 recentPrescriptions,
                                 recentSales,
-                                topSellingMedicines);
+                                topSellingMedicines,
+                                totalSalesCount,
+                                totalSalesReturnCount,
+                                totalPurchaseOrderCount,
+                                totalPurchaseReturnCount,
+                                totalSalesDue,
+                                totalPurchaseDue,
+                                todaySalesAmount,
+                                todayPurchaseAmount,
+                                todayProfit);
         }
 }

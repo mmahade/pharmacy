@@ -38,6 +38,14 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
     @Query("SELECT SUM(s.total - s.amountPaid) FROM SaleTransaction s WHERE s.pharmacy = :pharmacy")
     BigDecimal totalPendingBalance(Pharmacy pharmacy);
 
+    @Query("SELECT SUM(si.quantity * sb.unitCostPrice) FROM SaleItem si JOIN si.allocations sia JOIN sia.stockBatch sb WHERE si.sale.pharmacy = :pharmacy AND si.sale.saleDate BETWEEN :start AND :end")
+    BigDecimal calculateCogsForRange(Pharmacy pharmacy, LocalDate start, LocalDate end);
+
+    default BigDecimal calculateCogsForDay(Pharmacy pharmacy, LocalDate date) {
+        BigDecimal cogs = calculateCogsForRange(pharmacy, date, date);
+        return cogs != null ? cogs : BigDecimal.ZERO;
+    }
+
     @org.springframework.data.jpa.repository.Query("SELECT " +
             "si.medicine.masterMedicine.name AS medicineName, " +
             "SUM(si.quantity) AS totalQuantity, " +

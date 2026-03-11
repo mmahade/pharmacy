@@ -16,7 +16,16 @@ public record DashboardSummaryResponse(
                 List<ExpiryAlertItem> expiringSoon,
                 List<PrescriptionResponse> recentPrescriptions,
                 List<SaleResponse> recentSales,
-                List<TopSellingMedicine> topSellingMedicines) {
+                List<TopSellingMedicine> topSellingMedicines,
+                long totalSalesCount,
+                long totalSalesReturnCount,
+                long totalPurchaseOrderCount,
+                long totalPurchaseReturnCount,
+                BigDecimal totalSalesDue,
+                BigDecimal totalPurchaseDue,
+                BigDecimal todaySalesAmount,
+                BigDecimal todayPurchaseAmount,
+                BigDecimal todayProfit) {
 
         public record DailyRevenue(
                         String date,
