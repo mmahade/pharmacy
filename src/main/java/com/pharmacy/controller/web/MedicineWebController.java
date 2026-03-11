@@ -26,7 +26,7 @@ public class MedicineWebController {
     public String listMedicines(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequestParam(name = "size", defaultValue = "9") int size,
             Model model,
             HttpServletRequest request) {
 
@@ -47,13 +47,19 @@ public class MedicineWebController {
         model.addAttribute("totalItems", medicinePage.getTotalElements());
         model.addAttribute("pageSize", size);
 
-        int windowStart = Math.max(0, page - 2);
-        int windowEnd = Math.min(totalPages - 1, page + 2);
-        if (windowEnd - windowStart < 4 && totalPages >= 5) {
-            if (windowStart == 0)
-                windowEnd = 4;
-            else
-                windowStart = totalPages - 5;
+        int windowStart, windowEnd;
+        if (page < 3) {
+            // Near start: expand forward — Page1→3, Page2→4, Page3→5 items
+            windowStart = 0;
+            windowEnd = Math.min(page + 2, totalPages - 1);
+        } else if (page >= totalPages - 3) {
+            // Near end: expand backward — symmetric to near-start
+            windowStart = Math.max(0, page - 2);
+            windowEnd = totalPages - 1;
+        } else {
+            // Middle: centered 5-page window
+            windowStart = page - 2;
+            windowEnd = page + 2;
         }
 
         model.addAttribute("windowStart", windowStart);
