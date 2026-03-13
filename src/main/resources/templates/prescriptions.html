@@ -335,6 +335,14 @@
                                                 title="Dispense &amp; Complete">
                                                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                                             </button>
+                                            <!-- Pay Due Button (COMPLETED and Due) -->
+                                            <button th:if="${rx.status.name() == 'COMPLETED' and rx.amountPaid < rx.totalAmount}" 
+                                                th:attr="data-id=${rx.id}, data-due=${rx.totalAmount - rx.amountPaid}"
+                                                onclick="payDuePrescription(this.dataset.id, this.dataset.due)"
+                                                class="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
+                                                title="Pay Due Amount">
+                                                <i data-lucide="wallet" class="w-4 h-4"></i>
+                                            </button>
                                             <button
                                                 class="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100 no-print"
                                                 title="Print Prescription" onclick="window.print()">
@@ -389,9 +397,32 @@
             </div>
 
             <div class="space-y-5 mb-8">
+                <!-- Subtotal row -->
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Payable</span>
-                    <span id="modalTotalPayable" class="text-lg font-black text-slate-900">$0.00</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subtotal</span>
+                    <span id="modalSubtotal" class="text-base font-bold text-slate-600">$0.00</span>
+                </div>
+
+                <!-- Discount inputs -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Discount (%)</label>
+                        <input type="number" id="modalDiscountPercent" min="0" max="100" step="0.01" value="0"
+                               oninput="syncDiscountFromPercent()"
+                               class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all text-sm" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Discount ($)</label>
+                        <input type="number" id="modalDiscountAmount" min="0" step="0.01" value="0"
+                               oninput="syncDiscountFromAmount()"
+                               class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all text-sm" />
+                    </div>
+                </div>
+
+                <!-- Final total after discount -->
+                <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Total Payable</span>
+                    <span id="modalTotalPayable" class="text-lg font-black text-blue-700">$0.00</span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -406,7 +437,8 @@
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount Paid</label>
                         <div class="relative">
-                            <input type="number" id="modalAmountPaid" step="0.01" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 transition-all text-sm" />
+                            <input type="number" id="modalAmountPaid" step="0.01"
+                                   class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 transition-all text-sm" />
                         </div>
                     </div>
                 </div>
@@ -429,6 +461,59 @@
                 </button>
                 <button id="confirmCompleteBtn" class="flex-1 py-3 gradient-blue text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all active:scale-95">
                     Confirm & Dispense
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pay Due Modal -->
+    <div id="payDueModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Pay Due Amount</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Record payment for outstanding balance.</p>
+                </div>
+            </div>
+
+            <div class="space-y-5 mb-8">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Balance</span>
+                    <span id="modalDueBalance" class="text-lg font-black text-slate-900">$0.00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Method</label>
+                        <select id="modalPayDueMethod" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all appearance-none cursor-pointer text-sm">
+                            <option value="CASH">Cash</option>
+                            <option value="CREDIT_CARD">Credit Card</option>
+                            <option value="MOBILE_BANKING">Mobile Banking</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Amount</label>
+                        <div class="relative">
+                            <input type="number" id="modalPayDueAmount" step="0.01" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 transition-all text-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reference (Optional)</label>
+                    <input type="text" id="modalPayDueReference" placeholder="e.g. TRX-123" class="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-medium text-slate-800 transition-all text-sm" />
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closePayDueModal()" class="flex-1 py-3 border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+                    Cancel
+                </button>
+                <button id="confirmPayDueBtn" class="flex-1 py-3 gradient-blue text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all active:scale-95">
+                    Confirm Payment
                 </button>
             </div>
         </div>
@@ -495,10 +580,43 @@
 
         // ---- Complete prescription ----
         let pendingCompleteId = null;
+        let modalSubtotal = 0;
+
+        function modalFinalTotal() {
+            const disc = parseFloat(document.getElementById('modalDiscountAmount').value) || 0;
+            return Math.max(0, modalSubtotal - disc);
+        }
+
+        function syncDiscountFromPercent() {
+            const pct = parseFloat(document.getElementById('modalDiscountPercent').value) || 0;
+            const amt = modalSubtotal * (pct / 100);
+            document.getElementById('modalDiscountAmount').value = amt.toFixed(2);
+            updateModalTotal();
+        }
+
+        function syncDiscountFromAmount() {
+            const amt = parseFloat(document.getElementById('modalDiscountAmount').value) || 0;
+            const pct = modalSubtotal > 0 ? (amt / modalSubtotal) * 100 : 0;
+            document.getElementById('modalDiscountPercent').value = pct.toFixed(2);
+            updateModalTotal();
+        }
+
+        function updateModalTotal() {
+            const total = modalFinalTotal();
+            document.getElementById('modalTotalPayable').textContent = '$' + total.toFixed(2);
+            document.getElementById('modalAmountPaid').value = total.toFixed(2);
+        }
+
         function completePrescription(id, totalAmount) {
             pendingCompleteId = id;
-            document.getElementById('modalTotalPayable').textContent = '$' + parseFloat(totalAmount).toFixed(2);
-            document.getElementById('modalAmountPaid').value = totalAmount;
+            modalSubtotal = parseFloat(totalAmount);
+            document.getElementById('modalSubtotal').textContent = '$' + modalSubtotal.toFixed(2);
+            document.getElementById('modalDiscountPercent').value = '0';
+            document.getElementById('modalDiscountAmount').value = '0';
+            document.getElementById('modalTotalPayable').textContent = '$' + modalSubtotal.toFixed(2);
+            document.getElementById('modalAmountPaid').value = modalSubtotal.toFixed(2);
+            document.getElementById('modalDueDate').value = '';
+            document.getElementById('modalPaymentReference').value = '';
             document.getElementById('completeModal').classList.remove('hidden');
         }
         function closeModal() {
@@ -510,11 +628,16 @@
             this.textContent = 'Processing...';
             this.disabled = true;
 
+            const discountPercent = parseFloat(document.getElementById('modalDiscountPercent').value) || 0;
+            const discountAmount = parseFloat(document.getElementById('modalDiscountAmount').value) || 0;
+
             const payload = {
                 paymentMethod: document.getElementById('modalPaymentMethod').value,
                 amountPaid: parseFloat(document.getElementById('modalAmountPaid').value) || 0,
                 paymentReference: document.getElementById('modalPaymentReference').value || "",
-                dueDate: document.getElementById('modalDueDate').value || null
+                dueDate: document.getElementById('modalDueDate').value || null,
+                discountPercent: discountPercent,
+                discountAmount: discountAmount
             };
 
             try {
@@ -537,6 +660,52 @@
                 this.textContent = 'Confirm & Dispense';
                 this.disabled = false;
                 closeModal();
+            }
+        });
+
+        // ---- Pay Due prescription ----
+        let pendingPayDueId = null;
+        function payDuePrescription(id, dueAmount) {
+            pendingPayDueId = id;
+            document.getElementById('modalDueBalance').textContent = '$' + parseFloat(dueAmount).toFixed(2);
+            document.getElementById('modalPayDueAmount').value = dueAmount;
+            document.getElementById('payDueModal').classList.remove('hidden');
+        }
+        function closePayDueModal() {
+            document.getElementById('payDueModal').classList.add('hidden');
+            pendingPayDueId = null;
+        }
+        document.getElementById('confirmPayDueBtn').addEventListener('click', async function () {
+            if (!pendingPayDueId) return;
+            this.textContent = 'Processing...';
+            this.disabled = true;
+
+            const payload = {
+                paymentMethod: document.getElementById('modalPayDueMethod').value,
+                amount: parseFloat(document.getElementById('modalPayDueAmount').value) || 0,
+                reference: document.getElementById('modalPayDueReference').value || ""
+            };
+
+            try {
+                const resp = await fetch(`/api/prescriptions/${pendingPayDueId}/payments`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (resp.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await resp.json().catch(() => ({}));
+                    alert('Error: ' + (err.message || 'Could not process payment.'));
+                    this.textContent = 'Confirm Payment';
+                    this.disabled = false;
+                    closePayDueModal();
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+                this.textContent = 'Confirm Payment';
+                this.disabled = false;
+                closePayDueModal();
             }
         });
     </script>

@@ -22,6 +22,9 @@ public record PrescriptionRequest(
         PaymentMethod paymentMethod,
         BigDecimal amountPaid,
         String paymentReference,
-        LocalDate dueDate
+        LocalDate dueDate,
+        BigDecimal discountPercent,
+        BigDecimal discountAmount
 ) {
+
 }

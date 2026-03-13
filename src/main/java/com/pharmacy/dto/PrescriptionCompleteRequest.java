@@ -9,6 +9,8 @@ public record PrescriptionCompleteRequest(
     @NotNull PaymentMethod paymentMethod,
     @NotNull BigDecimal amountPaid,
     String paymentReference,
-    LocalDate dueDate
+    LocalDate dueDate,
+    BigDecimal discountPercent,
+    BigDecimal discountAmount
 ) {
 }

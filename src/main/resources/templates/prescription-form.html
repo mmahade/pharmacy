@@ -684,31 +684,15 @@
                       class="flex flex-col sm:flex-row sm:items-center justify-between p-8 bg-slate-900 rounded-[2rem] text-white mt-8 shadow-2xl shadow-slate-900/20"
                     >
                       <div>
-                        <h4
-                          class="font-bold text-slate-400 text-xs uppercase tracking-widest"
-                        >
-                          Prescription Summary
-                        </h4>
+                        <h4 class="font-bold text-slate-400 text-xs uppercase tracking-widest">Prescription Summary</h4>
                         <div class="flex items-center gap-2 mt-2">
-                          <div
-                            class="w-2 h-2 rounded-full bg-emerald-400"
-                          ></div>
-                          <p
-                            class="text-sm font-bold text-white"
-                            x-text="items.length + ' medicines accounted for'"
-                          ></p>
+                          <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                          <p class="text-sm font-bold text-white" x-text="items.length + ' medicines accounted for'"></p>
                         </div>
                       </div>
                       <div class="mt-6 sm:mt-0 text-right">
-                        <p
-                          class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1"
-                        >
-                          Grand Total Amount
-                        </p>
-                        <p
-                          class="text-4xl font-black tabular-nums tracking-tight"
-                          x-text="'$' + grandTotal().toFixed(2)"
-                        ></p>
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Grand Total Amount</p>
+                        <p class="text-4xl font-black tabular-nums tracking-tight" x-text="'$' + grandTotal().toFixed(2)"></p>
                       </div>
                     </div>
 

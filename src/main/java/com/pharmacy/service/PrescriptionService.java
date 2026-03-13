@@ -91,7 +91,14 @@ public class PrescriptionService {
             item.setLineTotal(lineTotal);
             prescription.getItems().add(item);
         }
-        prescription.setTotalAmount(totalAmount);
+        BigDecimal discountAmount = request.discountAmount() != null ? request.discountAmount() : BigDecimal.ZERO;
+        BigDecimal discountPercent = request.discountPercent() != null ? request.discountPercent() : BigDecimal.ZERO;
+        BigDecimal subtotal = totalAmount;
+        BigDecimal finalTotal = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
+
+        prescription.setDiscountAmount(discountAmount);
+        prescription.setDiscountPercent(discountPercent);
+        prescription.setTotalAmount(finalTotal);
         Prescription saved = prescriptionRepository.save(prescription);
 
         if (saved.getStatus() == PrescriptionStatus.COMPLETED) {
@@ -131,6 +138,15 @@ public class PrescriptionService {
             }
         }
 
+        // Apply discount if provided
+        BigDecimal discountAmount = request.discountAmount() != null ? request.discountAmount() : BigDecimal.ZERO;
+        BigDecimal discountPercent = request.discountPercent() != null ? request.discountPercent() : BigDecimal.ZERO;
+        BigDecimal originalTotal = prescription.getTotalAmount().add(prescription.getDiscountAmount()); // gross subtotal
+        BigDecimal finalTotal = originalTotal.subtract(discountAmount).max(BigDecimal.ZERO);
+        prescription.setDiscountAmount(discountAmount);
+        prescription.setDiscountPercent(discountPercent);
+        prescription.setTotalAmount(finalTotal);
+
         prescription.setStatus(PrescriptionStatus.COMPLETED);
         prescriptionRepository.save(prescription);
 
@@ -151,6 +167,8 @@ public class PrescriptionService {
         sale.setSaleDate(LocalDate.now());
         sale.setPaymentMethod(method);
         sale.setTotal(prescription.getTotalAmount());
+        sale.setDiscountAmount(prescription.getDiscountAmount());
+        sale.setDiscountPercent(prescription.getDiscountPercent());
         sale.setAmountPaid(amountPaid != null ? amountPaid : BigDecimal.ZERO);
         sale.setDueDate(dueDate);
         
@@ -199,6 +217,34 @@ public class PrescriptionService {
         saleTransactionRepository.save(sale);
     }
 
+    @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','PHARMACIST')")
+    public PrescriptionResponse addPayment(AppUserPrincipal principal, Long prescriptionId, com.pharmacy.dto.SalePaymentRequest request) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        Prescription prescription = prescriptionRepository.findByIdAndPharmacy(prescriptionId, pharmacy)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found"));
+
+        SaleTransaction sale = saleTransactionRepository.findByPrescription(prescription)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale transaction not found for this prescription"));
+
+        BigDecimal balanceDue = sale.getTotal().subtract(sale.getAmountPaid());
+        if (request.amount().compareTo(balanceDue) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payment amount cannot exceed balance due: " + balanceDue);
+        }
+
+        SalePayment payment = new SalePayment();
+        payment.setSale(sale);
+        payment.setAmount(request.amount());
+        payment.setPaymentMethod(request.paymentMethod());
+        payment.setReference(request.reference());
+        sale.getPayments().add(payment);
+
+        sale.setAmountPaid(sale.getAmountPaid().add(request.amount()));
+        saleTransactionRepository.save(sale);
+
+        return toResponse(prescription);
+    }
+
     private String nextSaleNumber(String pharmacyName) {
         String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String pharmacyCode = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
@@ -236,6 +282,8 @@ public class PrescriptionService {
                 prescription.getStatus(),
                 prescription.getTotalAmount(),
                 amountPaid,
+                prescription.getDiscountAmount(),
+                prescription.getDiscountPercent(),
                 items);
     }
 }

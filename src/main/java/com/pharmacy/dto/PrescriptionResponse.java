@@ -15,5 +15,7 @@ public record PrescriptionResponse(
         PrescriptionStatus status,
         BigDecimal totalAmount,
         BigDecimal amountPaid,
+        BigDecimal discountAmount,
+        BigDecimal discountPercent,
         List<PrescriptionItemResponse> items) {
 }

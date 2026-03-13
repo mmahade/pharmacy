@@ -49,4 +49,13 @@ public class PrescriptionController {
                                        @RequestBody com.pharmacy.dto.PrescriptionCompleteRequest request) {
         return prescriptionService.completePrescription(principal, id, request);
     }
+
+    @Operation(summary = "Add payment to prescription", description = "Adds a payment for an existing sale transaction tied to a completed prescription.")
+    @PostMapping("/{id}/payments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PrescriptionResponse addPayment(@AuthenticationPrincipal AppUserPrincipal principal,
+                                         @PathVariable Long id,
+                                         @Valid @RequestBody com.pharmacy.dto.SalePaymentRequest request) {
+        return prescriptionService.addPayment(principal, id, request);
+    }
 }
