@@ -5,7 +5,9 @@ import com.pharmacy.entity.PrescriptionStatus;
 import com.pharmacy.security.AppUserPrincipal;
 import com.pharmacy.service.InventoryService;
 import com.pharmacy.service.PrescriptionService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,28 +30,48 @@ public class PrescriptionWebController {
     @GetMapping
     public String listPrescriptions(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
             Model model,
-            jakarta.servlet.http.HttpServletRequest request) {
-        List<PrescriptionResponse> prescriptions;
+            HttpServletRequest request) {
+        Page<PrescriptionResponse> prescriptionPage;
         if (query != null && !query.isEmpty()) {
-            prescriptions = prescriptionService.searchPrescriptions(principal, query);
+            prescriptionPage = prescriptionService.searchPrescriptionsPaginated(principal, query, page, size);
             model.addAttribute("searchQuery", query);
         } else {
-            prescriptions = prescriptionService.listPrescriptions(principal);
+            prescriptionPage = prescriptionService.listPrescriptionsPaginated(principal, page, size);
         }
-        model.addAttribute("prescriptions", prescriptions);
+        model.addAttribute("prescriptions", prescriptionPage.getContent());
 
-        long totalCount = prescriptions.size();
-        long pendingCount = prescriptions.stream().filter(p -> p.status() == PrescriptionStatus.PENDING).count();
-        long completedCount = prescriptions.stream().filter(p -> p.status() == PrescriptionStatus.COMPLETED).count();
-        BigDecimal totalValue = prescriptions.stream()
-                .map(PrescriptionResponse::totalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        int totalPages = prescriptionPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
 
-        model.addAttribute("totalCount", totalCount);
-        model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("completedCount", completedCount);
-        model.addAttribute("totalValue", totalValue);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", prescriptionPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+
+        int windowStart, windowEnd;
+        if (page < 3) {
+            windowStart = 0;
+            windowEnd = Math.min(page + 2, totalPages - 1);
+        } else if (page >= totalPages - 3) {
+            windowStart = Math.max(0, page - 2);
+            windowEnd = totalPages - 1;
+        } else {
+            windowStart = page - 2;
+            windowEnd = page + 2;
+        }
+
+        model.addAttribute("windowStart", windowStart);
+        model.addAttribute("windowEnd", windowEnd);
+
+        var stats = prescriptionService.getPrescriptionStats(principal);
+        model.addAttribute("totalCount", stats.totalCount());
+        model.addAttribute("pendingCount", stats.pendingCount());
+        model.addAttribute("completedCount", stats.completedCount());
+        model.addAttribute("totalValue", stats.totalValue());
+        
         model.addAttribute("activePage", "prescriptions");
 
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {

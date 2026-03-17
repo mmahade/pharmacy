@@ -81,7 +81,7 @@ public class DashboardService {
                                                                 b.getExpiryDate())))
                                 .toList();
 
-                List<PrescriptionResponse> recentPrescriptions = prescriptionService.listPrescriptions(principal)
+                List<PrescriptionResponse> recentPrescriptions = prescriptionService.listPrescriptionsPaginated(principal,0,10)
                                 .stream()
                                 .limit(5)
                                 .toList();

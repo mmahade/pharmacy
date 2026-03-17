@@ -5,6 +5,7 @@ import com.pharmacy.dto.PrescriptionItemRequest;
 import com.pharmacy.dto.PrescriptionItemResponse;
 import com.pharmacy.dto.PrescriptionRequest;
 import com.pharmacy.dto.PrescriptionResponse;
+import com.pharmacy.dto.PrescriptionStatsResponse;
 import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
 import com.pharmacy.repository.PrescriptionRepository;
@@ -12,6 +13,8 @@ import com.pharmacy.repository.SaleTransactionRepository;
 import com.pharmacy.repository.StockBatchRepository;
 import com.pharmacy.security.AppUserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -34,20 +37,30 @@ public class PrescriptionService {
     private final SaleTransactionRepository saleTransactionRepository;
     private final TenantAccessService tenantAccessService;
 
-    public List<PrescriptionResponse> listPrescriptions(AppUserPrincipal principal) {
+    public Page<PrescriptionResponse> listPrescriptionsPaginated(AppUserPrincipal principal, int page, int size) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-        return prescriptionRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        var pageable = PageRequest.of(page, size);
+        return prescriptionRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy, pageable)
+                .map(this::toResponse);
     }
 
-    public List<PrescriptionResponse> searchPrescriptions(AppUserPrincipal principal, String query) {
+    public Page<PrescriptionResponse> searchPrescriptionsPaginated(AppUserPrincipal principal, String query, int page, int size) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
-        return prescriptionRepository.searchByPharmacy(pharmacy, query)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        if (query == null || query.isBlank()) {
+            return Page.empty();
+        }
+        var pageable = PageRequest.of(page, size);
+        return prescriptionRepository.searchByPharmacy(pharmacy, query.trim(), pageable)
+                .map(this::toResponse);
+    }
+
+    public PrescriptionStatsResponse getPrescriptionStats(AppUserPrincipal principal) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        long totalCount = prescriptionRepository.countByPharmacyId(pharmacy.getId());
+        long pendingCount = prescriptionRepository.countByPharmacyAndStatus(pharmacy, PrescriptionStatus.PENDING);
+        long completedCount = prescriptionRepository.countByPharmacyAndStatus(pharmacy, PrescriptionStatus.COMPLETED);
+        BigDecimal totalValue = prescriptionRepository.sumTotalValueByPharmacy(pharmacy);
+        return new PrescriptionStatsResponse(totalCount, pendingCount, completedCount, totalValue);
     }
 
     public PrescriptionResponse getPrescription(AppUserPrincipal principal, Long id) {
@@ -163,7 +176,7 @@ public class PrescriptionService {
         sale.setPharmacy(pharmacy);
         sale.setCreatedBy(currentUser);
         sale.setPrescription(prescription);
-        sale.setSaleNumber(nextSaleNumber(pharmacy.getName()));
+        sale.setSaleNumber(nextSaleNumber(pharmacy));
         sale.setSaleDate(LocalDate.now());
         sale.setPaymentMethod(method);
         sale.setTotal(prescription.getTotalAmount());
@@ -245,13 +258,9 @@ public class PrescriptionService {
         return toResponse(prescription);
     }
 
-    private String nextSaleNumber(String pharmacyName) {
-        String suffix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String pharmacyCode = pharmacyName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        if (pharmacyCode.length() > 4) {
-            pharmacyCode = pharmacyCode.substring(0, 4);
-        }
-        return "S-" + pharmacyCode + "-" + suffix + "-" + System.currentTimeMillis() % 10000;
+    private String nextSaleNumber(Pharmacy pharmacy) {
+        long count = saleTransactionRepository.countByPharmacy(pharmacy);
+        return String.valueOf(count + 1);
     }
 
     private String nextPrescriptionNumber(Pharmacy pharmacy) {

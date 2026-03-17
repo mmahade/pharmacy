@@ -377,6 +377,96 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination (Matching Medicines Design) -->
+                    <div th:if="${totalPages != null and totalPages > 1}"
+                        class="flex items-center justify-between bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm mt-6 no-print">
+                        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">
+                                    Showing
+                                    <span class="font-bold text-slate-900" th:text="${currentPage * pageSize + 1}">1</span>
+                                    –
+                                    <span class="font-bold text-slate-900" th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">10</span>
+                                    of
+                                    <span class="font-bold text-blue-600" th:text="${totalItems}">100</span>
+                                    prescriptions
+                                </p>
+                            </div>
+                            <nav class="inline-flex items-center gap-1.5" aria-label="Pagination">
+                                <!-- Previous Button -->
+                                <a th:if="${currentPage > 0}"
+                                    th:href="@{/prescriptions(page=${currentPage - 1}, q=${searchQuery})}"
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 bg-white border border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm">
+                                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                                </a>
+                                <span th:if="${currentPage == 0}"
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-200 bg-gray-50 border border-slate-100 cursor-not-allowed">
+                                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                                </span>
+
+                                <!-- First Page -->
+                                <th:block th:if="${windowStart > 0}">
+                                    <a th:href="@{/prescriptions(page=0, q=${searchQuery})}"
+                                        class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-blue-50 transition-all shadow-sm">1</a>
+                                    <span th:if="${windowStart > 1}"
+                                        class="px-1 text-sm font-bold text-slate-400">···</span>
+                                </th:block>
+
+                                <!-- Page Numbers (Window) -->
+                                <th:block th:each="i : ${#numbers.sequence(windowStart, windowEnd)}">
+                                    <a th:href="@{/prescriptions(page=${i}, q=${searchQuery})}" th:text="${i + 1}"
+                                        th:class="${currentPage == i
+                                            ? 'w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-white gradient-blue shadow-md shadow-blue-500/20'
+                                            : 'w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-blue-50 transition-all shadow-sm'}">1</a>
+                                </th:block>
+
+                                <!-- Last Page & Ellipses -->
+                                <th:block th:if="${windowEnd < totalPages - 1}">
+                                    <span th:if="${windowEnd < totalPages - 2}"
+                                        class="px-1 text-sm font-bold text-slate-400">···</span>
+                                    <a th:href="@{/prescriptions(page=${totalPages - 1}, q=${searchQuery})}"
+                                        th:text="${totalPages}"
+                                        class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-blue-50 transition-all shadow-sm">10</a>
+                                </th:block>
+
+                                <!-- Next Button -->
+                                <a th:if="${currentPage < totalPages - 1}"
+                                    th:href="@{/prescriptions(page=${currentPage + 1}, q=${searchQuery})}"
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 bg-white border border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm">
+                                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                                </a>
+                                <span th:if="${currentPage == totalPages - 1}"
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-200 bg-gray-50 border border-slate-100 cursor-not-allowed">
+                                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                                </span>
+                            </nav>
+                        </div>
+
+                        <!-- Mobile pagination version -->
+                        <div class="flex flex-1 items-center justify-between sm:hidden">
+                            <a th:if="${currentPage > 0}"
+                                th:href="@{/prescriptions(page=${currentPage - 1}, q=${searchQuery})}"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i> Prev
+                            </a>
+                            <span th:if="${currentPage == 0}"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-gray-50 border border-slate-100 rounded-xl cursor-not-allowed">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i> Prev
+                            </span>
+                            <span class="text-sm font-bold text-slate-500"
+                                th:text="${currentPage + 1} + ' / ' + ${totalPages}">1 / 10</span>
+                            <a th:if="${currentPage < totalPages - 1}"
+                                th:href="@{/prescriptions(page=${currentPage + 1}, q=${searchQuery})}"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm">
+                                Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </a>
+                            <span th:if="${currentPage == totalPages - 1}"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-gray-50 border border-slate-100 rounded-xl cursor-not-allowed">
+                                Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
             </main>

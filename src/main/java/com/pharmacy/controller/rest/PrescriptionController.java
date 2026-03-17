@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,10 +23,17 @@ public class PrescriptionController {
 
     private final PrescriptionService prescriptionService;
 
-    @Operation(summary = "List prescriptions", description = "Returns all prescriptions for the pharmacy.")
+    @Operation(summary = "List prescriptions", description = "Returns paginated prescriptions for the pharmacy.")
     @GetMapping
-    public List<PrescriptionResponse> list(@AuthenticationPrincipal AppUserPrincipal principal) {
-        return prescriptionService.listPrescriptions(principal);
+    public Page<PrescriptionResponse> list(
+            @AuthenticationPrincipal AppUserPrincipal principal,
+            @RequestParam(name = "q", required = false) String query,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        if (query != null && !query.isEmpty()) {
+            return prescriptionService.searchPrescriptionsPaginated(principal, query, page, size);
+        }
+        return prescriptionService.listPrescriptionsPaginated(principal, page, size);
     }
 
     @Operation(summary = "Get prescription", description = "Returns the full details of a single prescription.")
