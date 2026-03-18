@@ -5,6 +5,9 @@ import com.pharmacy.dto.PrescriptionItemRequest;
 import com.pharmacy.dto.PrescriptionItemResponse;
 import com.pharmacy.dto.PrescriptionRequest;
 import com.pharmacy.dto.PrescriptionResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.pharmacy.dto.PrescriptionStats;
 import com.pharmacy.dto.PrescriptionStatsResponse;
 import com.pharmacy.entity.*;
 import com.pharmacy.repository.MedicineRepository;
@@ -49,18 +52,33 @@ public class PrescriptionService {
         if (query == null || query.isBlank()) {
             return Page.empty();
         }
-        var pageable = PageRequest.of(page, size);
-        return prescriptionRepository.searchByPharmacy(pharmacy, query.trim(), pageable)
+        return prescriptionRepository.searchByPharmacy(pharmacy, query, org.springframework.data.domain.PageRequest.of(page, size))
                 .map(this::toResponse);
     }
 
-    public PrescriptionStatsResponse getPrescriptionStats(AppUserPrincipal principal) {
+    public PrescriptionStats getPrescriptionStats(AppUserPrincipal principal) {
         Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
         long totalCount = prescriptionRepository.countByPharmacyId(pharmacy.getId());
         long pendingCount = prescriptionRepository.countByPharmacyAndStatus(pharmacy, PrescriptionStatus.PENDING);
         long completedCount = prescriptionRepository.countByPharmacyAndStatus(pharmacy, PrescriptionStatus.COMPLETED);
         BigDecimal totalValue = prescriptionRepository.sumTotalValueByPharmacy(pharmacy);
-        return new PrescriptionStatsResponse(totalCount, pendingCount, completedCount, totalValue);
+        return new PrescriptionStats(totalCount, pendingCount, completedCount, totalValue != null ? totalValue : BigDecimal.ZERO);
+    }
+
+    public List<PrescriptionResponse> listPrescriptions(AppUserPrincipal principal) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        return prescriptionRepository.findByPharmacyOrderByCreatedAtDesc(pharmacy)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<PrescriptionResponse> searchPrescriptions(AppUserPrincipal principal, String query) {
+        Pharmacy pharmacy = tenantAccessService.currentPharmacy(principal);
+        return prescriptionRepository.searchByPharmacy(pharmacy, query)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public PrescriptionResponse getPrescription(AppUserPrincipal principal, Long id) {

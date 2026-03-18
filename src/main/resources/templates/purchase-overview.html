@@ -251,6 +251,9 @@
                                                 <td class="px-4 py-3 text-sm font-bold text-gray-900">
                                                     <div class="flex flex-col">
                                                     <span>$<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></span>
+                                                    <span th:if="${order.amountPaid < order.totalAmount and order.status.name() != 'DRAFT' and order.status.name() != 'CANCELLED'}" 
+                                                          class="text-[10px] font-bold text-rose-500" 
+                                                          th:text="${'Due: $' + #numbers.formatDecimal(order.totalAmount - order.amountPaid, 1, 2)}">Due: $0.00</span>
                                                     </div>
                                                 </td>
                                                 <td class="px-4 py-3">
@@ -286,6 +289,14 @@
                                                            title="View Details">
                                                             <i data-lucide="eye" class="w-4 h-4"></i>
                                                         </a>
+                                                        <!-- Pay Due Button -->
+                                                        <button type="button" th:if="${order.amountPaid < order.totalAmount and order.status.name() != 'DRAFT' and order.status.name() != 'CANCELLED'}" 
+                                                            th:attr="data-id=${order.id}, data-due=${order.totalAmount - order.amountPaid}"
+                                                            onclick="event.stopPropagation(); payDuePurchaseOrder(this.dataset.id, this.dataset.due)"
+                                                            class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all border border-slate-100 bg-white"
+                                                            title="Add Payment">
+                                                            <i data-lucide="wallet" class="w-4 h-4"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -406,8 +417,72 @@
             </div>
         </div>
 
+    <!-- Pay Due Modal -->
+    <div id="payDueModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm no-print">
+        <form id="payDueForm" method="post" action="" class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Pay Due Amount</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Record payment for outstanding balance.</p>
+                </div>
+            </div>
+
+            <div class="space-y-5 mb-8">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Balance</span>
+                    <span id="modalDueBalance" class="text-lg font-black text-slate-900">$0.00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Method</label>
+                        <select name="paymentMethod" class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-800 transition-all appearance-none cursor-pointer text-sm">
+                            <option value="CASH">Cash</option>
+                            <option value="CREDIT_CARD">Credit Card</option>
+                            <option value="MOBILE_BANKING">Mobile Banking</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Amount</label>
+                        <div class="relative">
+                            <input type="number" name="amount" id="modalPayDueAmount" step="0.01" required class="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 transition-all text-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reference (Optional)</label>
+                    <input type="text" name="reference" placeholder="e.g. TRX-123" class="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-medium text-slate-800 transition-all text-sm" />
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closePayDueModal()" class="flex-1 py-3 border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 py-3 gradient-blue text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all active:scale-95">
+                    Confirm Payment
+                </button>
+            </div>
+        </form>
+    </div>
+
     <script>
         lucide.createIcons();
+
+        function payDuePurchaseOrder(id, dueAmount) {
+            document.getElementById('modalDueBalance').textContent = '$' + parseFloat(dueAmount).toFixed(2);
+            document.getElementById('modalPayDueAmount').value = dueAmount;
+            document.getElementById('payDueForm').action = '/purchase-orders/' + id + '/payments';
+            document.getElementById('payDueModal').classList.remove('hidden');
+        }
+
+        function closePayDueModal() {
+            document.getElementById('payDueModal').classList.add('hidden');
+        }
     </script>
 </body>
 

@@ -378,12 +378,6 @@
                         </table>
                     </div>
 
-                    <!-- Pagination (Matching Medicines Design) -->
-                    <div th:if="${totalPages != null and totalPages > 1}"
-                        class="flex items-center justify-between bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm mt-6 no-print">
-                        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium">
                                     Showing
                                     <span class="font-bold text-slate-900" th:text="${currentPage * pageSize + 1}">1</span>
                                     –

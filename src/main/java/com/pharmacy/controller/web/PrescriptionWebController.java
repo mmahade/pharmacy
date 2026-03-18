@@ -30,43 +30,38 @@ public class PrescriptionWebController {
     @GetMapping
     public String listPrescriptions(@AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(name = "q", required = false) String query,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(defaultValue = "0") int page,
             Model model,
-            HttpServletRequest request) {
-        Page<PrescriptionResponse> prescriptionPage;
+            jakarta.servlet.http.HttpServletRequest request) {
+        int pageSize = 10;
+        org.springframework.data.domain.Page<PrescriptionResponse> prescriptionsPage;
+
         if (query != null && !query.isEmpty()) {
-            prescriptionPage = prescriptionService.searchPrescriptionsPaginated(principal, query, page, size);
+            prescriptionsPage = prescriptionService.searchPrescriptionsPaginated(principal, query, page, pageSize);
             model.addAttribute("searchQuery", query);
         } else {
-            prescriptionPage = prescriptionService.listPrescriptionsPaginated(principal, page, size);
+            prescriptionsPage = prescriptionService.listPrescriptionsPaginated(principal, page, pageSize);
         }
-        model.addAttribute("prescriptions", prescriptionPage.getContent());
-
-        int totalPages = prescriptionPage.getTotalPages();
-        if (totalPages == 0) totalPages = 1;
-
+        model.addAttribute("prescriptions", prescriptionsPage.getContent());
         model.addAttribute("currentPage", page);
+        
+        int totalPages = prescriptionsPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
         model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalItems", prescriptionPage.getTotalElements());
-        model.addAttribute("pageSize", size);
-
-        int windowStart, windowEnd;
-        if (page < 3) {
-            windowStart = 0;
-            windowEnd = Math.min(page + 2, totalPages - 1);
-        } else if (page >= totalPages - 3) {
-            windowStart = Math.max(0, page - 2);
-            windowEnd = totalPages - 1;
-        } else {
-            windowStart = page - 2;
-            windowEnd = page + 2;
+        model.addAttribute("totalItems", prescriptionsPage.getTotalElements());
+        model.addAttribute("pageSize", pageSize);
+        
+        int windowStart = Math.max(0, page - 2);
+        int windowEnd = Math.min(totalPages - 1, page + 2);
+        if (windowEnd - windowStart < 4 && totalPages >= 5) {
+            if (windowStart == 0) windowEnd = 4;
+            else windowStart = totalPages - 5;
         }
 
         model.addAttribute("windowStart", windowStart);
         model.addAttribute("windowEnd", windowEnd);
 
-        var stats = prescriptionService.getPrescriptionStats(principal);
+        com.pharmacy.dto.PrescriptionStats stats = prescriptionService.getPrescriptionStats(principal);
         model.addAttribute("totalCount", stats.totalCount());
         model.addAttribute("pendingCount", stats.pendingCount());
         model.addAttribute("completedCount", stats.completedCount());
