@@ -254,16 +254,30 @@ public class PurchaseOrderService {
             po.setDiscountPercentage(request.discountPercentage());
         }
 
+        boolean allReceived = po.getItems().stream().allMatch(i -> i.getQuantityReceived() >= i.getQuantityOrdered());
+        boolean finalize = Boolean.TRUE.equals(request.finalizeOrder());
+
+        if (finalize && !allReceived) {
+            BigDecimal newTotal = BigDecimal.ZERO;
+            for (PurchaseOrderItem item : po.getItems()) {
+                BigDecimal updatedLineTotal = item.getUnitCostPrice().multiply(BigDecimal.valueOf(item.getQuantityReceived()));
+                item.setLineTotal(updatedLineTotal);
+                newTotal = newTotal.add(updatedLineTotal);
+            }
+            po.setTotalAmount(newTotal);
+        }
+
         // Process payments if provided during receiving
         BigDecimal totalPayment = request.totalPaymentAmount() != null ? request.totalPaymentAmount() : BigDecimal.ZERO;
 
         if (totalPayment.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal balanceDue = po.getTotalAmount().subtract(po.getAmountPaid()).subtract(po.getDiscountAmount());
+            BigDecimal discountAmt = po.getDiscountAmount() != null ? po.getDiscountAmount() : BigDecimal.ZERO;
+            BigDecimal balanceDue = po.getTotalAmount().subtract(po.getAmountPaid()).subtract(discountAmt);
             if (totalPayment.compareTo(balanceDue) > 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Total payment amount " + totalPayment + " exceeds balance due " + balanceDue
                                 + " (Total: " + po.getTotalAmount() + ", Paid: " + po.getAmountPaid()
-                                + ", Discount: " + po.getDiscountAmount() + ")");
+                                + ", Discount: " + discountAmt + ")");
             }
 
             PurchasePayment payment = new PurchasePayment();
@@ -279,8 +293,6 @@ public class PurchaseOrderService {
         // Determine final status:
         //   - If user explicitly chose "finalize / close order" → RECEIVED regardless of shortfall
         //   - Otherwise: RECEIVED only when every line is fully delivered
-        boolean allReceived = po.getItems().stream().allMatch(i -> i.getQuantityReceived() >= i.getQuantityOrdered());
-        boolean finalize = Boolean.TRUE.equals(request.finalizeOrder());
         po.setStatus((allReceived || finalize) ? PurchaseOrderStatus.RECEIVED : PurchaseOrderStatus.PARTIALLY_RECEIVED);
         return toResponse(purchaseOrderRepository.save(po));
     }
