@@ -17,5 +17,6 @@ public record PurchaseOrderResponse(
         Instant createdAt,
         Long supplierId,
         String supplierName,
+        String notes,
         List<PurchaseOrderItemResponse> items) {
 }

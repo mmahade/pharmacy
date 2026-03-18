@@ -10,11 +10,13 @@ import jakarta.validation.Valid;
 import com.pharmacy.service.InventoryService;
 import com.pharmacy.service.SupplierService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -27,21 +29,58 @@ public class PurchaseOrderWebController {
     private final InventoryService inventoryService;
 
     @GetMapping("/overview")
-    public String overview(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        List<PurchaseOrderResponse> purchaseOrders = purchaseOrderService.list(principal);
+    public String overview(@AuthenticationPrincipal AppUserPrincipal principal,
+                           @RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "25") int size,
+                           @RequestParam(required = false) String status,
+                           @RequestParam(required = false) String query,
+                           Model model) {
+        Page<PurchaseOrderResponse> poPage =
+            purchaseOrderService.listPaginated(principal, page, size, status, query);
 
-        long totalOrders = purchaseOrders.size();
-        long pendingOrders = purchaseOrders.stream().filter(po -> po.status().name().equals("SUBMITTED")).count();
-        long receivedOrders = purchaseOrders.stream().filter(po -> po.status().name().equals("RECEIVED")).count();
-        java.math.BigDecimal totalValue = purchaseOrders.stream()
+        // Stats calculation using full list
+        List<PurchaseOrderResponse> allOrders = purchaseOrderService.all(principal);
+        long totalOrders = allOrders.size();
+        long draftOrders = allOrders.stream().filter(po -> po.status().name().equals("DRAFT")).count();
+        long orderedOrders = allOrders.stream().filter(po -> po.status().name().equals("ORDERED")).count();
+        long partialReceivedOrders = allOrders.stream().filter(po -> po.status().name().equals("PARTIALLY_RECEIVED")).count();
+        long receivedOrders = allOrders.stream().filter(po -> po.status().name().equals("RECEIVED")).count();
+
+        BigDecimal totalValue = allOrders.stream()
                 .map(PurchaseOrderResponse::totalAmount)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         model.addAttribute("totalOrders", totalOrders);
-        model.addAttribute("pendingOrders", pendingOrders);
+        model.addAttribute("draftOrders", draftOrders);
+        model.addAttribute("orderedOrders", orderedOrders);
+        model.addAttribute("partialReceivedOrders", partialReceivedOrders);
         model.addAttribute("receivedOrders", receivedOrders);
         model.addAttribute("totalValue", totalValue);
-        model.addAttribute("recentOrders", purchaseOrders.stream().limit(5).toList());
+        
+        int totalPages = poPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+
+        model.addAttribute("purchaseOrders", poPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", poPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("currentStatus", status != null ? status : "ALL");
+        model.addAttribute("currentQuery", query);
+
+        int windowStart, windowEnd;
+        if (page < 3) {
+            windowStart = 0;
+            windowEnd = Math.min(page + 2, totalPages - 1);
+        } else if (page >= totalPages - 3) {
+            windowStart = Math.max(0, page - 2);
+            windowEnd = totalPages - 1;
+        } else {
+            windowStart = page - 2;
+            windowEnd = page + 2;
+        }
+        model.addAttribute("windowStart", windowStart);
+        model.addAttribute("windowEnd", windowEnd);
 
         return "purchase-overview";
     }
@@ -54,10 +93,13 @@ public class PurchaseOrderWebController {
     }
 
     @GetMapping
-    public String listPurchaseOrders(@AuthenticationPrincipal AppUserPrincipal principal, Model model) {
-        List<PurchaseOrderResponse> purchaseOrders = purchaseOrderService.list(principal);
-        model.addAttribute("purchaseOrders", purchaseOrders);
-        return "purchase-orders";
+    public String listPurchaseOrders(@AuthenticationPrincipal AppUserPrincipal principal,
+                                     @RequestParam(defaultValue = "0") int page,
+                                     @RequestParam(defaultValue = "25") int size,
+                                     @RequestParam(required = false) String status,
+                                     @RequestParam(required = false) String query,
+                                     Model model) {
+        return overview(principal, page, size, status, query, model);
     }
 
     @GetMapping("/{id}")

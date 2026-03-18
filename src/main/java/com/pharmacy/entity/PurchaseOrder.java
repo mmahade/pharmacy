@@ -57,6 +57,15 @@ public class PurchaseOrder {
     @OneToMany(mappedBy = "purchaseOrder", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<PurchasePayment> payments = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal discountPercentage = BigDecimal.ZERO;
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();

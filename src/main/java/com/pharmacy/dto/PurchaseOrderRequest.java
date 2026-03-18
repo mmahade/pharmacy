@@ -10,5 +10,6 @@ import java.util.List;
 public record PurchaseOrderRequest(
         @NotNull Long supplierId,
         LocalDate orderDate,
+        String notes,
         @NotEmpty(message = "At least one item required") List<@Valid PurchaseOrderItemRequest> items) {
 }

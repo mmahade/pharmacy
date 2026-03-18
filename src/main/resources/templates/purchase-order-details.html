@@ -124,7 +124,7 @@
                         <form th:if="${purchaseOrder.status.name() == 'DRAFT'}"
                             th:action="@{/purchase-orders/{id}/submit(id=${purchaseOrder.id})}" method="post">
                             <button type="submit"
-                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-100 transition-all font-bold">
                                 <i data-lucide="send" class="w-5 h-5"></i>
                                 Submit Order
                             </button>
@@ -133,7 +133,7 @@
                         <button
                             th:if="${purchaseOrder.status.name() == 'DRAFT' or purchaseOrder.status.name() == 'ORDERED'}"
                             type="button" onclick="document.getElementById('cancelModal').classList.remove('hidden')"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium">
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-500 text-white rounded-xl hover:bg-rose-600 hover:shadow-lg hover:shadow-rose-100 transition-all font-bold">
                             <i data-lucide="x-circle" class="w-5 h-5"></i>
                             Cancel Order
                         </button>
@@ -141,7 +141,7 @@
                         <button
                             th:if="${purchaseOrder.status.name() == 'ORDERED' or purchaseOrder.status.name() == 'PARTIALLY_RECEIVED'}"
                             type="button" onclick="document.getElementById('receiveModal').classList.remove('hidden')"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-100 transition-all font-bold">
                             <i data-lucide="check-circle" class="w-5 h-5"></i>
                             Receive Order
                         </button>
@@ -211,6 +211,17 @@
                     </div>
                 </div>
 
+                <!-- Additional Information / Notes -->
+                <div th:if="${purchaseOrder.notes != null and !purchaseOrder.notes.isEmpty()}" class="card p-6 border-gray-200">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                        <h2 class="text-xl font-bold text-gray-900">Additional Information</h2>
+                    </div>
+                    <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                        <p class="text-gray-700 whitespace-pre-wrap" th:text="${purchaseOrder.notes}">No additional notes.</p>
+                    </div>
+                </div>
+
                 <!-- Order Items -->
                 <div class="card p-6 border-gray-200">
                     <h2 class="text-xl font-bold text-gray-900 mb-6">Order Items</h2>
@@ -261,12 +272,6 @@
                             <h2 class="text-xl font-bold text-gray-900">Payment</h2>
                             <p class="text-sm text-gray-500">Track payments made to the supplier for this order.</p>
                         </div>
-                        <div class="text-right">
-                            <div class="text-sm text-gray-500">Balance Due</div>
-                            <div class="text-2xl font-bold text-gray-900">$<span
-                                    th:text="${purchaseOrder.totalAmount.subtract(purchaseOrder.amountPaid)}">0.00</span>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -280,54 +285,19 @@
                             <div class="text-lg font-bold text-emerald-800 mt-1">$<span
                                     th:text="${purchaseOrder.amountPaid}">0.00</span></div>
                         </div>
-                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-lg">
-                            <div class="text-xs font-semibold text-amber-700 uppercase tracking-widest">Due</div>
-                            <div class="text-lg font-bold text-amber-800 mt-1">$<span
-                                    th:text="${purchaseOrder.totalAmount.subtract(purchaseOrder.amountPaid)}">0.00</span>
-                            </div>
-                        </div>
                     </div>
 
                     <div th:if="${purchaseOrder.status.name() == 'ORDERED'}"
-                        class="p-5 border border-gray-100 rounded-xl bg-white">
-                        <h3 class="text-sm font-bold text-gray-900 mb-4">Record a Payment</h3>
-                        <form th:action="@{/purchase-orders/{id}/payments(id=${purchaseOrder.id})}" method="post"
-                            class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Amount</label>
-                                <div class="relative">
-                                    <span
-                                        class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                                    <input type="number" name="amount" step="0.01" min="0.01" required
-                                        class="w-full pl-6 pr-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                </div>
+                        class="p-5 border border-blue-100 rounded-xl bg-blue-50/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Method</label>
-                                <select name="paymentMethod" required
-                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                    <option value="CASH">Cash</option>
-                                    <option value="CREDIT_CARD">Card</option>
-                                    <option value="MOBILE_BANKING">Mobile Banking</option>
-                                </select>
+                                <h3 class="text-sm font-bold text-blue-900">Payment During Receiving</h3>
+                                <p class="text-xs text-blue-700 mt-1">Payment fields are now integrated into the <strong>Receive Order</strong> process. Click the "Receive Order" button above to record payments.</p>
                             </div>
-                            <div class="md:col-span-1">
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Reference (Optional)</label>
-                                <input type="text" name="reference" maxlength="200"
-                                    placeholder="Cheque #, Transaction ID..."
-                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                            </div>
-                            <div class="md:col-span-1 flex md:justify-end">
-                                <button type="submit"
-                                    class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                                    <i data-lucide="credit-card" class="w-5 h-5"></i>
-                                    Add Payment
-                                </button>
-                            </div>
-                        </form>
-                        <p class="text-xs text-gray-400 mt-3">
-                            You can add multiple payments until the balance due becomes 0.
-                        </p>
+                        </div>
                     </div>
 
                     <div th:unless="${purchaseOrder.status.name() == 'ORDERED'}" class="text-sm text-gray-500">
@@ -346,48 +316,150 @@
 
     <!-- Receive Modal -->
     <div id="receiveModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div class="card max-w-md w-full p-6 border-gray-200 shadow-lg">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">Receive Purchase Order</h3>
-            <p class="text-gray-500 mb-6">
-                Are you sure you want to mark this purchase order as received? This will update the inventory stock
-                levels.
-            </p>
-            <form th:action="@{/purchase-orders/{id}/receive(id=${purchaseOrder.id})}" method="post">
-                <div class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+        <div class="card max-w-4xl w-full p-8 border-gray-200 shadow-xl">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Receive Purchase Order</h3>
+                    <p class="text-sm text-gray-500 mt-1">Update inventory and record payments for received items.</p>
+                </div>
+                <button type="button" onclick="document.getElementById('receiveModal').classList.add('hidden')"
+                    class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-400"></i>
+                </button>
+            </div>
+            <form th:action="@{/purchase-orders/{id}/receive(id=${purchaseOrder.id})}" method="post" id="receiveForm">
+                <!-- Hidden field: set by JS based on user choice -->
+                <input type="hidden" name="finalizeOrder" id="finalizeOrderInput" value="false" />
+
+                <!-- Item rows -->
+                <div class="space-y-3 mb-5 max-h-[45vh] overflow-y-auto pr-1" id="itemRows">
                     <div th:each="item, stat : ${purchaseOrder.items}"
-                        class="p-4 border border-gray-100 bg-gray-50 rounded-lg">
-                        <h4 class="font-semibold text-gray-900 mb-3" th:text="${item.medicineName}">Medicine
-                            Name</h4>
+                         class="p-4 bg-gray-50 border border-gray-100 rounded-xl"
+                         th:attr="data-ordered=${item.quantityOrdered - item.quantityReceived}">
+
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold text-gray-900 text-sm" th:text="${item.medicineName}">Medicine</h4>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                Already received: <span class="text-gray-700"
+                                    th:text="${item.quantityReceived}">0</span> /
+                                <span th:text="${item.quantityOrdered}">0</span>
+                            </span>
+                        </div>
 
                         <input type="hidden" th:name="'lines[' + ${stat.index} + '].purchaseOrderItemId'"
                             th:value="${item.id}" />
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                            <!-- Qty received -->
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Qty Received <span
-                                        class="text-xs text-gray-400 font-normal">(Ordered: <span
-                                            th:text="${item.quantityOrdered}">0</span>)</span></label>
-                                <input type="number" th:name="'lines[' + ${stat.index} + '].quantityReceived'"
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                                    Qty Receiving Now
+                                    <span class="text-indigo-500 font-bold">
+                                        (max <span th:text="${item.quantityOrdered - item.quantityReceived}">0</span>)
+                                    </span>
+                                </label>
+                                <input type="number"
+                                    th:name="'lines[' + ${stat.index} + '].quantityReceived'"
                                     th:max="${item.quantityOrdered - item.quantityReceived}"
-                                    th:value="${item.quantityOrdered - item.quantityReceived}" min="1" required
-                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    th:value="${item.quantityOrdered - item.quantityReceived}"
+                                    min="0"
+                                    class="qty-input w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium transition-all">
                             </div>
+                            <!-- Expiry date -->
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Expiry Date</label>
-                                <input type="date" th:name="'lines[' + ${stat.index} + '].expiryDate'"
-                                    class="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                                    Expiry Date <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" th:name="'lines[' + ${stat.index} + '].expiryDate'" required
+                                    class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition-all">
                             </div>
+                            <!-- Line preview -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Line Value</label>
+                                <div class="flex items-center gap-1.5 px-3 py-2.5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                                    <span class="text-xs font-bold text-indigo-600">$</span>
+                                    <span class="text-sm font-black text-indigo-700 line-value-display"
+                                        th:text="${item.unitCostPrice * (item.quantityOrdered - item.quantityReceived)}">0.00</span>
+                                    <input type="hidden" class="line-unit-cost" th:value="${item.unitCostPrice}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shortfall warning for this row -->
+                        <div class="shortfall-badge mt-2.5 hidden flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span class="shortfall-text"></span>
                         </div>
                     </div>
                 </div>
+
+                <!-- ─── Live Decision Panel (hidden until shortfall detected) ─── -->
+                <div id="decisionPanel" class="hidden mb-5">
+                    <!-- Summary row -->
+                    <div class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl mb-4">
+                        <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <i data-lucide="package-open" class="w-4.5 h-4.5 text-amber-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-black text-slate-700">Partial Delivery Detected</p>
+                            <p class="text-[11px] text-slate-500 mt-0.5" id="summaryLine">
+                                Some items are short. How would you like to proceed?
+                            </p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-xs text-slate-400 font-medium">Shortfall</div>
+                            <div class="text-sm font-black text-amber-600" id="shortfallCount">0 units</div>
+                        </div>
+                    </div>
+
+                    <!-- Two option cards -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Option A: Wait -->
+                        <label id="optionWaitCard"
+                               class="option-card cursor-pointer rounded-xl border-2 border-indigo-500 bg-indigo-50/60 p-4 transition-all">
+                            <input type="radio" name="receiveOption" value="wait" class="hidden" checked>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-indigo-800">Wait for Remaining</p>
+                                    <p class="text-[11px] text-indigo-600 font-medium mt-0.5 leading-snug">
+                                        Save as <strong>Partially Received</strong>. The order stays open; receive the rest later.
+                                    </p>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Option B: Close -->
+                        <label id="optionCloseCard"
+                               class="option-card cursor-pointer rounded-xl border-2 border-gray-200 bg-white p-4 transition-all hover:border-rose-300 hover:bg-rose-50/40">
+                            <input type="radio" name="receiveOption" value="finalize" class="hidden">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="circle-check-big" class="w-4 h-4 text-rose-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-rose-800">Close This Order</p>
+                                    <p class="text-[11px] text-rose-600 font-medium mt-0.5 leading-snug">
+                                        Mark as <strong>Received</strong> with what arrived. Shortfall will be written off.
+                                    </p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Actions -->
                 <div class="flex gap-3">
                     <button type="button" onclick="document.getElementById('receiveModal').classList.add('hidden')"
-                        class="flex-1 px-4 py-2.5 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">
+                        class="flex-1 px-4 py-2.5 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-colors font-bold text-gray-600 text-sm">
                         Cancel
                     </button>
-                    <button type="submit"
-                        class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                        Confirm Received
+                    <button type="submit" id="receiveSubmitBtn"
+                        class="flex-[2] px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-100 transition-all font-black text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span id="receiveSubmitLabel">Confirm Received</span>
                     </button>
                 </div>
             </form>
@@ -417,25 +489,105 @@
     </div>
 
     <script th:inline="javascript">
-        // Initialize Lucide icons
         lucide.createIcons();
 
         // User menu toggle
         const userMenuBtn = document.getElementById('userMenuBtn');
         const userMenu = document.getElementById('userMenu');
-
         if (userMenuBtn && userMenu) {
-            userMenuBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                userMenu.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
-                    userMenu.classList.add('hidden');
-                }
+            userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userMenu.classList.toggle('hidden'); });
+            document.addEventListener('click', e => {
+                if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) userMenu.classList.add('hidden');
             });
         }
+
+        // ─── Partial Receive Logic ───────────────────────────────────────────
+
+        const rows          = document.querySelectorAll('#itemRows > div[data-ordered]');
+        const decisionPanel = document.getElementById('decisionPanel');
+        const finalizeInput = document.getElementById('finalizeOrderInput');
+        const shortfallEl   = document.getElementById('shortfallCount');
+        const submitLabel   = document.getElementById('receiveSubmitLabel');
+        const submitBtn     = document.getElementById('receiveSubmitBtn');
+        const optionWait    = document.querySelector('input[value="wait"]');
+        const optionFin     = document.querySelector('input[value="finalize"]');
+        const cardWait      = document.getElementById('optionWaitCard');
+        const cardClose     = document.getElementById('optionCloseCard');
+
+        function refreshUI() {
+            let totalShortfall = 0;
+            let partialCount   = 0;
+
+            rows.forEach(row => {
+                const maxQty   = parseInt(row.dataset.ordered) || 0;
+                const qtyInput = row.querySelector('.qty-input');
+                const badge    = row.querySelector('.shortfall-badge');
+                const badgeTxt = row.querySelector('.shortfall-text');
+                const qty      = parseInt(qtyInput.value) || 0;
+                const short    = maxQty - qty;
+
+                // Update line value
+                const cost = parseFloat(row.querySelector('.line-unit-cost').value) || 0;
+                row.querySelector('.line-value-display').textContent = (qty * cost).toFixed(2);
+
+                // Highlight input if short
+                if (short > 0) {
+                    qtyInput.classList.add('border-amber-400', 'ring-1', 'ring-amber-300');
+                    qtyInput.classList.remove('border-gray-200');
+                    badge.classList.remove('hidden');
+                    badgeTxt.textContent = `${short} unit${short > 1 ? 's' : ''} not yet received from supplier`;
+                    totalShortfall += short;
+                    if (qty > 0) partialCount++;
+                } else {
+                    qtyInput.classList.remove('border-amber-400', 'ring-1', 'ring-amber-300');
+                    qtyInput.classList.add('border-gray-200');
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Show/hide decision panel
+            if (totalShortfall > 0) {
+                decisionPanel.classList.remove('hidden');
+                shortfallEl.textContent = totalShortfall + ' unit' + (totalShortfall > 1 ? 's' : '');
+            } else {
+                decisionPanel.classList.add('hidden');
+            }
+
+            // Apply the selected option
+            const isFinalize = optionFin.checked;
+            finalizeInput.value = isFinalize ? 'true' : 'false';
+
+            if (totalShortfall > 0 && isFinalize) {
+                submitLabel.textContent = 'Close Order Now';
+                submitBtn.className = 'flex-[2] px-6 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 hover:shadow-lg hover:shadow-rose-100 transition-all font-black text-sm flex items-center justify-center gap-2';
+            } else {
+                submitLabel.textContent = 'Confirm Received';
+                submitBtn.className = 'flex-[2] px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-100 transition-all font-black text-sm flex items-center justify-center gap-2';
+            }
+
+            lucide.createIcons();
+        }
+
+        // Option card styling toggle
+        [cardWait, cardClose].forEach(card => {
+            card.addEventListener('click', () => {
+                cardWait.classList.toggle('border-indigo-500', optionWait.checked);
+                cardWait.classList.toggle('bg-indigo-50/60', optionWait.checked);
+                cardWait.classList.toggle('border-gray-200', !optionWait.checked);
+                cardWait.classList.toggle('bg-white', !optionWait.checked);
+                cardClose.classList.toggle('border-rose-400', optionFin.checked);
+                cardClose.classList.toggle('bg-rose-50/40', optionFin.checked);
+                cardClose.classList.toggle('border-gray-200', !optionFin.checked);
+                cardClose.classList.toggle('bg-white', !optionFin.checked);
+                refreshUI();
+            });
+        });
+
+        // Qty input listeners
+        document.querySelectorAll('.qty-input').forEach(input => input.addEventListener('input', refreshUI));
+
+        // Run on load
+        refreshUI();
     </script>
 </body>
 
