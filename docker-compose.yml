@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root1234
+      POSTGRES_DB: pharmacy
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pharmacy-app:
+    image: 'asadullah1005/pharmacy:v.0.1'
+    container_name: pharmacy
+    ports:
+      - "5051:5051"
+    environment:
+      - SERVER_PORT=5051
+      - DB_URL=jdbc:postgresql://postgres_db:5432/pharmacy
+      - DB_USERNAME=root
+      - DB_PASSWORD=root1234
+      - JWT_SECRET=your-very-strong-secret-key-at-least-32-chars
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

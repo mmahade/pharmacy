@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+    <!-- 
+        Reusable Header Fragment
+        Usage:
+        <div th:replace="~{fragments/header :: header(~{::searchContent})}">
+            <div th:fragment="searchContent">
+                (Search Bar HTML goes here. Leave empty if no search is needed)
+            </div>
+        </div>
+    -->
+    <header th:fragment="header(searchContent)" class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm transition-all duration-300">
+        <div class="flex h-16 items-center gap-4 px-6 md:px-8">
+            <div class="flex-1 flex items-center gap-4">
+                <th:block th:replace="${searchContent}"></th:block>
+            </div>
+            
+            <div th:replace="~{fragments/navbar :: right_items}"></div>
+        </div>
+    </header>
+</body>
+</html>
